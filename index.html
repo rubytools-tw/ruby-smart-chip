@@ -2075,8 +2075,8 @@ function render(){
   const valid=on&&!busy&&s.session_status==='active'&&!s.round_offer&&!!q;
   $('#session-label').textContent=on?(s.session_status==='active'?'計畫執行中':s.session_status==='settled'?'已結算':'暫停中'):'未開始';
   $('#quote-state').textContent=q?'可試算':'無下局注碼';
-  $('#per-code').textContent=q?money(q.per):'—';
-  $('#total-stake').textContent=q?money(q.total):'—';
+  $('#per-code').textContent=q?fmt(q.per,0):'—';
+  $('#total-stake').textContent=q?fmt(q.total,0):'—';
   $('#available').textContent=on?fmt(data.available,1):'—';
   $('#stage-label').textContent=on?(data.position||`第 ${s.round_id||1} 輪`):'—';
   const batch=batchInfo(s||{planned_rounds:planned});$('#round-count').textContent=`${batch.count} / ${batch.size} · #${batch.index}`;
