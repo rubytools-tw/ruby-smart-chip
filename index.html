@@ -168,6 +168,89 @@ body[data-font-size="small"]{--font-multiplier:.90}body[data-font-size="medium"]
 #quick-amount:focus-visible{outline:2px solid #7fefff;outline-offset:2px}
 @media(max-width:355px){.ring-panel.compact .ring-body{grid-template-columns:minmax(0,41%) minmax(0,1fr);column-gap:4px}.ring-panel.compact svg{max-width:117px!important}.quote-title-actions{gap:3px}#quick-amount{padding:5px;font-size:9px}}
 @media(prefers-reduced-motion:reduce){.ring-halo,.ring-tip,.ruby-ring-orbit{animation:none!important}.ring-panel .ring{filter:none!important}.ring-halo{opacity:.25!important}}
+
+/* V0.1.2 accessibility typography repair: text scale only, no card geometry changes. */
+body[data-font-size="small"]{
+  --ruby-fs-label:12px;--ruby-fs-value:13px;--ruby-fs-title:15px;
+  --ruby-fs-action:14px;--ruby-fs-note:11px;--ruby-fs-ring:30px;--ruby-fs-money:29px;
+}
+body[data-font-size="medium"]{
+  --ruby-fs-label:13px;--ruby-fs-value:15px;--ruby-fs-title:17px;
+  --ruby-fs-action:15px;--ruby-fs-note:12px;--ruby-fs-ring:35px;--ruby-fs-money:32px;
+}
+body[data-font-size="large"]{
+  --ruby-fs-label:15px;--ruby-fs-value:17px;--ruby-fs-title:19px;
+  --ruby-fs-action:17px;--ruby-fs-note:13px;--ruby-fs-ring:40px;--ruby-fs-money:37px;
+}
+.topbar .nav-brand strong,
+.current-strategy .strategy-text strong,
+.panel-title strong,.ring-panel>.panel-title strong,
+.recent-feed .panel-title strong,.drawer-head strong,
+.strategy-card h3,.settings-grid h3{
+  font-size:var(--ruby-fs-title,17px)!important;
+  line-height:1.2;
+}
+.topbar .nav-brand small,
+.status-pill,.soft-tag,.strategy-accent,.small-action,
+#quick-amount,.recent-item .recent-time,.recent-feed .recent-hint,
+.recent-item .recent-result small,.drawer-head small,.drawer-foot{
+  font-size:var(--ruby-fs-note,12px)!important;
+  line-height:1.25;
+}
+.ring-panel.compact .ring-labels small,
+.ring-panel:not(.compact) .ring-labels small,
+.metrics span,.quote-amount small,.field span,
+.progress-label,.recent-item .recent-stake,
+.recent-item .recent-round,.strategy-card p,.strategy-card small,
+.notice,.recent-feed .recent-empty,.info-modal p,
+.info-modal .help-text,.drawer .form-note,.drawer .advanced summary,
+.history-panel th,.history-panel td,.history-summary small{
+  font-size:var(--ruby-fs-label,13px)!important;
+  line-height:1.24;
+}
+.ring-panel.compact .ring-labels strong,
+.ring-panel:not(.compact) .ring-labels strong,
+.metrics b,.recent-item .recent-result,.history-summary strong{
+  font-size:var(--ruby-fs-value,15px)!important;
+  line-height:1.2;
+}
+.ring-panel.compact .ring-number,
+.ring-panel:not(.compact) .ring-number{
+  font-size:var(--ruby-fs-ring,35px)!important;
+}
+.quote-amount strong{font-size:var(--ruby-fs-money,32px)!important;}
+.button,.secondary-actions>.button,.offer-row button,
+.drawer .nav-item,.drawer .field input,.drawer .field select,
+.drawer-form-actions button,.search-wrap input,.font-controls button,
+#kelly-probability{
+  font-size:var(--ruby-fs-action,15px)!important;
+  line-height:1.22;
+}
+.mobile-nav button span{font-size:var(--ruby-fs-note,12px)!important;}
+.ring-panel.compact .ring-labels>div{
+  grid-template-columns:7px minmax(0,1fr) auto;
+  gap:4px!important;
+}
+.ring-panel.compact .ring-labels small{
+  min-width:0;
+  overflow-wrap:normal;
+  line-break:strict;
+}
+.ring-panel.compact .ring-labels strong{
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+}
+@media(max-width:355px){
+  body[data-font-size="small"] .ring-panel.compact .ring-labels small{font-size:11px!important;}
+  body[data-font-size="medium"] .ring-panel.compact .ring-labels small{font-size:12px!important;}
+  body[data-font-size="large"] .ring-panel.compact .ring-labels small{font-size:13px!important;}
+  body[data-font-size="small"] .ring-panel.compact .ring-labels strong{font-size:12px!important;}
+  body[data-font-size="medium"] .ring-panel.compact .ring-labels strong{font-size:13px!important;}
+  body[data-font-size="large"] .ring-panel.compact .ring-labels strong{font-size:14px!important;}
+  .secondary-actions>.button{font-size:min(var(--ruby-fs-action,15px),13px)!important;}
+  .current-strategy .strategy-text strong{font-size:min(var(--ruby-fs-title,17px),16px)!important;}
+}
+
 </style>
 </head>
 <body data-theme="neon">
