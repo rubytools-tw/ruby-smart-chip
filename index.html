@@ -259,6 +259,31 @@ body[data-font-size="large"]{
 .metrics #pnl.positive{color:var(--success)!important}
 .metrics #pnl.negative{color:var(--danger)!important}
 .metrics .bet-pnl-separator{color:var(--muted);padding:0 1px}
+
+/* Font tier rebase 20261110: old large becomes medium. */
+body[data-font-size="small"]{
+  --font-multiplier:1;
+  --ruby-fs-label:13px;--ruby-fs-value:15px;--ruby-fs-title:17px;
+  --ruby-fs-action:15px;--ruby-fs-note:12px;--ruby-fs-ring:35px;--ruby-fs-money:32px;
+}
+body[data-font-size="medium"]{
+  --font-multiplier:1.19;
+  --ruby-fs-label:15px;--ruby-fs-value:17px;--ruby-fs-title:19px;
+  --ruby-fs-action:17px;--ruby-fs-note:13px;--ruby-fs-ring:40px;--ruby-fs-money:37px;
+}
+body[data-font-size="large"]{
+  --font-multiplier:1.3685;
+  --ruby-fs-label:17.25px;--ruby-fs-value:19.55px;--ruby-fs-title:21.85px;
+  --ruby-fs-action:19.55px;--ruby-fs-note:14.95px;--ruby-fs-ring:46px;--ruby-fs-money:42.55px;
+}
+@media(max-width:355px){
+  body[data-font-size="small"] .ring-panel.compact .ring-labels small{font-size:12px!important}
+  body[data-font-size="medium"] .ring-panel.compact .ring-labels small{font-size:13px!important}
+  body[data-font-size="large"] .ring-panel.compact .ring-labels small{font-size:15px!important}
+  body[data-font-size="small"] .ring-panel.compact .ring-labels strong{font-size:13px!important}
+  body[data-font-size="medium"] .ring-panel.compact .ring-labels strong{font-size:14px!important}
+  body[data-font-size="large"] .ring-panel.compact .ring-labels strong{font-size:16px!important}
+}
 </style>
 </head>
 <body data-theme="neon">
@@ -1835,7 +1860,8 @@ def web_call(action, payload_json='{}'):
 /* RUBY Smart Chip — browser-only front end. No orders, Telegram, or remote storage. */
 'use strict';
 const STORAGE_KEY = 'ruby_smart_chip_v012_test';
-const FONT_KEY = 'ruby_smart_chip_font_size_v012';
+const LEGACY_FONT_KEY = 'ruby_smart_chip_font_size_v012';
+const FONT_KEY = 'ruby_smart_chip_font_tiers_v013';
 const HISTORY_TTL_MS = 72*60*60*1000;
 const PY_FILES = ['strategy_engine.py','progression.py','sizing_v180.py','strategy26.py','stake_guard.py','stage_limits.py','release_rules.py','web_engine.py'];
 const $ = selector => document.querySelector(selector);
@@ -1958,6 +1984,16 @@ function cleanArchives(now=Date.now()){
 function visibleLedger(){
   const all=[...[...archives].reverse().flatMap(x=>x.ledger||[]),...(snapshot?.state?.ledger||[])];
   return all.filter(row=>recentRecord(row));
+}
+function readFontSize(){
+  try{
+    const current=localStorage.getItem(FONT_KEY);
+    if(['small','medium','large'].includes(current))return current;
+    const old=localStorage.getItem(LEGACY_FONT_KEY);
+    if(old==='large')return 'medium';
+    if(old==='medium'||old==='small')return 'small';
+  }catch{}
+  return 'medium';
 }
 function setFontSize(size){
   if(!['small','medium','large'].includes(size))size='medium';
@@ -2232,7 +2268,7 @@ function bindEvents(){
 }
 
 async function initialize(){
-  bindEvents();setFontSize(localStorage.getItem(FONT_KEY)||'medium');setRingMode('compact');
+  bindEvents();setFontSize(readFontSize());setRingMode('compact');
   document.documentElement.style.setProperty('--ruby-bg-art',getComputedStyle($('.hero')).backgroundImage);
   try{
     strategies=JSON.parse(document.getElementById('ruby-strategies-json').textContent);
