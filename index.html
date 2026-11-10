@@ -303,7 +303,7 @@ body[data-font-size="large"]{
   <main class="main-view" id="main-content">
     <header class="topbar"><button type="button" class="icon-btn" id="open-menu" aria-label="開啟主選單">☰</button><div class="nav-brand"><strong>RUBY <span>Smart Chip</span></strong><small>兔寶寶籌碼計算機</small></div><button type="button" class="icon-btn" id="open-config" aria-label="開啟計畫參數">⚙</button></header>
     <div class="hero"><div class="hero-overlay"><small>RUBY · NEON PORTRAIT EDITION</small><h1 id="page-title">籌碼計算機</h1><p>策略 × 注碼 × 歷史 · 一頁掌握</p></div></div>
-    <div class="engine-row"><span id="engine-status" class="status-pill loading" role="status">計算核心載入中…</span><span id="session-label" class="soft-tag">未開始</span><button type="button" class="info-btn" data-info="RUBY Smart Chip V0.1.2：資料存於本機瀏覽器，歷史僅保留 3 天。" aria-label="版本說明">ⓘ</button></div>
+    <div class="engine-row"><span id="engine-status" class="status-pill loading" role="status">計算核心載入中…</span><span id="session-label" class="soft-tag">未開始</span><button type="button" class="info-btn" data-info="RUBY Smart Chip V0.1.2：資料存於本機瀏覽器，歷史只保留最近 24 小時，設定持續保留。" aria-label="版本說明">ⓘ</button></div>
     <div id="alert" class="alert hidden" role="alert"></div>
     <section class="view active" id="view-calculator" aria-labelledby="page-title">
       <button type="button" class="current-strategy neon-card" id="open-strategies" aria-label="開啟策略中心"><span class="strategy-accent">當前策略</span><span class="strategy-text"><strong id="strategy-active-name">#26 等分倍盈歸本法</strong><small id="strategy-active-meta">尚未開始 · 點擊選擇策略</small></span><span class="chevron">›</span></button>
@@ -343,7 +343,7 @@ body[data-font-size="large"]{
       <section id="recent-feed" class="recent-feed neon-card" aria-label="即時中掛歷史清單">
         <div class="panel-title"><strong>即時中掛紀錄</strong><button type="button" id="recent-feed-more" class="small-action" aria-label="開啟完整歷史紀錄">查看全部 ›</button></div>
         <div id="recent-feed-list" class="recent-list" aria-live="polite"><div class="recent-empty">目前還沒有中／掛紀錄</div></div>
-        <div class="recent-hint">ⓘ 僅顯示最近 3 天的結算明細，最新在上方。</div>
+        <div class="recent-hint">ⓘ 僅顯示最近 24 小時的結算明細，最新在上方。</div>
       </section>
       <section class="summary-panel neon-card"><div class="panel-title"><strong>目前策略摘要</strong><button type="button" class="info-btn" id="summary-info" data-info="選擇策略後顯示規則。" aria-label="查看目前策略摘要">ⓘ</button><button id="read-strategy" type="button" class="text-btn">完整說明 ›</button></div><p id="current-summary" class="sr-only">選擇策略後顯示規則。</p></section>
     </section>
@@ -373,7 +373,7 @@ body[data-font-size="large"]{
   </aside>
   <section class="view drawer drawer-left drawer-wide" id="view-strategies" role="dialog" aria-modal="true" aria-hidden="true" aria-label="策略中心"><div class="drawer-head"><div><strong>26 套策略中心</strong><button type="button" class="info-btn" data-info="可搜尋策略名稱與編號，點擊選用不會立即更改進行中的計畫。" aria-label="策略中心說明">ⓘ</button></div><button class="icon-btn close-drawer" type="button" aria-label="關閉策略中心">×</button></div><div class="drawer-scroll"><div class="search-wrap"><input id="strategy-search" type="search" placeholder="搜尋策略名稱或編號，例如 #26、馬丁"></div><div class="strategy-grid" id="strategy-grid"></div></div></section>
   <section class="view drawer drawer-bottom" id="view-history" role="dialog" aria-modal="true" aria-hidden="true" aria-label="結算紀錄"><div class="drawer-handle" aria-hidden="true"></div><div class="drawer-head"><div><strong>本次與歷史結算</strong><small id="history-count">0 筆</small></div><button class="icon-btn close-drawer" type="button" aria-label="關閉歷史紀錄">×</button></div><div class="drawer-scroll"><div class="history-summary"><div class="mini-panel"><small>累積投注</small><strong id="sum-cost">—</strong></div><div class="mini-panel"><small>累積盈虧</small><strong id="sum-pnl">—</strong></div><div class="mini-panel"><small>已鎖利</small><strong id="sum-locked">—</strong></div></div><div class="panel history-panel"><div class="panel-head"><h3>結算明細</h3><button id="export-csv" type="button" class="button subtle">匯出 CSV</button></div><div class="table-wrap"><table><thead><tr><th>局數</th><th>策略</th><th>中／掛</th><th>每碼</th><th>投注</th><th>本局損益</th></tr></thead><tbody id="history-rows"><tr><td colspan="6" class="empty">目前沒有紀錄</td></tr></tbody></table></div></div></div></section>
-  <section class="view drawer drawer-left drawer-wide" id="view-settings" role="dialog" aria-modal="true" aria-hidden="true" aria-label="網站設定"><div class="drawer-head"><div><strong>系統設定</strong><small>字體及本機資料管理</small></div><button class="icon-btn close-drawer" type="button" aria-label="關閉設定">×</button></div><div class="drawer-scroll"><div class="settings-grid"><section class="panel"><div class="panel-head"><h3>文字大小</h3><button type="button" class="info-btn" data-info="調整網站標題、卡片、按鈕、說明的字體大小；變更後會記住設定。" aria-label="文字大小說明">ⓘ</button></div><div class="font-controls" role="group" aria-label="文字大小"><button type="button" data-font="small">小</button><button type="button" data-font="medium">中</button><button type="button" data-font="large">大</button></div></section><section class="panel"><h3>本機資料備份</h3><button type="button" class="info-btn" data-info="歷史明細只顯示並保留近 72 小時；已結束計畫的過期紀錄會自動清除。進行中計畫的必要計算狀態會保留，以避免策略與帳務失準。資料僅儲存在目前瀏覽器，清除瀏覽資料可能遺失。" aria-label="歷史保存說明">ⓘ</button><div class="button-row"><button id="backup-button" type="button" class="button subtle">匯出 JSON</button><button id="restore-button" type="button" class="button subtle">還原 JSON</button><input id="restore-file" type="file" accept=".json,application/json" hidden></div></section><section class="panel"><h3>版本資訊</h3><p>RUBY Smart Chip V0.1.2 Neon Portrait · 26 套策略 Python 引擎沿用原版；只作本機籌碼試算，不會送出訂單或 Telegram 訊息。</p></section></div></div></section>
+  <section class="view drawer drawer-left drawer-wide" id="view-settings" role="dialog" aria-modal="true" aria-hidden="true" aria-label="網站設定"><div class="drawer-head"><div><strong>系統設定</strong><small>字體及本機資料管理</small></div><button class="icon-btn close-drawer" type="button" aria-label="關閉設定">×</button></div><div class="drawer-scroll"><div class="settings-grid"><section class="panel"><div class="panel-head"><h3>文字大小</h3><button type="button" class="info-btn" data-info="調整網站標題、卡片、按鈕、說明的字體大小；變更後會記住設定。" aria-label="文字大小說明">ⓘ</button></div><div class="font-controls" role="group" aria-label="文字大小"><button type="button" data-font="small">小</button><button type="button" data-font="medium">中</button><button type="button" data-font="large">大</button></div></section><section class="panel"><h3>本機資料備份</h3><button type="button" class="info-btn" data-info="歷史明細只保留最近 24 小時，超過期限會在開啟或操作時移除。策略、操作金及其他設定會保留；重新開啟網頁會從新計畫開始，不自動接續上一個計畫。資料只存於本機瀏覽器，清除瀏覽資料可能遺失。" aria-label="歷史保存說明">ⓘ</button><div class="button-row"><button id="backup-button" type="button" class="button subtle">匯出 JSON</button><button id="restore-button" type="button" class="button subtle">還原 JSON</button><input id="restore-file" type="file" accept=".json,application/json" hidden></div></section><section class="panel"><h3>版本資訊</h3><p>RUBY Smart Chip V0.1.2 Neon Portrait · 26 套策略 Python 引擎沿用原版；只作本機籌碼試算，不會送出訂單或 Telegram 訊息。</p></section></div></div></section>
 </div>
 <div class="info-backdrop hidden" id="info-backdrop"><div class="info-modal" role="dialog" aria-modal="true" aria-label="功能說明"><div class="panel-title"><strong>ⓘ 操作說明</strong><button type="button" id="info-close" class="icon-btn" aria-label="關閉說明">×</button></div><p id="info-text"></p></div></div>
 <nav class="mobile-nav" aria-label="底部分頁"><button type="button" class="active" data-tab="calculator">▣<span>計算</span></button><button type="button" data-tab="strategies">▤<span>策略</span></button><button type="button" data-tab="history">◷<span>紀錄</span></button><button type="button" data-tab="settings">⚙<span>設定</span></button></nav>
@@ -1859,10 +1859,12 @@ def web_call(action, payload_json='{}'):
 <script>
 /* RUBY Smart Chip — browser-only front end. No orders, Telegram, or remote storage. */
 'use strict';
-const STORAGE_KEY = 'ruby_smart_chip_v012_test';
+const LEGACY_STORAGE_KEY = 'ruby_smart_chip_v012_test';
+const SETTINGS_KEY = 'ruby_smart_chip_user_settings_v1';
+const RECENT_HISTORY_KEY = 'ruby_smart_chip_recent_history_24h_v1';
 const LEGACY_FONT_KEY = 'ruby_smart_chip_font_size_v012';
 const FONT_KEY = 'ruby_smart_chip_font_tiers_v013';
-const HISTORY_TTL_MS = 72*60*60*1000;
+const HISTORY_TTL_MS = 24*60*60*1000;
 const PY_FILES = ['strategy_engine.py','progression.py','sizing_v180.py','strategy26.py','stake_guard.py','stage_limits.py','release_rules.py','web_engine.py'];
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
@@ -1985,6 +1987,85 @@ function visibleLedger(){
   const all=[...[...archives].reverse().flatMap(x=>x.ledger||[]),...(snapshot?.state?.ledger||[])];
   return all.filter(row=>recentRecord(row));
 }
+
+/* Settings persist separately from the 24-hour history. Active plan states are never persisted. */
+const HISTORY_FIELDS=['at','sequence','strategy','outcome','stake','count','cost','return','delta','pnl','automatic_lock'];
+function readStorageJson(key){
+  try{return JSON.parse(localStorage.getItem(key)||'null');}catch{return null;}
+}
+function getSavedFields(){
+  const fields={};
+  for(const input of $('#config-form [name]')){
+    if(input.name && 'value' in input)fields[input.name]=input.value;
+  }
+  return fields;
+}
+function fieldsFromLegacyState(state){
+  if(!state||typeof state!=='object')return null;
+  const selected=strategies.find(x=>x.name===state.strategy);
+  const fields={
+    strategy:selected?.code??26,operation:state.operation_base,market:state.market,
+    count:state.number_count,parts:state.risk_parts,maxSteps:state.max_steps,
+    planned:state.planned_rounds,profitPct:state.stop_profit_value,lossPct:state.stop_loss_value,
+    fraction:state.stake_fraction,kellyFraction:state.kelly_fraction,
+    probability:state.kelly_probability
+  };
+  const seqByCode={0:'loss_sequence',99:'custom_win_sequence',66:'layer_sequence',14:'win_sequence',20:'attack_sequence',24:'cancel_list'};
+  const seq=state[seqByCode[selected?.code]];
+  if(Array.isArray(seq)&&seq.length)fields.sequenceInput=seq.join(',');
+  if(selected?.code===20&&Array.isArray(state.retreat_sequence))fields.sequenceSecondary=state.retreat_sequence.join(',');
+  return Object.fromEntries(Object.entries(fields).filter(([,v])=>v!==undefined&&v!==null));
+}
+function applySavedFields(fields){
+  if(!fields||typeof fields!=='object')return;
+  const strategy=$('#strategy-select');
+  const target=String(fields.strategy??strategy.value);
+  if([...strategy.options].some(option=>option.value===target))strategy.value=target;
+  for(const input of $('#config-form [name]')){
+    if(input.name!=='strategy'&&fields[input.name]!==undefined&&fields[input.name]!==null){
+      input.value=String(fields[input.name]);
+    }
+  }
+  changeStrategyFields();
+  for(const name of ['sequenceInput','sequenceSecondary']){
+    const input=$('[name="'+name+'"]');
+    if(input&&fields[name]!==undefined&&fields[name]!==null){
+      input.value=String(fields[name]);
+      if(name==='sequenceInput')input.dataset.strategy=strategy.value;
+    }
+  }
+}
+function saveSettings(){
+  try{localStorage.setItem(SETTINGS_KEY,JSON.stringify({version:1,fields:getSavedFields()}));}
+  catch{toast('設定儲存失敗，請確認瀏覽器本機儲存可用');}
+}
+function compactRecentRecords(rows,now=Date.now()){
+  const seen=new Set(),out=[];
+  for(const row of rows){
+    if(!row||typeof row!=='object'||!recentRecord(row,now))continue;
+    const record={};
+    for(const key of HISTORY_FIELDS)if(Object.prototype.hasOwnProperty.call(row,key))record[key]=row[key];
+    const id=JSON.stringify([record.at,record.sequence,record.strategy,record.outcome,record.stake,record.cost,record.delta]);
+    if(seen.has(id))continue;
+    seen.add(id);out.push(record);
+  }
+  return out.sort((a,b)=>Date.parse(a.at)-Date.parse(b.at)).slice(-2400);
+}
+function loadLocalPreferencesAndHistory(){
+  const legacy=readStorageJson(LEGACY_STORAGE_KEY);
+  const prefs=readStorageJson(SETTINGS_KEY);
+  const recent=readStorageJson(RECENT_HISTORY_KEY);
+  applySavedFields(prefs?.version===1?prefs.fields:fieldsFromLegacyState(legacy?.state));
+  const legacyRows=[
+    ...(Array.isArray(legacy?.archives)?legacy.archives.flatMap(x=>Array.isArray(x?.ledger)?x.ledger:[]):[]),
+    ...(Array.isArray(legacy?.state?.ledger)?legacy.state.ledger:[])
+  ];
+  const storedRows=recent?.version===1&&Array.isArray(recent.rows)?recent.rows:[];
+  const rows=compactRecentRecords([...storedRows,...legacyRows]);
+  archives=rows.length?[{ledger:rows,locked_profit:0}]:[];
+  cleanArchives();
+}
+
 function readFontSize(){
   try{
     const current=localStorage.getItem(FONT_KEY);
@@ -2027,9 +2108,15 @@ function run(action,payload={}){
   persist();render();return snapshot;
 }
 function persist(){
-  if(!snapshot)return;
-  try{cleanArchives();localStorage.setItem(STORAGE_KEY,JSON.stringify({version:1,state:snapshot.state,undo:snapshot.undo,archives}));}
-  catch(e){toast('本機儲存失敗，請匯出 JSON 備份');}
+  cleanArchives();
+  const past=archives.flatMap(x=>Array.isArray(x.ledger)?x.ledger:[]);
+  const live=Array.isArray(snapshot?.state?.ledger)?snapshot.state.ledger:[];
+  const rows=compactRecentRecords([...past,...live]);
+  try{
+    localStorage.setItem(SETTINGS_KEY,JSON.stringify({version:1,fields:getSavedFields()}));
+    localStorage.setItem(RECENT_HISTORY_KEY,JSON.stringify({version:1,rows}));
+    localStorage.removeItem(LEGACY_STORAGE_KEY);
+  }catch(e){toast('本機儲存失敗，請確認瀏覽器儲存空間');}
 }
 async function action(command,payload={},success){
   if(busy)return;
@@ -2094,7 +2181,7 @@ function displayStrategyLibrary(query=''){
     const kind=document.createElement('small');kind.textContent=item.kind;detail.append(name,kind);head.append(code,detail);
     const desc=document.createElement('p');desc.textContent=item.description;
     const btn=document.createElement('button');btn.type='button';btn.className='text-btn';btn.textContent='選擇此策略 →';
-    btn.addEventListener('click',()=>{$('#strategy-select').value=item.code;changeStrategyFields();showDrawer('drawer-config');toast('已選擇策略，請確認設定後開始新計畫');});
+    btn.addEventListener('click',()=>{$('#strategy-select').value=item.code;changeStrategyFields();saveSettings();showDrawer('drawer-config');toast('已選擇策略，請確認設定後開始新計畫');});
     card.append(head,desc,btn);holder.append(card);
   }
 }
@@ -2191,7 +2278,7 @@ function download(name,text,mime){
   const a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);
 }
 function exportCsv(){
-  const ledger=visibleLedger();if(!ledger.length){toast('最近 3 天沒有可匯出的結算資料');return;}
+  const ledger=visibleLedger();if(!ledger.length){toast('最近 24 小時沒有可匯出的結算資料');return;}
   const rows=[['局數','時間','結果','每碼','碼數','本局投注','本局返還','淨損益','累計盈虧','策略']];
   for(const r of ledger)rows.push([r.sequence,r.at,r.outcome==='win'?'中':'掛',r.stake,r.count,r.cost,r.return,r.delta,r.pnl,r.strategy]);
   const escapeCsv=v=>'"'+String(v??'').replace(/^([=+@\-])/,'\'$1').replace(/"/g,'""')+'"';
@@ -2220,6 +2307,11 @@ function bindEvents(){
   historyHandle.addEventListener('touchstart',e=>{drawerTouchY=e.changedTouches[0]?.clientY??null;},{passive:true});
   historyHandle.addEventListener('touchend',e=>{if(drawerTouchY!==null&&e.changedTouches[0]?.clientY-drawerTouchY>70)closeDrawers();drawerTouchY=null;},{passive:true});
   $('#strategy-select').addEventListener('change',changeStrategyFields);
+  $('#config-form').addEventListener('input',saveSettings);
+  $('#config-form').addEventListener('change',saveSettings);
+  document.addEventListener('visibilitychange',()=>{
+    if(!document.hidden&&snapshot){persist();render();}
+  });
   $('#strategy-search').addEventListener('input',e=>displayStrategyLibrary(e.target.value));
   $('#market').addEventListener('change',e=>{$('[name=count]').value=e.target.value==='單球'?6:1;});
   $('[name=parts]').addEventListener('input',()=>{if(getCode()===26)$('[name=maxSteps]').value=$('[name=parts]').value;});
@@ -2287,17 +2379,9 @@ async function initialize(){
     for(const [name,contents] of bundle)runtime.FS.writeFile('/home/py/'+name,contents);
     runtime.runPython("import sys;sys.path.insert(0,'/home/py');from web_engine import web_call");
     python=runtime;callPython=runtime.globals.get('web_call');
-    let restore=null;try{restore=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');}catch{}
-    archives=restore?.version===1&&Array.isArray(restore.archives)?restore.archives.slice(0,50):[];cleanArchives();
-    try{run('load',restore&&restore.version===1?{state:restore.state,undo:restore.undo}:{state:null});}
-    catch(e){run('load',{state:null});toast('舊紀錄無法還原，建議檢查 JSON 備份');}
-    if(snapshot?.state){
-      const t=snapshot.state;$('#strategy-select').value=String(strategies.find(x=>x.name===t.strategy)?.code||26);
-      for(const [name,value] of Object.entries({operation:t.operation_base,count:t.number_count,parts:t.risk_parts,maxSteps:t.max_steps,planned:t.planned_rounds,market:t.market,profitPct:t.stop_profit_value,lossPct:t.stop_loss_value})){
-        const field=$(`[name="${name}"]`);if(field&&value!==undefined)field.value=String(value);
-      }
-      changeStrategyFields();
-    }
+    loadLocalPreferencesAndHistory();
+    // A fresh session starts on every page load; only preferences and 24-hour history survive.
+    run('load',{state:null});
     setReady(true,'計算核心已就緒');
   }catch(err){setReady(false,'載入失敗');showError((err.message||String(err))+'。此頁需要 HTTP(S) 網址及首次連線載入 Pyodide，請勿直接以 file:// 開啟。');}
 }
