@@ -251,6 +251,14 @@ body[data-font-size="large"]{
   .current-strategy .strategy-text strong{font-size:min(var(--ruby-fs-title,17px),16px)!important;}
 }
 
+
+/* Keep the original 2x2 metrics grid; show volume and net P&L together. */
+.metrics #bet-pnl-pair{white-space:nowrap;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.metrics #bet-volume{color:#fff!important}
+.metrics #pnl{color:#fff}
+.metrics #pnl.positive{color:var(--success)!important}
+.metrics #pnl.negative{color:var(--danger)!important}
+.metrics .bet-pnl-separator{color:var(--muted);padding:0 1px}
 </style>
 </head>
 <body data-theme="neon">
@@ -297,7 +305,7 @@ body[data-font-size="large"]{
       <section class="quote-panel neon-card" aria-label="下一局建議">
         <div class="panel-title"><strong>下一局建議</strong><div class="quote-title-actions"><button type="button" id="quick-amount" class="small-action" aria-label="開啟操作金及計畫參數設定">調整金額</button><span class="soft-tag" id="quote-state">尚未開始</span></div></div>
         <div class="quote-cards"><div class="quote-amount"><small>每碼下注</small><strong id="per-code">—</strong></div><div class="quote-amount"><small>本局總注</small><strong id="total-stake">—</strong></div></div>
-        <div class="metrics"><div><span>當前可用金</span><b id="available">—</b></div><div><span>目前關卡</span><b id="stage-label">—</b></div><div><span>完成局數</span><b id="round-count">0 / 35</b></div><div><span>投注量</span><b id="bet-volume" style="color:#ffffff">—</b></div></div>
+        <div class="metrics"><div><span>當前可用金</span><b id="available">—</b></div><div><span>目前關卡</span><b id="stage-label">—</b></div><div><span>完成局數</span><b id="round-count">0 / 35</b></div><div><span>投注量 / 淨盈虧</span><b id="bet-pnl-pair"><span id="bet-volume">—</span><span class="bet-pnl-separator">/</span><span id="pnl">—</span></b></div></div>
         <div class="progress-block"><div class="progress-label"><span id="progress-title">進度 #1 · 計畫完成度</span><span id="progress-text">0%</span></div><div class="progress"><div id="progress-bar"></div></div></div>
       </section>
       <div id="notice" class="notice">請先建立一個計畫，才能計算下一局注碼。</div>
@@ -2054,8 +2062,8 @@ function displayStrategyLibrary(query=''){
     card.append(head,desc,btn);holder.append(card);
   }
 }
-function updateNumber(selector,value,signed=false){
-  const el=$(selector);el.textContent=(signed&&Number(value)>0?'+':'')+money(value);
+function updateNumber(selector,value,signed=false,decimals=2){
+  const el=$(selector);el.textContent=(signed&&Number(value)>0?'+':'')+(decimals===2?money(value):fmt(value,decimals));
   el.classList.toggle('positive',Number(value)>0&&signed);el.classList.toggle('negative',Number(value)<0);
 }
 function render(){
@@ -2077,7 +2085,8 @@ function render(){
   $('#strategy-active-meta').textContent=on?`${data.position||'計畫執行中'} · ${complete}/${planned} 局`:'尚未開始 · 點擊選擇策略';
   updateRing(data);
   $('#create-plan').classList.toggle('hidden',on&&s.session_status==='active');
-  $('#bet-volume').textContent=on?fmt(Number(s?.total_bet||0),1):'—';
+  $('#bet-volume').textContent=on?String(Math.round(Number(s?.total_bet||0))):'—';
+  if(on){updateNumber('#pnl',s?.pnl||0,true,1);}else{$('#pnl').textContent='—';$('#pnl').classList.remove('positive','negative');}
   const is26=s&&s.strategy==='等分倍盈歸本法';
   $('#progress-title').textContent=is26?`本週期歸本 · 進度 #${batch.index}`:`進度 #${batch.index} · 計畫完成度`;
   const pct=is26?Math.min(100,Math.max(0,Number(data.cycleProgress||0))):Math.min(100,batch.count/batch.size*100);
