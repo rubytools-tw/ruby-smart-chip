@@ -1399,7 +1399,7 @@ def resume_exhausted(s):
 
 </script>
 <script type="text/plain" id="py-src-strategy26.py">
-"""#26 equal-split, fixed-base 100% profit-cycle reset; simulation only.
+"""#26 dynamically resizes each bet from live funds; 100% profit-cycle reset; simulation only.
 
 Capital is virtual, allocated only once. This module is deliberately isolated
 from all pre-existing staking strategies and does not contact Telegram.
@@ -1997,6 +1997,16 @@ def web_call(action, payload_json='{}'):
                 STATE.update(web_batch_mode=True,web_batch_size=n,web_batch_total_cap=(complete//n+1)*n,round_limit=(complete//n+1)*n)
                 if STATE.get('session_status')=='paused_round_limit' and STATE.get('pnl',0)>-STATE.get('loss_limit',0):
                     STATE['session_status']='active';STATE['strategy_pause_reason']=''
+                # V0.1.4 incorrectly paused #26 when loss stages exceeded the
+                # selected split divisor. Re-enable only that exact legacy
+                # pause reason; normal stop-loss and insufficient-funds stops
+                # remain untouched.
+                if (strategy26.active(STATE)
+                    and STATE.get('session_status')=='paused_strategy'
+                    and STATE.get('strategy_pause_reason')=='全部等分關卡已掛完；自動暫停'):
+                    STATE['session_status']='active'
+                    STATE['strategy_pause_reason']=''
+                    STATE.setdefault('plan_state',{})['exhausted']=False
                 STATE['round_offer']=False
             UNDO=p.get('undo') if isinstance(p.get('undo'),dict) else None
             LAST_ACTION_ID=None
