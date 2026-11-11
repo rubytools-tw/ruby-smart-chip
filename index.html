@@ -1117,7 +1117,7 @@ def quote(s):
             return None,'下局總注超過剩餘停損額度，不得執行'
         if dec(existing['total']) > dec(available(s)):
             return None,'本局總投入超過可用資金，不得執行'
-        if 'active_operation_budget' in s and dec(existing['total']) > dec(operation_budget(s)):
+        if sid(s)!='equal_reset' and 'active_operation_budget' in s and dec(existing['total']) > dec(operation_budget(s)):
             return None,'本局總投入超過當前操作預算，不得執行'
         return copy.deepcopy(existing),''
     a=available(s);n=s['number_count'];k=sid(s);p=progression._p(s)
