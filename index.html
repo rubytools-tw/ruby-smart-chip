@@ -2111,7 +2111,31 @@ function applySavedFields(fields){
     }
   }
 }
+function updateBetLimitsVisibility(){
+  const baccarat=$('#market').value==='百家樂';
+  $('#baccarat-limits-fields').classList.toggle('hidden',!baccarat);
+  for(const field of $$('#baccarat-limits-fields input'))field.disabled=!baccarat;
+  if(!baccarat)showBetLimitWarning('');
+}
+function showBetLimitWarning(message){
+  const el=$('#baccarat-limit-warning');el.textContent=message||'';el.classList.toggle('hidden',!message);
+}
+function baccaratSettingsValid(show=true){
+  if($('#market').value!=='百家樂'){if(show)showBetLimitWarning('');return true;}
+  if(!callPython)return false;
+  try{
+    if(!$('#config-form').checkValidity())throw Error('請檢查參數：限紅需填入整數金額');
+    const result=JSON.parse(callPython('validate',JSON.stringify(readConfig())));
+    if(!result.ok)throw Error(result.error||'此配置無法符合限紅');
+    if(show)showBetLimitWarning('');
+    return true;
+  }catch(err){
+    if(show)showBetLimitWarning((err.message||String(err))+'。此設定不會儲存，請重新編排。');
+    return false;
+  }
+}
 function saveSettings(){
+  if(!baccaratSettingsValid())return;
   try{localStorage.setItem(SETTINGS_KEY,JSON.stringify({version:1,fields:getSavedFields()}));}
   catch{toast('設定儲存失敗，請確認瀏覽器本機儲存可用');}
 }
@@ -2189,7 +2213,7 @@ function persist(){
   const live=Array.isArray(snapshot?.state?.ledger)?snapshot.state.ledger:[];
   const rows=compactRecentRecords([...past,...live]);
   try{
-    localStorage.setItem(SETTINGS_KEY,JSON.stringify({version:1,fields:getSavedFields()}));
+    if(baccaratSettingsValid(false))localStorage.setItem(SETTINGS_KEY,JSON.stringify({version:1,fields:getSavedFields()}));
     localStorage.setItem(RECENT_HISTORY_KEY,JSON.stringify({version:1,rows}));
     localStorage.removeItem(LEGACY_STORAGE_KEY);
   }catch(e){toast('本機儲存失敗，請確認瀏覽器儲存空間');}
@@ -2235,6 +2259,7 @@ function readConfig(){
   const f=new FormData($('#config-form'));
   const config={strategy:getCode(),operation:Number(f.get('operation')),market:f.get('market'),count:Number(f.get('count')),
     parts:Number(f.get('parts')),maxSteps:Number(f.get('maxSteps')||$('[name=maxSteps]').value),planned:Number(f.get('planned')),
+    minBet:Number(f.get('minBet')||100),maxBet:Number(f.get('maxBet')||10000),
     profitPct:Number(f.get('profitPct')),lossPct:Number(f.get('lossPct')),
     fraction:Number(f.get('fraction')||20),kellyFraction:Number(f.get('kellyFraction')||25)};
   if(config.strategy===26)config.maxSteps=config.parts;
