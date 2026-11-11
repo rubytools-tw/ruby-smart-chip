@@ -1293,8 +1293,8 @@ def next_round(s,refresh=True):
     if progression.is_new(s):progression.init(s)
     if refresh:refresh_base(s)
 
-def choose(s,action):
-    """Optional web allocation: no modal, no stage advance, no replay."""
+def choose(s,action,percent=None):
+    """Optional web allocation with a selectable percentage, no stage advance."""
     if action not in ('lock','roll','continue'):
         return False,'無效選項'
     if s.get('session_status')=='settled':return False,'本次計畫已結算'
@@ -1305,13 +1305,19 @@ def choose(s,action):
     if action=='roll' and (not s.get('compound_enabled',True) or (pending if is_peak else gain)<=0):
         return False,'目前無可滾利獲利'
     if action=='continue' and gain<=0 and pending<=0:return False,'目前沒有待處理的獲利'
+    try:
+        pct=dec((50 if action=='lock' else 100) if percent is None else percent)
+    except (ValueError,TypeError,ArithmeticError):
+        return False,'分配比例必須大於0且不超過100%'
+    if action in ('lock','roll') and not (dec('0')<pct<=dec('100')):
+        return False,'分配比例必須大於0且不超過100%'
     budget=operation_budget(s)
     if action=='lock':
-        kept=cents(dec(gain)*dec('.5'))
+        kept=cents(dec(gain)*pct/dec('100'))
         s['locked_profit']=cents(dec(s['locked_profit'])+dec(kept))
         set_operation_budget(s,dec(budget)-dec(kept))
     elif action=='roll':
-        rolling=pending if is_peak else gain
+        rolling=cents(dec(pending if is_peak else gain)*pct/dec('100'))
         set_operation_budget(s,dec(budget)+dec(rolling))
     s['allocation_mark']=s['pnl']
     s['protected_unallocated']=0.
@@ -1631,7 +1637,7 @@ def describe(code):
     text+='\n一般策略每關：每碼=floor(未取整基額×當關倍率)；不下注小數，不足1元／碼則暫停。#22回補策略保留ceil例外，仍為整數。下局總注若高於可用金、操作預算或剩餘停損額度，先暫停，不縮注。'
     if 1<=code<=13 or code in (22,23):
         text+='\n連中門檻：2/3碼1中、4碼2中、5碼3中、6碼5中、7碼7中、8碼9中；達標且整體獲利提供選項，後續掛不保留資格。'
-    if code not in (1,26):text+='\n完成且有可分配獲利時：鎖利將當次獲利50%移出下一輪操作預算；滾利僅將當次未分配獲利加進操作預算，不會自動解鎖歷史鎖利；同筆獲利只分配一次。'
+    if code not in (1,26):text+='\n完成且有可分配獲利時：鎖利／滾利可選分配比例；鎖利從下一輪操作預算扣除，滾利將選定比例加入操作預算；不會自動解鎖歷史鎖利，同筆獲利只分配一次。'
     if code==26:text+='\n本策略允許最新有效中獎局選鎖利／滾利；100%固定目標不受中途分配影響。鎖利資金與操作金分離；不足原始金額不虛構補款，暫停處理。'
     return text
 
@@ -1714,15 +1720,37 @@ def new_state(config):
             if not isinstance(seq,list) or not seq or len(seq)>100 or any(not 0<x<=100000 for x in seq):
                 raise ValueError('倍率序列格式錯誤')
             s[key] = seq
+    min_bet=cash(config.get('minBet',100))
+    max_bet=cash(config.get('maxBet',10000))
+    if market=='百家樂':
+        if not (1<=min_bet<=max_bet<=1000000000):
+            raise ValueError('百家樂限紅不正確：最低與最高下注需為正數，最低不得高於最高')
+        if min_bet!=int(min_bet) or max_bet!=int(max_bet):
+            raise ValueError('百家樂限紅必須是整數金額')
+    s['table_min_bet']=min_bet
+    s['table_max_bet']=max_bet
     sizing.initialize(s)
     return s
 
+
+def enforce_table_limits(s,q,reason=''):
+    if s.get('market')!='百家樂' or q is None:
+        return q,reason
+    total=cash(q['total'])
+    minimum=cash(s.get('table_min_bet',100))
+    maximum=cash(s.get('table_max_bet',10000))
+    if total<minimum:
+        return None,f'百家樂限紅：本局總注 {total:g} 低於最低下注 {minimum:g}；請重新編排操作金、切分及策略參數'
+    if total>maximum:
+        return None,f'百家樂限紅：本局總注 {total:g} 超過最高下注 {maximum:g}；請重新編排操作金、切分及策略參數'
+    return q,reason
 
 def evaluate_state():
     if STATE is None:
         return {'running':False,'status':'尚未開始','quote':None,'state':None,'undoAvailable':False}
     s=STATE
     q,why=(sizing.quote(s) if s.get('session_status')=='active' else (None,''))
+    q,why=enforce_table_limits(s,q,why)
     status=why or s.get('strategy_pause_reason') or s.get('round_notice') or ''
     if s.get('round_offer'):
         status=s.get('round_notice') or '本輪完成，獲利分配可自行選擇'
@@ -1753,6 +1781,7 @@ def settle(outcome, action_id=None):
     if s.get('session_status')!='active':
         raise ValueError('目前計畫已暫停或結束')
     quote,reason=sizing.quote(s)
+    quote,reason=enforce_table_limits(s,quote,reason)
     if not quote: raise ValueError(reason or '目前沒有可執行的注碼')
     if outcome not in ('win','loss'): raise ValueError('只能選中或掛')
     before=copy.deepcopy(s)
@@ -1807,10 +1836,10 @@ def settle(outcome, action_id=None):
     return evaluate_state()
 
 
-def choose(action):
+def choose(action,percent=None):
     global STATE
     if STATE is None: raise ValueError('目前沒有計畫')
-    ok,why=sizing.choose(STATE,action)
+    ok,why=sizing.choose(STATE,action,percent)
     if not ok:raise ValueError(why)
     return evaluate_state()
 
@@ -1855,8 +1884,22 @@ def web_call(action, payload_json='{}'):
     global STATE,UNDO,LAST_ACTION_ID
     try:
         p=json.loads(payload_json or '{}')
+        if action=='validate':
+            sample=new_state(p)
+            q,why=sizing.quote(sample)
+            q,why=enforce_table_limits(sample,q,why)
+            if sample.get('market')=='百家樂' and not q:
+                raise ValueError(why or '百家樂設定無法產生符合限紅的第一局注碼，請重新編排')
+            out={'valid':True,'firstQuote':q}
+            return json.dumps({'ok':True,'result':out},ensure_ascii=False,allow_nan=False)
         if action=='start':
-            STATE=new_state(p)
+            candidate=new_state(p)
+            if candidate.get('market')=='百家樂':
+                q,why=sizing.quote(candidate)
+                q,why=enforce_table_limits(candidate,q,why)
+                if not q:
+                    raise ValueError(why or '百家樂設定無法產生符合限紅的第一局注碼，請重新編排')
+            STATE=candidate
             UNDO=None
             LAST_ACTION_ID=None
             out=evaluate_state()
@@ -1876,7 +1919,7 @@ def web_call(action, payload_json='{}'):
             LAST_ACTION_ID=None
             out=evaluate_state()
         elif action=='settle':out=settle(p.get('outcome'),p.get('actionId'))
-        elif action=='choose':out=choose(p.get('choice'))
+        elif action=='choose':out=choose(p.get('choice'),p.get('percent'))
         elif action=='undo':out=undo()
         elif action=='resume':out=resume()
         elif action=='probability':out=set_probability(p['value'])
