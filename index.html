@@ -284,6 +284,39 @@ body[data-font-size="large"]{
   body[data-font-size="medium"] .ring-panel.compact .ring-labels strong{font-size:14px!important}
   body[data-font-size="large"] .ring-panel.compact .ring-labels strong{font-size:16px!important}
 }
+
+/* Neon maintenance — original colors, text scale, three rings and progress bar preserved. */
+.ring-title-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;min-width:0}
+.ring-panel>.panel-title{gap:5px;padding-left:5px;margin-bottom:5px}
+.ring-panel>.panel-title strong{white-space:nowrap}
+.ring-title-actions .small-action{white-space:nowrap;padding:6px 7px;font-size:var(--ruby-fs-note,12px)!important;line-height:1.25}
+#quick-amount{color:#d7f6ff;border-color:#4b9ab9}
+.ring-panel.compact .ring-labels>div{grid-template-columns:7px minmax(0,1fr) auto;align-items:center;gap:4px}
+.ring-panel.compact .ring-labels small{white-space:nowrap!important;overflow-wrap:normal!important;line-break:auto!important;font-size:var(--ruby-fs-label,13px)!important}
+.ring-panel.compact .ring-labels strong{white-space:nowrap!important;font-size:var(--ruby-fs-value,15px)!important}
+.quote-panel{padding-top:11px}
+.quote-panel>.quote-cards{margin-top:0}
+.chip-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:7px 0 10px}
+.chip-actions .button{min-width:0;min-height:44px;padding:8px 3px;white-space:nowrap;font-size:var(--ruby-fs-action,15px)!important}
+.chip-actions [data-choice]:not(:disabled){border-color:#e264da;box-shadow:0 0 11px #e34dc65d;background:#49205d}
+.chip-actions [data-choice]:disabled{opacity:.36}
+.plan-management{margin-bottom:12px}
+.plan-management .secondary-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.allocation-backdrop{position:fixed;inset:0;z-index:90;background:#07031cc9;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
+.allocation-sheet{width:min(100%,490px);background:linear-gradient(150deg,#31144e,#170c31);border:1px solid #e46cdb;border-radius:19px 19px 0 0;padding:10px 15px calc(18px + env(safe-area-inset-bottom));box-shadow:0 0 32px #e93aca66;max-height:85dvh;overflow-y:auto}
+.allocation-handle{width:42px;height:4px;border-radius:4px;background:#905caa;margin:0 auto 10px}
+.allocation-title{display:flex;align-items:center;justify-content:space-between;margin:0 0 14px;color:#f8defe}
+.allocation-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.allocation-options button{border:1px solid #9852bd;border-radius:11px;background:#361747;color:#f6e4fc;min-height:43px;font-size:var(--ruby-fs-action,15px);font-weight:700}
+.allocation-options button.selected{border-color:#ff85df;background:#633077;box-shadow:0 0 11px #ef42c88c}
+.allocation-custom{display:grid;gap:5px;color:#e4c5ed;font-size:var(--ruby-fs-label,13px);margin-bottom:10px}
+.allocation-custom input{width:100%;padding:9px;border:1px solid #9556b2;border-radius:10px;background:#201336;color:#fff;font-size:var(--ruby-fs-action,15px)}
+.allocation-preview{min-height:50px;border:1px solid #75448f;border-radius:10px;background:#25143d;color:#e8d1f3;padding:10px;font-size:var(--ruby-fs-label,13px);margin-bottom:12px}
+.baccarat-limits{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.baccarat-limits.hidden{display:none!important}
+.baccarat-limits .field{min-width:0}
+.limit-warning{grid-column:1/-1;margin:0;font-size:var(--ruby-fs-label,13px);color:var(--danger);line-height:1.45}
+@media(max-width:355px){.ring-title-actions{gap:4px}.ring-title-actions .small-action{padding:5px 4px}.ring-panel.compact .ring-body{grid-template-columns:minmax(0,35%) minmax(0,1fr);column-gap:3px}}
 </style>
 </head>
 <body data-theme="neon">
@@ -308,7 +341,7 @@ body[data-font-size="large"]{
     <section class="view active" id="view-calculator" aria-labelledby="page-title">
       <button type="button" class="current-strategy neon-card" id="open-strategies" aria-label="開啟策略中心"><span class="strategy-accent">當前策略</span><span class="strategy-text"><strong id="strategy-active-name">#26 等分倍盈歸本法</strong><small id="strategy-active-meta">尚未開始 · 點擊選擇策略</small></span><span class="chevron">›</span></button>
       <section id="ring-panel" class="ring-panel neon-card" aria-label="本次戰況">
-        <div class="panel-title"><strong>戰況光圈</strong><button type="button" id="ring-toggle" class="small-action" aria-expanded="true">收合光圈⌃</button></div>
+        <div class="panel-title"><strong>戰況光圈</strong><div class="ring-title-actions"><button type="button" id="quick-amount" class="small-action" aria-label="開啟計畫參數設定">調整參數</button><button type="button" id="ring-toggle" class="small-action" aria-expanded="true">收合光圈⌃</button></div></div>
         <div class="ring-body"><svg id="ring-svg" viewBox="0 0 220 220" width="220" height="220" role="img" aria-label="虧損、收益、命中率三層動態光圈">
           <defs>
             <linearGradient id="ruby-red-grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff388b"/><stop offset="58%" stop-color="#ff88c7"/><stop offset="100%" stop-color="#fa336a"/></linearGradient>
@@ -328,7 +361,7 @@ body[data-font-size="large"]{
         </div>
       </section>
       <section class="quote-panel neon-card" aria-label="下一局建議">
-        <div class="panel-title"><strong>下一局建議</strong><div class="quote-title-actions"><button type="button" id="quick-amount" class="small-action" aria-label="開啟操作金及計畫參數設定">調整金額</button><span class="soft-tag" id="quote-state">尚未開始</span></div></div>
+        <span class="sr-only" id="quote-state">尚未開始</span>
         <div class="quote-cards"><div class="quote-amount"><small>每碼下注</small><strong id="per-code">—</strong></div><div class="quote-amount"><small>本局總注</small><strong id="total-stake">—</strong></div></div>
         <div class="metrics"><div><span>當前可用金</span><b id="available">—</b></div><div><span>目前關卡</span><b id="stage-label">—</b></div><div><span>完成局數</span><b id="round-count">0 / 35</b></div><div><span>投注量 / 淨盈虧</span><b id="bet-pnl-pair"><span id="bet-volume">—</span><span class="bet-pnl-separator">/</span><span id="pnl">—</span></b></div></div>
         <div class="progress-block"><div class="progress-label"><span id="progress-title">進度 #1 · 計畫完成度</span><span id="progress-text">0%</span></div><div class="progress"><div id="progress-bar"></div></div></div>
@@ -336,9 +369,8 @@ body[data-font-size="large"]{
       <div id="notice" class="notice">請先建立一個計畫，才能計算下一局注碼。</div>
       <button type="button" id="create-plan" class="button primary full create-plan">＋ 建立計畫／設定參數</button>
       <div class="action-grid"><button id="win-button" type="button" class="button win" disabled>✓ 中</button><button id="loss-button" type="button" class="button loss" disabled>✕ 掛</button></div>
-      <div class="secondary-actions"><button id="undo-button" type="button" class="button subtle" disabled>↶ 更正上一局</button><button id="open-history" type="button" class="button subtle">◷ 最近紀錄</button><button id="more-button" type="button" class="button subtle">⋯ 更多</button></div>
-      <div class="secondary-actions more-actions hidden" id="more-actions"><button id="resume-button" type="button" class="button subtle hidden" disabled>下一輪</button><button id="finish-button" type="button" class="button subtle" disabled>結算本次</button></div>
-      <div id="offer-actions" class="offer hidden"><div class="panel-title"><strong>獲利配置</strong><button class="info-btn" type="button" data-info="鎖利與滾利均為可選操作，不會阻止下一局；不可使用時按鈕會呈半透明。策略內建自動鎖利仍會執行。" aria-label="獲利配置說明">ⓘ</button></div><div class="offer-row"><button type="button" data-choice="lock" class="button subtle" disabled>鎖利</button><button type="button" data-choice="roll" class="button subtle" disabled>滾利</button><button type="button" data-choice="continue" class="button subtle" disabled>略過分配</button></div></div>
+      <div id="offer-actions" class="secondary-actions chip-actions"><button type="button" data-choice="lock" class="button subtle" disabled>鎖利</button><button type="button" data-choice="roll" class="button subtle" disabled>滾利</button><button id="undo-button" type="button" class="button subtle" disabled>↶ 回上一步</button></div>
+      <div id="allocation-sheet" class="allocation-backdrop hidden" aria-hidden="true"><div class="allocation-sheet" role="dialog" aria-modal="true" aria-labelledby="allocation-title"><div class="allocation-handle" aria-hidden="true"></div><div class="allocation-title"><strong id="allocation-title">選擇分配比例</strong><button id="allocation-close" type="button" class="icon-btn" aria-label="關閉百分比選單">×</button></div><div class="allocation-options" role="group" aria-label="選擇百分比"><button type="button" data-allocation-percent="10">10%</button><button type="button" data-allocation-percent="20">20%</button><button type="button" data-allocation-percent="30">30%</button><button type="button" data-allocation-percent="50">50%</button><button type="button" data-allocation-percent="100">100%</button><button type="button" data-allocation-percent="custom">自訂</button></div><label id="allocation-custom-field" class="allocation-custom hidden">自訂比例 (%)<input id="allocation-custom-percent" type="number" min="0.1" max="100" step="0.1" value="30"></label><div id="allocation-preview" class="allocation-preview" aria-live="polite">請選擇分配比例</div><button type="button" id="allocation-confirm" class="button primary full" disabled>確認套用</button></div></div>
       <div id="kelly-action" class="offer hidden"><label>本期預估中獎率（%）<input id="kelly-probability" type="number" min="0.1" max="100" step="any" value="55"></label><button id="kelly-apply" type="button" class="button subtle">更新本期預估值</button></div>
       <section id="recent-feed" class="recent-feed neon-card" aria-label="即時中掛歷史清單">
         <div class="panel-title"><strong>即時中掛紀錄</strong><button type="button" id="recent-feed-more" class="small-action" aria-label="開啟完整歷史紀錄">查看全部 ›</button></div>
@@ -356,7 +388,8 @@ body[data-font-size="large"]{
       <label class="field"><span>操作金</span><input name="operation" type="number" min="1" step="1" value="1000" required></label>
       <label class="field"><span>玩法</span><select id="market" name="market"><option value="單球">賽車單球</option><option value="兩面盤">兩面盤</option><option value="百家樂">百家樂</option></select></label>
       <label class="field"><span>下注碼數</span><input name="count" type="number" min="1" max="8" value="6" required></label>
-      <label class="field"><span>切分份數</span><input name="parts" type="number" min="2" max="50" value="6" required></label>
+      <div id="baccarat-limits-fields" class="field-full hidden baccarat-limits"><label class="field"><span>最低下注（限紅）</span><input name="minBet" type="number" min="1" max="1000000000" step="1" value="100" required disabled></label><label class="field"><span>最高下注（限紅）</span><input name="maxBet" type="number" min="1" max="1000000000" step="1" value="10000" required disabled></label><p id="baccarat-limit-warning" class="limit-warning hidden" role="alert"></p></div>
+       <label class="field"><span>切分份數</span><input name="parts" type="number" min="2" max="50" value="6" required></label>
       <label class="field"><span>最大關卡</span><input name="maxSteps" type="number" min="1" max="50" value="6" required></label>
       <label class="field"><span>計畫總局數</span><input name="planned" type="number" min="1" max="100000" value="35" required></label>
       <details class="advanced field-full"><summary>進階設定 <span>停利、停損及策略專屬參數</span></summary><div class="fields">
@@ -373,7 +406,7 @@ body[data-font-size="large"]{
   </aside>
   <section class="view drawer drawer-left drawer-wide" id="view-strategies" role="dialog" aria-modal="true" aria-hidden="true" aria-label="策略中心"><div class="drawer-head"><div><strong>26 套策略中心</strong><button type="button" class="info-btn" data-info="可搜尋策略名稱與編號，點擊選用不會立即更改進行中的計畫。" aria-label="策略中心說明">ⓘ</button></div><button class="icon-btn close-drawer" type="button" aria-label="關閉策略中心">×</button></div><div class="drawer-scroll"><div class="search-wrap"><input id="strategy-search" type="search" placeholder="搜尋策略名稱或編號，例如 #26、馬丁"></div><div class="strategy-grid" id="strategy-grid"></div></div></section>
   <section class="view drawer drawer-bottom" id="view-history" role="dialog" aria-modal="true" aria-hidden="true" aria-label="結算紀錄"><div class="drawer-handle" aria-hidden="true"></div><div class="drawer-head"><div><strong>本次與歷史結算</strong><small id="history-count">0 筆</small></div><button class="icon-btn close-drawer" type="button" aria-label="關閉歷史紀錄">×</button></div><div class="drawer-scroll"><div class="history-summary"><div class="mini-panel"><small>累積投注</small><strong id="sum-cost">—</strong></div><div class="mini-panel"><small>累積盈虧</small><strong id="sum-pnl">—</strong></div><div class="mini-panel"><small>已鎖利</small><strong id="sum-locked">—</strong></div></div><div class="panel history-panel"><div class="panel-head"><h3>結算明細</h3><button id="export-csv" type="button" class="button subtle">匯出 CSV</button></div><div class="table-wrap"><table><thead><tr><th>局數</th><th>策略</th><th>中／掛</th><th>每碼</th><th>投注</th><th>本局損益</th></tr></thead><tbody id="history-rows"><tr><td colspan="6" class="empty">目前沒有紀錄</td></tr></tbody></table></div></div></div></section>
-  <section class="view drawer drawer-left drawer-wide" id="view-settings" role="dialog" aria-modal="true" aria-hidden="true" aria-label="網站設定"><div class="drawer-head"><div><strong>系統設定</strong><small>字體及本機資料管理</small></div><button class="icon-btn close-drawer" type="button" aria-label="關閉設定">×</button></div><div class="drawer-scroll"><div class="settings-grid"><section class="panel"><div class="panel-head"><h3>文字大小</h3><button type="button" class="info-btn" data-info="調整網站標題、卡片、按鈕、說明的字體大小；變更後會記住設定。" aria-label="文字大小說明">ⓘ</button></div><div class="font-controls" role="group" aria-label="文字大小"><button type="button" data-font="small">小</button><button type="button" data-font="medium">中</button><button type="button" data-font="large">大</button></div></section><section class="panel"><h3>本機資料備份</h3><button type="button" class="info-btn" data-info="歷史明細只保留最近 24 小時，超過期限會在開啟或操作時移除。策略、操作金及其他設定會保留；重新開啟網頁會從新計畫開始，不自動接續上一個計畫。資料只存於本機瀏覽器，清除瀏覽資料可能遺失。" aria-label="歷史保存說明">ⓘ</button><div class="button-row"><button id="backup-button" type="button" class="button subtle">匯出 JSON</button><button id="restore-button" type="button" class="button subtle">還原 JSON</button><input id="restore-file" type="file" accept=".json,application/json" hidden></div></section><section class="panel"><h3>版本資訊</h3><p>RUBY Smart Chip V0.1.2 Neon Portrait · 26 套策略 Python 引擎沿用原版；只作本機籌碼試算，不會送出訂單或 Telegram 訊息。</p></section></div></div></section>
+  <section class="view drawer drawer-left drawer-wide" id="view-settings" role="dialog" aria-modal="true" aria-hidden="true" aria-label="網站設定"><div class="drawer-head"><div><strong>系統設定</strong><small>字體及本機資料管理</small></div><button class="icon-btn close-drawer" type="button" aria-label="關閉設定">×</button></div><div class="drawer-scroll"><section class="panel plan-management"><div class="panel-head"><h3>計畫管理</h3></div><div class="secondary-actions more-actions" id="more-actions"><button id="resume-button" type="button" class="button subtle hidden" disabled>下一輪</button><button id="finish-button" type="button" class="button subtle" disabled>結算本次</button></div></section><div class="settings-grid"><section class="panel"><div class="panel-head"><h3>文字大小</h3><button type="button" class="info-btn" data-info="調整網站標題、卡片、按鈕、說明的字體大小；變更後會記住設定。" aria-label="文字大小說明">ⓘ</button></div><div class="font-controls" role="group" aria-label="文字大小"><button type="button" data-font="small">小</button><button type="button" data-font="medium">中</button><button type="button" data-font="large">大</button></div></section><section class="panel"><h3>本機資料備份</h3><button type="button" class="info-btn" data-info="歷史明細只保留最近 24 小時，超過期限會在開啟或操作時移除。策略、操作金及其他設定會保留；重新開啟網頁會從新計畫開始，不自動接續上一個計畫。資料只存於本機瀏覽器，清除瀏覽資料可能遺失。" aria-label="歷史保存說明">ⓘ</button><div class="button-row"><button id="backup-button" type="button" class="button subtle">匯出 JSON</button><button id="restore-button" type="button" class="button subtle">還原 JSON</button><input id="restore-file" type="file" accept=".json,application/json" hidden></div></section><section class="panel"><h3>版本資訊</h3><p>RUBY Smart Chip V0.1.2 Neon Portrait · 26 套策略 Python 引擎沿用原版；只作本機籌碼試算，不會送出訂單或 Telegram 訊息。</p></section></div></div></section>
 </div>
 <div class="info-backdrop hidden" id="info-backdrop"><div class="info-modal" role="dialog" aria-modal="true" aria-label="功能說明"><div class="panel-title"><strong>ⓘ 操作說明</strong><button type="button" id="info-close" class="icon-btn" aria-label="關閉說明">×</button></div><p id="info-text"></p></div></div>
 <nav class="mobile-nav" aria-label="底部分頁"><button type="button" class="active" data-tab="calculator">▣<span>計算</span></button><button type="button" data-tab="strategies">▤<span>策略</span></button><button type="button" data-tab="history">◷<span>紀錄</span></button><button type="button" data-tab="settings">⚙<span>設定</span></button></nav>
