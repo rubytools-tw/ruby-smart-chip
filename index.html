@@ -2327,8 +2327,8 @@ function render(){
   const canDistribute=on&&!busy&&s.session_status!=='settled';
   const canLock=canDistribute&&data?.canLock&&availableGain>0;
   const canRoll=canDistribute&&data?.canRoll&&(availableGain>0||pendingRoll>0);
-  $('#offer-actions').classList.toggle('hidden',!on||s?.session_status==='settled');
-  for(const b of $$('[data-choice]')){const v=b.dataset.choice;b.disabled=!(v==='lock'?canLock:v==='roll'?canRoll:(canLock||canRoll));b.title=b.disabled?'目前沒有可分配獲利或策略不支援':v==='lock'?'將可分配獲利的一半移入鎖利':v==='roll'?'把可分配獲利加回操作預算':'保持現有操作預算繼續';}
+  // Keep the inline profit controls visible; unavailable choices are disabled.
+  for(const b of $('[data-choice]')){const v=b.dataset.choice;b.disabled=!(v==='lock'?canLock:canRoll);b.title=b.disabled?'目前沒有可分配獲利或策略不支援':v==='lock'?'選擇鎖利比例':'選擇滾利比例';}
   $('#kelly-action').classList.toggle('hidden',!s||s.strategy!=='凱利公式'||s.session_status==='settled');
   $('#start-button').disabled=busy||!callPython;
   if(on){const selected=strategies.find(i=>i.name===s.strategy);$('#current-summary').textContent=selected?.description||s.strategy;$('#summary-info').dataset.info=selected?.description||s.strategy;}
@@ -2391,16 +2391,12 @@ function bindEvents(){
   $('#open-menu').addEventListener('click',e=>showDrawer('drawer-menu',e.currentTarget));
   $('#open-config').addEventListener('click',e=>showDrawer('drawer-config',e.currentTarget));
   $('#create-plan').addEventListener('click',e=>showDrawer('drawer-config',e.currentTarget));
-   $('#quick-amount').addEventListener('click',e=>{
-     showDrawer('drawer-config',e.currentTarget);
-     const amount=$('[name="operation"]');
-     if(amount){amount.focus({preventScroll:true});amount.select();}
-   });
+   $('#quick-amount').addEventListener('click',e=>showDrawer('drawer-config',e.currentTarget));
   $('#open-strategies').addEventListener('click',e=>showDrawer('view-strategies',e.currentTarget));
-  $('#open-history').addEventListener('click',e=>showDrawer('view-history',e.currentTarget));
+
   $('#recent-feed-more').addEventListener('click',e=>showDrawer('view-history',e.currentTarget));
   $('#ring-toggle').addEventListener('click',()=>setRingMode($('#ring-panel').classList.contains('compact')?'expanded':'compact'));
-  $('#more-button').addEventListener('click',()=>$('#more-actions').classList.toggle('hidden'));
+
   $('#drawer-backdrop').addEventListener('click',closeDrawers);
   for(const b of $$('.close-drawer'))b.addEventListener('click',closeDrawers);
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('drawer-open')){e.preventDefault();closeDrawers();}});
@@ -2410,6 +2406,7 @@ function bindEvents(){
   $('#strategy-select').addEventListener('change',changeStrategyFields);
   $('#config-form').addEventListener('input',saveSettings);
   $('#config-form').addEventListener('change',saveSettings);
+  $('#market').addEventListener('change',updateBetLimitsVisibility);
   document.addEventListener('visibilitychange',()=>{
     if(!document.hidden&&snapshot){persist();render();}
   });
@@ -2425,6 +2422,7 @@ function bindEvents(){
     e.preventDefault();if(busy)return;
     try{
       const config=readConfig();
+      if(config.market==='百家樂'&&!baccaratSettingsValid(true))return;
       if(snapshot?.state?.ledger?.length&&!confirm('開始新計畫會清空目前頁面的進行中統計。請先匯出備份，確定繼續？'))return;
       const started=await action('start',config,'已開始新計畫');
       if(started)closeDrawers();
@@ -2461,7 +2459,7 @@ function bindEvents(){
 }
 
 async function initialize(){
-  bindEvents();setFontSize(readFontSize());setRingMode('compact');
+  bindEvents();setFontSize(readFontSize());setRingMode('compact');updateBetLimitsVisibility();
   document.documentElement.style.setProperty('--ruby-bg-art',getComputedStyle($('.hero')).backgroundImage);
   try{
     strategies=JSON.parse(document.getElementById('ruby-strategies-json').textContent);
@@ -2480,7 +2478,7 @@ async function initialize(){
     for(const [name,contents] of bundle)runtime.FS.writeFile('/home/py/'+name,contents);
     runtime.runPython("import sys;sys.path.insert(0,'/home/py');from web_engine import web_call");
     python=runtime;callPython=runtime.globals.get('web_call');
-    loadLocalPreferencesAndHistory();
+    loadLocalPreferencesAndHistory();updateBetLimitsVisibility();baccaratSettingsValid(true);
     // A fresh session starts on every page load; only preferences and 24-hour history survive.
     run('load',{state:null});
     setReady(true,'計算核心已就緒');
