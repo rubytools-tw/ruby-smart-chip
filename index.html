@@ -2171,31 +2171,48 @@ function applySavedFields(fields){
     }
   }
 }
-function updateBetLimitsVisibility(){
-  const baccarat=$('#market').value==='百家樂';
-  $('#baccarat-limits-fields').classList.toggle('hidden',!baccarat);
-  for(const field of $$('#baccarat-limits-fields input'))field.disabled=!baccarat;
-  if(!baccarat)showBetLimitWarning('');
+const MARKET_LIMIT_KEYS={
+  '單球':['limitSingleMin','limitSingleMax'],
+  '兩面盤':['limitDoubleMin','limitDoubleMax'],
+  '百家樂':['limitBaccaratMin','limitBaccaratMax']
+};
+let visibleLimitMarket=null;
+function updateMarketLimitFields(force=false){
+  const market=$('#market').value;
+  if(!force&&visibleLimitMarket===market)return;
+  const names=MARKET_LIMIT_KEYS[market];
+  if(!names)return;
+  $('[name=minBet]').value=$('[name='+names[0]+']').value;
+  $('[name=maxBet]').value=$('[name='+names[1]+']').value;
+  visibleLimitMarket=market;
+  showMarketLimitWarning('');
 }
-function showBetLimitWarning(message){
-  const el=$('#baccarat-limit-warning');el.textContent=message||'';el.classList.toggle('hidden',!message);
+function showMarketLimitWarning(message){
+  const el=$('#market-limit-warning');el.textContent=message||'';
+  el.classList.toggle('hidden',!message);
 }
-function baccaratSettingsValid(show=true){
-  if($('#market').value!=='百家樂'){if(show)showBetLimitWarning('');return true;}
-  if(!callPython)return false;
+function marketSettingsValid(show=true){
+  if(!callPython||visibleLimitMarket!==$('#market').value)return false;
   try{
-    if(!$('#config-form').checkValidity())throw Error('請檢查參數：限紅需填入整數金額');
+    if(!$('#config-form').checkValidity())throw Error('請確認等份區間與限紅輸入有效，最低不得超過最高');
     const result=JSON.parse(callPython('validate',JSON.stringify(readConfig())));
-    if(!result.ok)throw Error(result.error||'此配置無法符合限紅');
-    if(show)showBetLimitWarning('');
+    if(!result.ok)throw Error(result.error||'目前參數無法產生符合限紅的第一局注碼');
+    if(show)showMarketLimitWarning('');
     return true;
   }catch(err){
-    if(show)showBetLimitWarning((err.message||String(err))+'。此設定不會儲存，請重新編排。');
+    if(show)showMarketLimitWarning((err.message||String(err))+'。此設定不會儲存，請重新編排。');
     return false;
   }
 }
+function commitMarketLimitFields(){
+  const names=MARKET_LIMIT_KEYS[$('#market').value];
+  if(!names)return;
+  $('[name='+names[0]+']').value=$('[name=minBet]').value;
+  $('[name='+names[1]+']').value=$('[name=maxBet]').value;
+}
 function saveSettings(){
-  if(!baccaratSettingsValid())return;
+  if(!marketSettingsValid())return;
+  commitMarketLimitFields();
   try{localStorage.setItem(SETTINGS_KEY,JSON.stringify({version:1,fields:getSavedFields()}));}
   catch{toast('設定儲存失敗，請確認瀏覽器本機儲存可用');}
 }
@@ -2215,7 +2232,21 @@ function loadLocalPreferencesAndHistory(){
   const legacy=readStorageJson(LEGACY_STORAGE_KEY);
   const prefs=readStorageJson(SETTINGS_KEY);
   const recent=readStorageJson(RECENT_HISTORY_KEY);
-  applySavedFields(prefs?.version===1?prefs.fields:fieldsFromLegacyState(legacy?.state));
+  const previous=prefs?.version===1?prefs.fields:fieldsFromLegacyState(legacy?.state);
+  const fields=previous?{...previous}:null;
+  if(fields){
+    if(String(fields.strategy)==='26'){
+      if(fields.partsMin===undefined)fields.partsMin=fields.parts??6;
+      if(fields.partsMax===undefined)fields.partsMax=fields.parts??6;
+    }
+    if(fields.market==='百家樂'&&fields.limitBaccaratMin===undefined&&fields.minBet!==undefined){
+      fields.limitBaccaratMin=fields.minBet;
+      fields.limitBaccaratMax=fields.maxBet??10000;
+    }
+  }
+  applySavedFields(fields);
+  visibleLimitMarket=null;
+  updateMarketLimitFields(true);
   const legacyRows=[
     ...(Array.isArray(legacy?.archives)?legacy.archives.flatMap(x=>Array.isArray(x?.ledger)?x.ledger:[]):[]),
     ...(Array.isArray(legacy?.state?.ledger)?legacy.state.ledger:[])
@@ -2273,7 +2304,10 @@ function persist(){
   const live=Array.isArray(snapshot?.state?.ledger)?snapshot.state.ledger:[];
   const rows=compactRecentRecords([...past,...live]);
   try{
-    if(baccaratSettingsValid(false))localStorage.setItem(SETTINGS_KEY,JSON.stringify({version:1,fields:getSavedFields()}));
+    if(marketSettingsValid(false)){
+      commitMarketLimitFields();
+      localStorage.setItem(SETTINGS_KEY,JSON.stringify({version:1,fields:getSavedFields()}));
+    }
     localStorage.setItem(RECENT_HISTORY_KEY,JSON.stringify({version:1,rows}));
     localStorage.removeItem(LEGACY_STORAGE_KEY);
   }catch(e){toast('本機儲存失敗，請確認瀏覽器儲存空間');}
@@ -2304,10 +2338,15 @@ function changeStrategyFields(){
     const hidden=field.classList.contains('hidden');
     for(const input of field.querySelectorAll('input,select,textarea'))input.disabled=hidden;
   }
+  const is26=code===26;
+  $('#fixed-parts-field').classList.toggle('hidden',is26);
+  $('#range-parts-field').classList.toggle('hidden',!is26);
+  $('[name=parts]').disabled=is26;
+  for(const field of $$('[name=partsMin], [name=partsMax]'))field.disabled=!is26;
   const max=$('[name=maxSteps]');
-  if(code===26){max.value=$('[name=parts]').value;max.disabled=true;}else{max.disabled=false;}
+  if(is26){max.value=$('[name=partsMax]').value;max.disabled=true;}else{max.disabled=false;}
   const s=strategies.find(x=>x.code===code);
-  $('#strategy-hint').dataset.info=code===26?'#26：切分份數就是固定等額關卡數；累計淨獲利達原始操作金 100% 時自動歸本。':s?.description||'此策略依原本 RUBY TG Chip V1.8.18 計算規則運作。';
+  $('#strategy-hint').dataset.info=is26?'#26：固定等份填相同數字；區間每輪隨機抽取一次，該輪全關沿用同一等份；每碼下注只取整數。':s?.description||'此策略依原本 RUBY TG Chip V1.8.18 計算規則運作。';
   $('#current-summary').textContent=s?.description||'請選擇策略。';$('#summary-info').dataset.info=s?.description||'請選擇策略。';
 }
 function parseSeq(value){
@@ -2318,11 +2357,12 @@ function parseSeq(value){
 function readConfig(){
   const f=new FormData($('#config-form'));
   const config={strategy:getCode(),operation:Number(f.get('operation')),market:f.get('market'),count:Number(f.get('count')),
-    parts:Number(f.get('parts')),maxSteps:Number(f.get('maxSteps')||$('[name=maxSteps]').value),planned:Number(f.get('planned')),
-    minBet:Number(f.get('minBet')||100),maxBet:Number(f.get('maxBet')||10000),
+    parts:Number($('[name=parts]').value),partsMin:Number($('[name=partsMin]').value),partsMax:Number($('[name=partsMax]').value),
+    maxSteps:Number(f.get('maxSteps')||$('[name=maxSteps]').value),planned:Number(f.get('planned')),
+    minBet:Number($('[name=minBet]').value),maxBet:Number($('[name=maxBet]').value),
     profitPct:Number(f.get('profitPct')),lossPct:Number(f.get('lossPct')),
     fraction:Number(f.get('fraction')||20),kellyFraction:Number(f.get('kellyFraction')||25)};
-  if(config.strategy===26)config.maxSteps=config.parts;
+  if(config.strategy===26){config.parts=config.partsMin;config.maxSteps=config.partsMax;}
   const codes={0:'loss_sequence',99:'custom_win_sequence',66:'layer_sequence',14:'win_sequence',20:'attack_sequence',24:'cancel_list'};
   if(codes[config.strategy])config[codes[config.strategy]]=parseSeq(f.get('sequenceInput')||'');
   if(config.strategy===20)config.retreat_sequence=parseSeq(f.get('sequenceSecondary')||'');
@@ -2489,15 +2529,19 @@ function bindEvents(){
   historyHandle.addEventListener('touchstart',e=>{drawerTouchY=e.changedTouches[0]?.clientY??null;},{passive:true});
   historyHandle.addEventListener('touchend',e=>{if(drawerTouchY!==null&&e.changedTouches[0]?.clientY-drawerTouchY>70)closeDrawers();drawerTouchY=null;},{passive:true});
   $('#strategy-select').addEventListener('change',changeStrategyFields);
+  $('#market').addEventListener('change',e=>{
+    $('[name=count]').value=e.target.value==='單球'?6:1;
+    updateMarketLimitFields();
+  });
   $('#config-form').addEventListener('input',saveSettings);
   $('#config-form').addEventListener('change',saveSettings);
-  $('#market').addEventListener('change',updateBetLimitsVisibility);
   document.addEventListener('visibilitychange',()=>{
     if(!document.hidden&&snapshot){persist();render();}
   });
   $('#strategy-search').addEventListener('input',e=>displayStrategyLibrary(e.target.value));
-  $('#market').addEventListener('change',e=>{$('[name=count]').value=e.target.value==='單球'?6:1;});
-  $('[name=parts]').addEventListener('input',()=>{if(getCode()===26)$('[name=maxSteps]').value=$('[name=parts]').value;});
+  $('[name=partsMax]').addEventListener('input',()=>{
+    if(getCode()===26)$('[name=maxSteps]').value=$('[name=partsMax]').value;
+  });
   $('#config-form').addEventListener('invalid',e=>{
     const field=e.target;
     const label=field.closest('label')?.querySelector('span')?.textContent?.trim()||field.name||'輸入欄位';
@@ -2507,7 +2551,7 @@ function bindEvents(){
     e.preventDefault();if(busy)return;
     try{
       const config=readConfig();
-      if(config.market==='百家樂'&&!baccaratSettingsValid(true))return;
+      if(!marketSettingsValid(true))return;
       if(snapshot?.state?.ledger?.length&&!confirm('開始新計畫會清空目前頁面的進行中統計。請先匯出備份，確定繼續？'))return;
       const started=await action('start',config,'已開始新計畫');
       if(started)closeDrawers();
@@ -2566,7 +2610,7 @@ function bindEvents(){
 }
 
 async function initialize(){
-  bindEvents();setFontSize(readFontSize());setRingMode('compact');updateBetLimitsVisibility();
+  bindEvents();setFontSize(readFontSize());setRingMode('compact');updateMarketLimitFields(true);
   document.documentElement.style.setProperty('--ruby-bg-art',getComputedStyle($('.hero')).backgroundImage);
   try{
     strategies=JSON.parse(document.getElementById('ruby-strategies-json').textContent);
@@ -2585,7 +2629,7 @@ async function initialize(){
     for(const [name,contents] of bundle)runtime.FS.writeFile('/home/py/'+name,contents);
     runtime.runPython("import sys;sys.path.insert(0,'/home/py');from web_engine import web_call");
     python=runtime;callPython=runtime.globals.get('web_call');
-    loadLocalPreferencesAndHistory();updateBetLimitsVisibility();baccaratSettingsValid(true);
+    loadLocalPreferencesAndHistory();marketSettingsValid(true);
     // A fresh session starts on every page load; only preferences and 24-hour history survive.
     run('load',{state:null});
     setReady(true,'計算核心已就緒');
