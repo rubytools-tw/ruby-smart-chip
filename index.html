@@ -1907,6 +1907,15 @@ def settle(outcome, action_id=None):
     elif not strategy26.active(s) and s['pnl']>=s['profit_target']:
         s['session_status']='paused_profit'
         s['strategy_pause_reason']='已達設定停利'
+    if strategy26.active(s) and s.get('session_status')=='active':
+        # A completed result may leave less than one valid, whole-number stake
+        # (or below the selected market minimum). Stop at that point, not when
+        # the randomly selected number of parts has been used.
+        next_quote,reason=sizing.quote(s)
+        next_quote,reason=enforce_table_limits(s,next_quote,reason)
+        if next_quote is None and not sizing.plan_limit_reached(s):
+            s['session_status']='paused_funds'
+            s['strategy_pause_reason']=reason or '本輪剩餘操作金無法繼續分切，計畫停止'
     UNDO=before
     LAST_ACTION_ID=action_id
     return evaluate_state()
