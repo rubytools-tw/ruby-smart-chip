@@ -317,6 +317,15 @@ body[data-font-size="large"]{
 .baccarat-limits .field{min-width:0}
 .limit-warning{grid-column:1/-1;margin:0;font-size:var(--ruby-fs-label,13px);color:var(--danger);line-height:1.45}
 @media(max-width:355px){.ring-title-actions{gap:4px}.ring-title-actions .small-action{padding:5px 4px}.ring-panel.compact .ring-body{grid-template-columns:minmax(0,35%) minmax(0,1fr);column-gap:3px}}
+
+/* V0.1.4: only parameter field geometry; original Neon palette and typography retained. */
+.market-limits{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.market-limits .field{min-width:0}
+.market-limits .limit-warning{grid-column:1/-1}
+.parts-range-inputs{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:5px;align-items:center;width:100%}
+.parts-range-inputs input{min-width:0;width:100%;text-align:center;padding-inline:3px}
+.parts-range-inputs>span{white-space:nowrap;color:var(--muted);font-weight:700}
+#range-parts-field{min-width:0}
 </style>
 </head>
 <body data-theme="neon">
@@ -324,7 +333,7 @@ body[data-font-size="large"]{
 <div class="app-shell">
   <div id="drawer-backdrop" class="drawer-backdrop" aria-hidden="true"></div>
   <aside class="sidebar drawer" id="drawer-menu" role="dialog" aria-modal="true" aria-label="主選單" aria-hidden="true">
-    <div class="drawer-head"><div class="brand-mini"><span class="brand-symbol">R</span><div><strong>RUBY Smart Chip</strong><small>霓虹直立版 · V0.1.3</small></div></div><button class="icon-btn close-drawer" aria-label="關閉主選單" type="button">×</button></div>
+    <div class="drawer-head"><div class="brand-mini"><span class="brand-symbol">R</span><div><strong>RUBY Smart Chip</strong><small>霓虹直立版 · V0.1.4</small></div></div><button class="icon-btn close-drawer" aria-label="關閉主選單" type="button">×</button></div>
     <div class="drawer-nav">
       <button type="button" class="nav-item active" data-tab="calculator"><span>▣</span> 籌碼計算機</button>
       <button type="button" class="nav-item" data-tab="strategies"><span>▤</span> 26 套策略中心</button>
@@ -336,7 +345,7 @@ body[data-font-size="large"]{
   <main class="main-view" id="main-content">
     <header class="topbar"><button type="button" class="icon-btn" id="open-menu" aria-label="開啟主選單">☰</button><div class="nav-brand"><strong>RUBY <span>Smart Chip</span></strong><small>兔寶寶籌碼計算機</small></div><button type="button" class="icon-btn" id="open-config" aria-label="開啟計畫參數">⚙</button></header>
     <div class="hero"><div class="hero-overlay"><small>RUBY · NEON PORTRAIT EDITION</small><h1 id="page-title">籌碼計算機</h1><p>策略 × 注碼 × 歷史 · 一頁掌握</p></div></div>
-    <div class="engine-row"><span id="engine-status" class="status-pill loading" role="status">計算核心載入中…</span><span id="session-label" class="soft-tag">未開始</span><button type="button" class="info-btn" data-info="RUBY Smart Chip V0.1.3：資料存於本機瀏覽器，歷史只保留最近 24 小時，設定持續保留。" aria-label="版本說明">ⓘ</button></div>
+    <div class="engine-row"><span id="engine-status" class="status-pill loading" role="status">計算核心載入中…</span><span id="session-label" class="soft-tag">未開始</span><button type="button" class="info-btn" data-info="RUBY Smart Chip V0.1.4：資料存於本機瀏覽器，歷史只保留最近 24 小時，設定持續保留。" aria-label="版本說明">ⓘ</button></div>
     <div id="alert" class="alert hidden" role="alert"></div>
     <section class="view active" id="view-calculator" aria-labelledby="page-title">
       <button type="button" class="current-strategy neon-card" id="open-strategies" aria-label="開啟策略中心"><span class="strategy-accent">當前策略</span><span class="strategy-text"><strong id="strategy-active-name">#26 等分倍盈歸本法</strong><small id="strategy-active-meta">尚未開始 · 點擊選擇策略</small></span><span class="chevron">›</span></button>
@@ -379,7 +388,7 @@ body[data-font-size="large"]{
       </section>
       <section class="summary-panel neon-card"><div class="panel-title"><strong>目前策略摘要</strong><button type="button" class="info-btn" id="summary-info" data-info="選擇策略後顯示規則。" aria-label="查看目前策略摘要">ⓘ</button><button id="read-strategy" type="button" class="text-btn">完整說明 ›</button></div><p id="current-summary" class="sr-only">選擇策略後顯示規則。</p></section>
     </section>
-    <footer class="app-footer">RUBY Smart Chip V0.1.3 · 本機試算 · 非自動下注</footer>
+    <footer class="app-footer">RUBY Smart Chip V0.1.4 · 本機試算 · 非自動下注</footer>
   </main>
 
   <aside id="drawer-config" class="drawer drawer-right" role="dialog" aria-modal="true" aria-label="計畫參數設定" aria-hidden="true"><div class="drawer-head"><div><strong>計畫參數</strong><button type="button" class="info-btn" data-info="輸入後請按確認，進行中的計畫不會被暗中修改。" aria-label="參數套用說明">ⓘ</button></div><button class="icon-btn close-drawer" type="button" aria-label="關閉參數設定">×</button></div>
@@ -388,8 +397,12 @@ body[data-font-size="large"]{
       <label class="field"><span>操作金</span><input name="operation" type="number" min="1" step="1" value="1000" required></label>
       <label class="field"><span>玩法</span><select id="market" name="market"><option value="單球">賽車單球</option><option value="兩面盤">兩面盤</option><option value="百家樂">百家樂</option></select></label>
       <label class="field"><span>下注碼數</span><input name="count" type="number" min="1" max="8" value="6" required></label>
-      <div id="baccarat-limits-fields" class="field-full hidden baccarat-limits"><label class="field"><span>最低下注（限紅）</span><input name="minBet" type="number" min="1" max="1000000000" step="1" value="100" required disabled></label><label class="field"><span>最高下注（限紅）</span><input name="maxBet" type="number" min="1" max="1000000000" step="1" value="10000" required disabled></label><p id="baccarat-limit-warning" class="limit-warning hidden" role="alert"></p></div>
-       <label class="field"><span>切分份數</span><input name="parts" type="number" min="2" max="50" value="6" required></label>
+      <div id="market-limits-fields" class="field-full market-limits"><label class="field"><span>最低下注（限紅）</span><input name="minBet" type="number" min="1" max="1000000000" step="1" value="1" required></label><label class="field"><span>最高下注（限紅）</span><input name="maxBet" type="number" min="1" max="1000000000" step="1" value="20000" required></label><p id="market-limit-warning" class="limit-warning hidden" role="alert"></p></div>
+       <input type="hidden" name="limitSingleMin" value="1"><input type="hidden" name="limitSingleMax" value="20000">
+       <input type="hidden" name="limitDoubleMin" value="1"><input type="hidden" name="limitDoubleMax" value="10000">
+       <input type="hidden" name="limitBaccaratMin" value="100"><input type="hidden" name="limitBaccaratMax" value="10000">
+       <label class="field hidden" id="fixed-parts-field"><span>切分份數</span><input name="parts" type="number" min="2" max="50" value="6" required disabled></label>
+       <div class="field" id="range-parts-field"><span>切分等份</span><div class="parts-range-inputs"><input aria-label="最小等份" name="partsMin" type="number" min="2" max="50" step="1" value="6" required><span aria-hidden="true">～</span><input aria-label="最大等份" name="partsMax" type="number" min="2" max="50" step="1" value="6" required></div></div>
       <label class="field"><span>最大關卡</span><input name="maxSteps" type="number" min="1" max="50" value="6" required></label>
       <label class="field"><span>計畫總局數</span><input name="planned" type="number" min="1" max="100000" value="35" required></label>
       <details class="advanced field-full"><summary>進階設定 <span>停利、停損及策略專屬參數</span></summary><div class="fields">
@@ -406,7 +419,7 @@ body[data-font-size="large"]{
   </aside>
   <section class="view drawer drawer-left drawer-wide" id="view-strategies" role="dialog" aria-modal="true" aria-hidden="true" aria-label="策略中心"><div class="drawer-head"><div><strong>26 套策略中心</strong><button type="button" class="info-btn" data-info="可搜尋策略名稱與編號，點擊選用不會立即更改進行中的計畫。" aria-label="策略中心說明">ⓘ</button></div><button class="icon-btn close-drawer" type="button" aria-label="關閉策略中心">×</button></div><div class="drawer-scroll"><div class="search-wrap"><input id="strategy-search" type="search" placeholder="搜尋策略名稱或編號，例如 #26、馬丁"></div><div class="strategy-grid" id="strategy-grid"></div></div></section>
   <section class="view drawer drawer-bottom" id="view-history" role="dialog" aria-modal="true" aria-hidden="true" aria-label="結算紀錄"><div class="drawer-handle" aria-hidden="true"></div><div class="drawer-head"><div><strong>本次與歷史結算</strong><small id="history-count">0 筆</small></div><button class="icon-btn close-drawer" type="button" aria-label="關閉歷史紀錄">×</button></div><div class="drawer-scroll"><div class="history-summary"><div class="mini-panel"><small>累積投注</small><strong id="sum-cost">—</strong></div><div class="mini-panel"><small>累積盈虧</small><strong id="sum-pnl">—</strong></div><div class="mini-panel"><small>已鎖利</small><strong id="sum-locked">—</strong></div></div><div class="panel history-panel"><div class="panel-head"><h3>結算明細</h3><button id="export-csv" type="button" class="button subtle">匯出 CSV</button></div><div class="table-wrap"><table><thead><tr><th>局數</th><th>策略</th><th>中／掛</th><th>每碼</th><th>投注</th><th>本局損益</th></tr></thead><tbody id="history-rows"><tr><td colspan="6" class="empty">目前沒有紀錄</td></tr></tbody></table></div></div></div></section>
-  <section class="view drawer drawer-left drawer-wide" id="view-settings" role="dialog" aria-modal="true" aria-hidden="true" aria-label="網站設定"><div class="drawer-head"><div><strong>系統設定</strong><small>字體及本機資料管理</small></div><button class="icon-btn close-drawer" type="button" aria-label="關閉設定">×</button></div><div class="drawer-scroll"><section class="panel plan-management"><div class="panel-head"><h3>計畫管理</h3></div><div class="secondary-actions more-actions" id="more-actions"><button id="resume-button" type="button" class="button subtle hidden" disabled>下一輪</button><button id="finish-button" type="button" class="button subtle" disabled>結算本次</button></div></section><div class="settings-grid"><section class="panel"><div class="panel-head"><h3>文字大小</h3><button type="button" class="info-btn" data-info="調整網站標題、卡片、按鈕、說明的字體大小；變更後會記住設定。" aria-label="文字大小說明">ⓘ</button></div><div class="font-controls" role="group" aria-label="文字大小"><button type="button" data-font="small">小</button><button type="button" data-font="medium">中</button><button type="button" data-font="large">大</button></div></section><section class="panel"><h3>本機資料備份</h3><button type="button" class="info-btn" data-info="歷史明細只保留最近 24 小時，超過期限會在開啟或操作時移除。策略、操作金及其他設定會保留；重新開啟網頁會從新計畫開始，不自動接續上一個計畫。資料只存於本機瀏覽器，清除瀏覽資料可能遺失。" aria-label="歷史保存說明">ⓘ</button><div class="button-row"><button id="backup-button" type="button" class="button subtle">匯出 JSON</button><button id="restore-button" type="button" class="button subtle">還原 JSON</button><input id="restore-file" type="file" accept=".json,application/json" hidden></div></section><section class="panel"><h3>版本資訊</h3><p>RUBY Smart Chip V0.1.3 Neon Portrait · 26 套策略 Python 引擎沿用原版；只作本機籌碼試算，不會送出訂單或 Telegram 訊息。</p></section></div></div></section>
+  <section class="view drawer drawer-left drawer-wide" id="view-settings" role="dialog" aria-modal="true" aria-hidden="true" aria-label="網站設定"><div class="drawer-head"><div><strong>系統設定</strong><small>字體及本機資料管理</small></div><button class="icon-btn close-drawer" type="button" aria-label="關閉設定">×</button></div><div class="drawer-scroll"><section class="panel plan-management"><div class="panel-head"><h3>計畫管理</h3></div><div class="secondary-actions more-actions" id="more-actions"><button id="resume-button" type="button" class="button subtle hidden" disabled>下一輪</button><button id="finish-button" type="button" class="button subtle" disabled>結算本次</button></div></section><div class="settings-grid"><section class="panel"><div class="panel-head"><h3>文字大小</h3><button type="button" class="info-btn" data-info="調整網站標題、卡片、按鈕、說明的字體大小；變更後會記住設定。" aria-label="文字大小說明">ⓘ</button></div><div class="font-controls" role="group" aria-label="文字大小"><button type="button" data-font="small">小</button><button type="button" data-font="medium">中</button><button type="button" data-font="large">大</button></div></section><section class="panel"><h3>本機資料備份</h3><button type="button" class="info-btn" data-info="歷史明細只保留最近 24 小時，超過期限會在開啟或操作時移除。策略、操作金及其他設定會保留；重新開啟網頁會從新計畫開始，不自動接續上一個計畫。資料只存於本機瀏覽器，清除瀏覽資料可能遺失。" aria-label="歷史保存說明">ⓘ</button><div class="button-row"><button id="backup-button" type="button" class="button subtle">匯出 JSON</button><button id="restore-button" type="button" class="button subtle">還原 JSON</button><input id="restore-file" type="file" accept=".json,application/json" hidden></div></section><section class="panel"><h3>版本資訊</h3><p>RUBY Smart Chip V0.1.4 Neon Portrait · 26 套策略 Python 引擎沿用原版；只作本機籌碼試算，不會送出訂單或 Telegram 訊息。</p></section></div></div></section>
 </div>
 <div class="info-backdrop hidden" id="info-backdrop"><div class="info-modal" role="dialog" aria-modal="true" aria-label="功能說明"><div class="panel-title"><strong>ⓘ 操作說明</strong><button type="button" id="info-close" class="icon-btn" aria-label="關閉說明">×</button></div><p id="info-text"></p></div></div>
 <nav class="mobile-nav" aria-label="底部分頁"><button type="button" class="active" data-tab="calculator">▣<span>計算</span></button><button type="button" data-tab="strategies">▤<span>策略</span></button><button type="button" data-tab="history">◷<span>紀錄</span></button><button type="button" data-tab="settings">⚙<span>設定</span></button></nav>
@@ -593,7 +606,7 @@ body[data-font-size="large"]{
     "name": "等分倍盈歸本法",
     "code": 26,
     "kind": "等分",
-    "description": "每碼=floor(min(當前可用金, 當前操作預算)÷碼數÷切分份數)；每輪固定基額，每關1倍。中則下一輪回首關，掛進下關；全關掛暫停。累計已結算週期淨獲利達起始操作金100%時，已鎖金額不重複計入，超額獲利全鎖，操作預算歸回起始值，開始下一週期。"
+    "description": "每碼=floor(min(當前可用金, 當前操作預算)÷本輪等份÷下注碼數)；固定輸入相同等份，區間則在每輪開始時均勻隨機抽一個整數，單輪每關均固定1倍。中則下輪重新抽取，掛則沿用本輪等份進下一關；全關掛暫停。累計已結算週期淨獲利達起始操作金100%時，已鎖金額不重複計入，超額獲利全鎖，操作預算歸回起始值，開始下一週期。"
   }
 ]</script>
 <script type="text/plain" id="py-src-strategy_engine.py">
@@ -767,7 +780,7 @@ for _d in CATALOG:
 import copy
 import math
 
-_ROWS=[('fixed', '動態固定注', '中性', '每碼維持基本注，中掛都不推進。'), ('fraction', '固定比例法', '中性', '每局總注＝可用操作金×投入比例，平均分給各碼。'), ('budget', '預算分配法', '中性', '每局總注＝min(可用操作金,剩餘停損額)÷預算份數。'), ('winner', '有限連贏法', '勝進', '中往勝進序列下一關；掛或序列走完回第一關。'), ('custom', '自訂關卡配注法', '負追', '掛往配注序列下一關，中回第一關；末階掛後循環回首關（仍受停損與局數限制）。'), ('martingale', '標準馬丁法', '負追', '掛後每碼加倍，中回基本注；最多使用最大關卡數。'), ('tianmen', '天門打法', '負追', '使用你確認的1／3／7／15／31倍版本，掛進、中回首關。'), ('dalembert', '達朗貝爾法', '負追', '掛增加一個基本單位，中減一個單位，最低一單位。'), ('fibonacci', '費波納契法', '負追', '1／1／2／3／5…；掛前進一關，中退兩關，最低首關。'), ('attack', '攻擊／退守切換法', '雙向', '測試注中轉攻擊、掛轉退守；攻擊中進掛回測試；退守掛進中退。'), ('twoleg', '兩關分層法', '雙向', '每層先一注，中再下兩倍；兩關都中回第一層，任一關掛換下一層。'), ('recovery', '目標回補法', '負追', '每碼＝向上取整((未回補虧損＋回補目標)÷(含本金賠率－碼數))。'), ('kelly', '凱利公式', '中性', '每期先回報本期預估中獎率；f=(b×p－(1－p))÷b，b=賠率÷碼數－1；f≤0不下注。'), ('labouchere', '清單消去法', '負追', '下注清單首尾和；中刪首尾，掛把本局單位加到末尾；單項只取該項。'), ('equal_reset','等分倍盈歸本法','等分','當前操作預算／碼數／切分份數；同輪全關1倍、任一中下一輪、全關掛暫停，週期淨獲利達起始操作金100%即歸本鎖利。')]
+_ROWS=[('fixed', '動態固定注', '中性', '每碼維持基本注，中掛都不推進。'), ('fraction', '固定比例法', '中性', '每局總注＝可用操作金×投入比例，平均分給各碼。'), ('budget', '預算分配法', '中性', '每局總注＝min(可用操作金,剩餘停損額)÷預算份數。'), ('winner', '有限連贏法', '勝進', '中往勝進序列下一關；掛或序列走完回第一關。'), ('custom', '自訂關卡配注法', '負追', '掛往配注序列下一關，中回第一關；末階掛後循環回首關（仍受停損與局數限制）。'), ('martingale', '標準馬丁法', '負追', '掛後每碼加倍，中回基本注；最多使用最大關卡數。'), ('tianmen', '天門打法', '負追', '使用你確認的1／3／7／15／31倍版本，掛進、中回首關。'), ('dalembert', '達朗貝爾法', '負追', '掛增加一個基本單位，中減一個單位，最低一單位。'), ('fibonacci', '費波納契法', '負追', '1／1／2／3／5…；掛前進一關，中退兩關，最低首關。'), ('attack', '攻擊／退守切換法', '雙向', '測試注中轉攻擊、掛轉退守；攻擊中進掛回測試；退守掛進中退。'), ('twoleg', '兩關分層法', '雙向', '每層先一注，中再下兩倍；兩關都中回第一層，任一關掛換下一層。'), ('recovery', '目標回補法', '負追', '每碼＝向上取整((未回補虧損＋回補目標)÷(含本金賠率－碼數))。'), ('kelly', '凱利公式', '中性', '每期先回報本期預估中獎率；f=(b×p－(1－p))÷b，b=賠率÷碼數－1；f≤0不下注。'), ('labouchere', '清單消去法', '負追', '下注清單首尾和；中刪首尾，掛把本局單位加到末尾；單項只取該項。'), ('equal_reset','等分倍盈歸本法','等分','當前操作預算／下注碼數／本輪等份；固定值或每輪隨機等份，輪內全關1倍、任一中下一輪重新抽、全關掛暫停，週期淨獲利達起始操作金100%即歸本鎖利。')]
 CATALOG=[dict(id=r[0],name=r[1],kind=r[2],principle=r[3],formula=r[3],
              trigger='有限關卡、金額上限或計畫局數到達即暫停；只有有效中掛才更新策略。',
              limit='籌碼變化不會提高命中機率，亦不保證回本。',group='new') for r in _ROWS]
@@ -902,7 +915,7 @@ def position(s):
     if sid=='twoleg':return f"第{p['step']+1}層／第{p['leg']+1}關"
     if sid=='recovery':return f"待回補 {p['debt']:g}"
     if sid=='labouchere':return '清單 '+ '/'.join(f'{x:g}' for x in p.get('list',s['cancel_list']))[:65]
-    if sid=='equal_reset':return f'第{p["step"]+1}關／共{s["risk_parts"]}關'
+    if sid=='equal_reset':return f'第{p["step"]+1}關／共{s["risk_parts"]}關 · {s["risk_parts"]}等份'
     return f"第{p['step']+1}關" if sid in ('custom','winner','martingale','tianmen','dalembert','fibonacci') else ''
 
 def settings_text(s):
@@ -933,6 +946,7 @@ Round bookkeeping is advanced exclusively by accepted results or explicit choice
 """
 import copy
 import math
+import random
 import statistics
 from decimal import Decimal, ROUND_FLOOR, ROUND_CEILING
 import progression
@@ -1289,6 +1303,14 @@ def apply_pending(s):
 
 def next_round(s,refresh=True):
     apply_pending(s)
+    if strategy26.active(s):
+        # One inclusive draw at the beginning of each new round; keep all losses
+        # in that round on the same selected parts count.
+        minimum=int(s.get('split_min',s['risk_parts']))
+        maximum=int(s.get('split_max',s['risk_parts']))
+        s['risk_parts']=random.randint(minimum,maximum)
+        s['max_steps']=s['risk_parts']
+        set_operation_budget(s,operation_budget(s))
     s.update(round_win_streak=0,round_id=s['round_id']+1,round_start_pnl=s['pnl'],round_start_count=s['wins']+s['losses'],round_offer=False,round_offer_advanced=False,open_quote=None,round_notice='')
     if progression.is_new(s):progression.init(s)
     if refresh:refresh_base(s)
@@ -1630,7 +1652,7 @@ FORMULAS={
 22:'每碼＝ceil((未回補虧損＋回補目標)÷(含本金賠率－碼數))。分母≤0不計算。',
 23:'每期先提供本期預估中獎率p。b＝含本金賠率÷碼數－1；f＝(b×p－(1－p))÷b。每碼＝floor(一份×f×凱利折數÷碼數)；未提供p、b≤0或f≤0不進場。',
 24:'新輪未取整每碼基額＝(一份÷初始清單和÷碼數)，同輪固定。倍數取首尾和，單項僅一次；掛追加、中刪首尾。清空才完成；不受連掛或關卡上限重置。新輪基額依當前操作預算重新算；鎖利扣預算，滾利加當次可滾獲利。',
-26:'每碼=floor(min(當前可用金, 當前操作預算)÷碼數÷切分份數)；每輪固定基額，每關1倍。中則下一輪回首關，掛進下關；全關掛暫停。累計已結算週期淨獲利達起始操作金100%時，已鎖金額不重複計入，超額獲利全鎖，操作預算歸回起始值，開始下一週期。'}
+26:'每碼=floor(min(當前可用金, 當前操作預算)÷本輪等份÷下注碼數)；固定輸入相同等份，區間則在每輪開始時均勻隨機抽一個整數，單輪每關均固定1倍。中則下輪重新抽取，掛則沿用本輪等份進下一關；全關掛暫停。累計已結算週期淨獲利達起始操作金100%時，已鎖金額不重複計入，超額獲利全鎖，操作預算歸回起始值，開始下一週期。'}
 
 def describe(code):
     text=FORMULAS[code]
@@ -1650,6 +1672,7 @@ The snapshot format is JSON and stored only by the hosting web page.
 """
 import copy
 import json
+import random
 from datetime import datetime, timezone
 from decimal import Decimal, ROUND_HALF_UP
 import progression
@@ -1667,6 +1690,8 @@ def cash(value):
     return float(Decimal(str(value)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP))
 
 
+TABLE_LIMITS={'單球':(1,20000),'兩面盤':(1,10000),'百家樂':(100,10000)}
+
 def new_state(config):
     strategy_code = int(config.get('strategy',26))
     if strategy_code not in strategy_engine.BY_CODE:
@@ -1676,6 +1701,21 @@ def new_state(config):
     count = int(config.get('count',6))
     parts = int(config.get('parts',6))
     max_steps = int(config.get('maxSteps',6))
+    if strategy_code==26:
+        raw_min=config.get('partsMin',parts)
+        raw_max=config.get('partsMax',parts)
+        try:
+            if not (float(raw_min).is_integer() and float(raw_max).is_integer()):
+                raise ValueError()
+            split_min,split_max=int(raw_min),int(raw_max)
+        except (TypeError,ValueError,OverflowError):
+            raise ValueError('#26 切分等份請輸入 2～50 的整數')
+        if not 2<=split_min<=split_max<=50:
+            raise ValueError('#26 切分等份區間應介於 2～50，且左邊不得大於右邊')
+        parts=random.randint(split_min,split_max)
+        max_steps=parts
+    else:
+        split_min=split_max=parts
     planned = int(config.get('planned',35))
     market = config.get('market','單球')
     if market not in ('單球','兩面盤','百家樂'):
@@ -1696,6 +1736,7 @@ def new_state(config):
         schema=16,operation_base=operation,bankroll=operation,session_operation_origin=operation,
         pnl=0.0,locked_profit=0.0,wins=0,losses=0,ties=0,total_bet=0.0,total_return=0.0,
         strategy=name,market=market,number_count=count,risk_parts=parts,max_steps=max_steps,
+        split_min=split_min,split_max=split_max,
         stop_profit_mode='percent',stop_profit_value=profit_pct,stop_loss_mode='percent',stop_loss_value=loss_pct,
         profit_target=cash(operation*profit_pct/100),loss_limit=cash(operation*loss_pct/100),
         planned_rounds=planned,round_limit=planned,web_batch_mode=True,web_batch_size=planned,web_batch_total_cap=planned,payout_multiplier=payout,
@@ -1720,30 +1761,57 @@ def new_state(config):
             if not isinstance(seq,list) or not seq or len(seq)>100 or any(not 0<x<=100000 for x in seq):
                 raise ValueError('倍率序列格式錯誤')
             s[key] = seq
-    min_bet=cash(config.get('minBet',100))
-    max_bet=cash(config.get('maxBet',10000))
-    if market=='百家樂':
-        if not (1<=min_bet<=max_bet<=1000000000):
-            raise ValueError('百家樂限紅不正確：最低與最高下注需為正數，最低不得高於最高')
-        if min_bet!=int(min_bet) or max_bet!=int(max_bet):
-            raise ValueError('百家樂限紅必須是整數金額')
+    default_min,default_max=TABLE_LIMITS[market]
+    min_bet=cash(config.get('minBet',default_min))
+    max_bet=cash(config.get('maxBet',default_max))
+    if not (1<=min_bet<=max_bet<=1000000000):
+        raise ValueError('限紅設定不正確：最低與最高下注必須是正數，且最低不得高於最高')
+    if min_bet!=int(min_bet) or max_bet!=int(max_bet):
+        raise ValueError('限紅設定請輸入整數金額')
     s['table_min_bet']=min_bet
     s['table_max_bet']=max_bet
+    s['table_limit_version']=2
     sizing.initialize(s)
     return s
 
 
 def enforce_table_limits(s,q,reason=''):
-    if s.get('market')!='百家樂' or q is None:
+    if q is None:
         return q,reason
-    total=cash(q['total'])
-    minimum=cash(s.get('table_min_bet',100))
-    maximum=cash(s.get('table_max_bet',10000))
-    if total<minimum:
-        return None,f'百家樂限紅：本局總注 {total:g} 低於最低下注 {minimum:g}；請重新編排操作金、切分及策略參數'
-    if total>maximum:
-        return None,f'百家樂限紅：本局總注 {total:g} 超過最高下注 {maximum:g}；請重新編排操作金、切分及策略參數'
+    market=s.get('market','單球')
+    default_min,default_max=TABLE_LIMITS.get(market,(1,10000))
+    amount=cash(q['per'] if market=='單球' else q['total'])
+    unit='每碼' if market=='單球' else '單注'
+    minimum=cash(s.get('table_min_bet',default_min))
+    maximum=cash(s.get('table_max_bet',default_max))
+    if amount<minimum:
+        return None,f'{market}限紅：{unit} {amount:g} 低於最低下注 {minimum:g}；請重新編排操作金、切分及策略參數'
+    if amount>maximum:
+        return None,f'{market}限紅：{unit} {amount:g} 超過最高下注 {maximum:g}；請重新編排操作金、切分及策略參數'
     return q,reason
+
+def validate_initial_quotes(s):
+    """Reject settings when *any* possible #26 split cannot place its first bet."""
+    if strategy26.active(s):
+        low=int(s.get('split_min',s['risk_parts']))
+        high=int(s.get('split_max',s['risk_parts']))
+        candidates=range(low,high+1)
+    else:
+        candidates=[int(s['risk_parts'])]
+    for parts in candidates:
+        probe=copy.deepcopy(s)
+        if strategy26.active(probe):
+            probe['risk_parts']=parts
+            probe['max_steps']=parts
+            sizing.set_operation_budget(probe,sizing.operation_budget(probe))
+            sizing.refresh_base(probe)
+        q,reason=sizing.quote(probe)
+        q,reason=enforce_table_limits(probe,q,reason)
+        if q is None:
+            prefix=f'切分 {parts} 等份：' if strategy26.active(s) else ''
+            raise ValueError(prefix+(reason or '無法產生符合限紅的下一局注碼，請重新編排參數'))
+    q,reason=sizing.quote(s)
+    return enforce_table_limits(s,q,reason)[0]
 
 def evaluate_state():
     if STATE is None:
@@ -1886,19 +1954,12 @@ def web_call(action, payload_json='{}'):
         p=json.loads(payload_json or '{}')
         if action=='validate':
             sample=new_state(p)
-            q,why=sizing.quote(sample)
-            q,why=enforce_table_limits(sample,q,why)
-            if sample.get('market')=='百家樂' and not q:
-                raise ValueError(why or '百家樂設定無法產生符合限紅的第一局注碼，請重新編排')
+            q=validate_initial_quotes(sample)
             out={'valid':True,'firstQuote':q}
             return json.dumps({'ok':True,'result':out},ensure_ascii=False,allow_nan=False)
         if action=='start':
             candidate=new_state(p)
-            if candidate.get('market')=='百家樂':
-                q,why=sizing.quote(candidate)
-                q,why=enforce_table_limits(candidate,q,why)
-                if not q:
-                    raise ValueError(why or '百家樂設定無法產生符合限紅的第一局注碼，請重新編排')
+            validate_initial_quotes(candidate)
             STATE=candidate
             UNDO=None
             LAST_ACTION_ID=None
@@ -1909,6 +1970,11 @@ def web_call(action, payload_json='{}'):
                 raise ValueError('這不是可辨識的 RUBY Smart Chip 資料')
             STATE=s
             if STATE is not None:
+                # Old backups stored a baccarat-only default for other markets.
+                if STATE.get('table_limit_version')!=2 and STATE.get('market') in ('單球','兩面盤'):
+                    default_min,default_max=TABLE_LIMITS[STATE['market']]
+                    STATE['table_min_bet']=default_min
+                    STATE['table_max_bet']=default_max
                 n=max(1,int(STATE.get('web_batch_size') or STATE.get('planned_rounds') or 35))
                 complete=int(STATE.get('wins',0))+int(STATE.get('losses',0))
                 STATE.update(web_batch_mode=True,web_batch_size=n,web_batch_total_cap=(complete//n+1)*n,round_limit=(complete//n+1)*n)
@@ -2111,31 +2177,48 @@ function applySavedFields(fields){
     }
   }
 }
-function updateBetLimitsVisibility(){
-  const baccarat=$('#market').value==='百家樂';
-  $('#baccarat-limits-fields').classList.toggle('hidden',!baccarat);
-  for(const field of $$('#baccarat-limits-fields input'))field.disabled=!baccarat;
-  if(!baccarat)showBetLimitWarning('');
+const MARKET_LIMIT_KEYS={
+  '單球':['limitSingleMin','limitSingleMax'],
+  '兩面盤':['limitDoubleMin','limitDoubleMax'],
+  '百家樂':['limitBaccaratMin','limitBaccaratMax']
+};
+let visibleLimitMarket=null;
+function updateMarketLimitFields(force=false){
+  const market=$('#market').value;
+  if(!force&&visibleLimitMarket===market)return;
+  const names=MARKET_LIMIT_KEYS[market];
+  if(!names)return;
+  $('[name=minBet]').value=$('[name='+names[0]+']').value;
+  $('[name=maxBet]').value=$('[name='+names[1]+']').value;
+  visibleLimitMarket=market;
+  showMarketLimitWarning('');
 }
-function showBetLimitWarning(message){
-  const el=$('#baccarat-limit-warning');el.textContent=message||'';el.classList.toggle('hidden',!message);
+function showMarketLimitWarning(message){
+  const el=$('#market-limit-warning');el.textContent=message||'';
+  el.classList.toggle('hidden',!message);
 }
-function baccaratSettingsValid(show=true){
-  if($('#market').value!=='百家樂'){if(show)showBetLimitWarning('');return true;}
-  if(!callPython)return false;
+function marketSettingsValid(show=true){
+  if(!callPython||visibleLimitMarket!==$('#market').value)return false;
   try{
-    if(!$('#config-form').checkValidity())throw Error('請檢查參數：限紅需填入整數金額');
+    if(!$('#config-form').checkValidity())throw Error('請確認等份區間與限紅輸入有效，最低不得超過最高');
     const result=JSON.parse(callPython('validate',JSON.stringify(readConfig())));
-    if(!result.ok)throw Error(result.error||'此配置無法符合限紅');
-    if(show)showBetLimitWarning('');
+    if(!result.ok)throw Error(result.error||'目前參數無法產生符合限紅的第一局注碼');
+    if(show)showMarketLimitWarning('');
     return true;
   }catch(err){
-    if(show)showBetLimitWarning((err.message||String(err))+'。此設定不會儲存，請重新編排。');
+    if(show)showMarketLimitWarning((err.message||String(err))+'。此設定不會儲存，請重新編排。');
     return false;
   }
 }
+function commitMarketLimitFields(){
+  const names=MARKET_LIMIT_KEYS[$('#market').value];
+  if(!names)return;
+  $('[name='+names[0]+']').value=$('[name=minBet]').value;
+  $('[name='+names[1]+']').value=$('[name=maxBet]').value;
+}
 function saveSettings(){
-  if(!baccaratSettingsValid())return;
+  if(!marketSettingsValid())return;
+  commitMarketLimitFields();
   try{localStorage.setItem(SETTINGS_KEY,JSON.stringify({version:1,fields:getSavedFields()}));}
   catch{toast('設定儲存失敗，請確認瀏覽器本機儲存可用');}
 }
@@ -2155,7 +2238,21 @@ function loadLocalPreferencesAndHistory(){
   const legacy=readStorageJson(LEGACY_STORAGE_KEY);
   const prefs=readStorageJson(SETTINGS_KEY);
   const recent=readStorageJson(RECENT_HISTORY_KEY);
-  applySavedFields(prefs?.version===1?prefs.fields:fieldsFromLegacyState(legacy?.state));
+  const previous=prefs?.version===1?prefs.fields:fieldsFromLegacyState(legacy?.state);
+  const fields=previous?{...previous}:null;
+  if(fields){
+    if(String(fields.strategy)==='26'){
+      if(fields.partsMin===undefined)fields.partsMin=fields.parts??6;
+      if(fields.partsMax===undefined)fields.partsMax=fields.parts??6;
+    }
+    if(fields.market==='百家樂'&&fields.limitBaccaratMin===undefined&&fields.minBet!==undefined){
+      fields.limitBaccaratMin=fields.minBet;
+      fields.limitBaccaratMax=fields.maxBet??10000;
+    }
+  }
+  applySavedFields(fields);
+  visibleLimitMarket=null;
+  updateMarketLimitFields(true);
   const legacyRows=[
     ...(Array.isArray(legacy?.archives)?legacy.archives.flatMap(x=>Array.isArray(x?.ledger)?x.ledger:[]):[]),
     ...(Array.isArray(legacy?.state?.ledger)?legacy.state.ledger:[])
@@ -2213,7 +2310,10 @@ function persist(){
   const live=Array.isArray(snapshot?.state?.ledger)?snapshot.state.ledger:[];
   const rows=compactRecentRecords([...past,...live]);
   try{
-    if(baccaratSettingsValid(false))localStorage.setItem(SETTINGS_KEY,JSON.stringify({version:1,fields:getSavedFields()}));
+    if(marketSettingsValid(false)){
+      commitMarketLimitFields();
+      localStorage.setItem(SETTINGS_KEY,JSON.stringify({version:1,fields:getSavedFields()}));
+    }
     localStorage.setItem(RECENT_HISTORY_KEY,JSON.stringify({version:1,rows}));
     localStorage.removeItem(LEGACY_STORAGE_KEY);
   }catch(e){toast('本機儲存失敗，請確認瀏覽器儲存空間');}
@@ -2244,10 +2344,15 @@ function changeStrategyFields(){
     const hidden=field.classList.contains('hidden');
     for(const input of field.querySelectorAll('input,select,textarea'))input.disabled=hidden;
   }
+  const is26=code===26;
+  $('#fixed-parts-field').classList.toggle('hidden',is26);
+  $('#range-parts-field').classList.toggle('hidden',!is26);
+  $('[name=parts]').disabled=is26;
+  for(const field of $$('[name=partsMin], [name=partsMax]'))field.disabled=!is26;
   const max=$('[name=maxSteps]');
-  if(code===26){max.value=$('[name=parts]').value;max.disabled=true;}else{max.disabled=false;}
+  if(is26){max.value=$('[name=partsMax]').value;max.disabled=true;}else{max.disabled=false;}
   const s=strategies.find(x=>x.code===code);
-  $('#strategy-hint').dataset.info=code===26?'#26：切分份數就是固定等額關卡數；累計淨獲利達原始操作金 100% 時自動歸本。':s?.description||'此策略依原本 RUBY TG Chip V1.8.18 計算規則運作。';
+  $('#strategy-hint').dataset.info=is26?'#26：固定等份填相同數字；區間每輪隨機抽取一次，該輪全關沿用同一等份；每碼下注只取整數。':s?.description||'此策略依原本 RUBY TG Chip V1.8.18 計算規則運作。';
   $('#current-summary').textContent=s?.description||'請選擇策略。';$('#summary-info').dataset.info=s?.description||'請選擇策略。';
 }
 function parseSeq(value){
@@ -2258,11 +2363,12 @@ function parseSeq(value){
 function readConfig(){
   const f=new FormData($('#config-form'));
   const config={strategy:getCode(),operation:Number(f.get('operation')),market:f.get('market'),count:Number(f.get('count')),
-    parts:Number(f.get('parts')),maxSteps:Number(f.get('maxSteps')||$('[name=maxSteps]').value),planned:Number(f.get('planned')),
-    minBet:Number(f.get('minBet')||100),maxBet:Number(f.get('maxBet')||10000),
+    parts:Number($('[name=parts]').value),partsMin:Number($('[name=partsMin]').value),partsMax:Number($('[name=partsMax]').value),
+    maxSteps:Number(f.get('maxSteps')||$('[name=maxSteps]').value),planned:Number(f.get('planned')),
+    minBet:Number($('[name=minBet]').value),maxBet:Number($('[name=maxBet]').value),
     profitPct:Number(f.get('profitPct')),lossPct:Number(f.get('lossPct')),
     fraction:Number(f.get('fraction')||20),kellyFraction:Number(f.get('kellyFraction')||25)};
-  if(config.strategy===26)config.maxSteps=config.parts;
+  if(config.strategy===26){config.parts=config.partsMin;config.maxSteps=config.partsMax;}
   const codes={0:'loss_sequence',99:'custom_win_sequence',66:'layer_sequence',14:'win_sequence',20:'attack_sequence',24:'cancel_list'};
   if(codes[config.strategy])config[codes[config.strategy]]=parseSeq(f.get('sequenceInput')||'');
   if(config.strategy===20)config.retreat_sequence=parseSeq(f.get('sequenceSecondary')||'');
@@ -2429,15 +2535,19 @@ function bindEvents(){
   historyHandle.addEventListener('touchstart',e=>{drawerTouchY=e.changedTouches[0]?.clientY??null;},{passive:true});
   historyHandle.addEventListener('touchend',e=>{if(drawerTouchY!==null&&e.changedTouches[0]?.clientY-drawerTouchY>70)closeDrawers();drawerTouchY=null;},{passive:true});
   $('#strategy-select').addEventListener('change',changeStrategyFields);
+  $('#market').addEventListener('change',e=>{
+    $('[name=count]').value=e.target.value==='單球'?6:1;
+    updateMarketLimitFields();
+  });
   $('#config-form').addEventListener('input',saveSettings);
   $('#config-form').addEventListener('change',saveSettings);
-  $('#market').addEventListener('change',updateBetLimitsVisibility);
   document.addEventListener('visibilitychange',()=>{
     if(!document.hidden&&snapshot){persist();render();}
   });
   $('#strategy-search').addEventListener('input',e=>displayStrategyLibrary(e.target.value));
-  $('#market').addEventListener('change',e=>{$('[name=count]').value=e.target.value==='單球'?6:1;});
-  $('[name=parts]').addEventListener('input',()=>{if(getCode()===26)$('[name=maxSteps]').value=$('[name=parts]').value;});
+  $('[name=partsMax]').addEventListener('input',()=>{
+    if(getCode()===26)$('[name=maxSteps]').value=$('[name=partsMax]').value;
+  });
   $('#config-form').addEventListener('invalid',e=>{
     const field=e.target;
     const label=field.closest('label')?.querySelector('span')?.textContent?.trim()||field.name||'輸入欄位';
@@ -2447,7 +2557,7 @@ function bindEvents(){
     e.preventDefault();if(busy)return;
     try{
       const config=readConfig();
-      if(config.market==='百家樂'&&!baccaratSettingsValid(true))return;
+      if(!marketSettingsValid(true))return;
       if(snapshot?.state?.ledger?.length&&!confirm('開始新計畫會清空目前頁面的進行中統計。請先匯出備份，確定繼續？'))return;
       const started=await action('start',config,'已開始新計畫');
       if(started)closeDrawers();
@@ -2506,7 +2616,7 @@ function bindEvents(){
 }
 
 async function initialize(){
-  bindEvents();setFontSize(readFontSize());setRingMode('compact');updateBetLimitsVisibility();
+  bindEvents();setFontSize(readFontSize());setRingMode('compact');updateMarketLimitFields(true);
   document.documentElement.style.setProperty('--ruby-bg-art',getComputedStyle($('.hero')).backgroundImage);
   try{
     strategies=JSON.parse(document.getElementById('ruby-strategies-json').textContent);
@@ -2525,7 +2635,7 @@ async function initialize(){
     for(const [name,contents] of bundle)runtime.FS.writeFile('/home/py/'+name,contents);
     runtime.runPython("import sys;sys.path.insert(0,'/home/py');from web_engine import web_call");
     python=runtime;callPython=runtime.globals.get('web_call');
-    loadLocalPreferencesAndHistory();updateBetLimitsVisibility();baccaratSettingsValid(true);
+    loadLocalPreferencesAndHistory();marketSettingsValid(true);
     // A fresh session starts on every page load; only preferences and 24-hour history survive.
     run('load',{state:null});
     setReady(true,'計算核心已就緒');
