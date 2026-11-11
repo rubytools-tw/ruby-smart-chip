@@ -2385,6 +2385,31 @@ function exportCsv(){
   const escapeCsv=v=>'"'+String(v??'').replace(/^([=+@\-])/,'\'$1').replace(/"/g,'""')+'"';
   download('ruby_smart_chip_history.csv','\ufeff'+rows.map(row=>row.map(escapeCsv).join(',')).join('\r\n'),'text/csv;charset=utf-8');
 }
+let allocationMode=null,allocationPct=null;
+function showAllocation(){
+  if(!allocationMode)return;
+  $('#allocation-title').textContent=allocationMode==='lock'?'鎖利比例':'滾利比例';
+  allocationPct=null;
+  for(const b of $('[data-allocation-percent]'))b.classList.remove('selected');
+  $('#allocation-custom-field').classList.add('hidden');
+  $('#allocation-sheet').classList.remove('hidden');
+  $('#allocation-sheet').setAttribute('aria-hidden','false');
+  document.body.style.overflow='hidden';
+  updateAllocationPreview();
+}
+function closeAllocation(){
+  $('#allocation-sheet').classList.add('hidden');
+  $('#allocation-sheet').setAttribute('aria-hidden','true');
+  document.body.style.overflow='';
+  allocationMode=null;allocationPct=null;
+}
+function updateAllocationPreview(){
+  const gain=allocationMode==='roll'&&Number(snapshot?.pendingRoll||0)>0?Number(snapshot.pendingRoll):Number(snapshot?.allocatable||0);
+  const pct=Number(allocationPct);
+  const valid=Number.isFinite(pct)&&pct>0&&pct<=100;
+  $('#allocation-confirm').disabled=!valid||busy;
+  $('#allocation-preview').textContent=valid?`本次${allocationMode==='lock'?'鎖利':'滾利'} ${fmt(pct,1)}%：${money(Math.round(gain*pct)/100)}。以目前可分配獲利 ${money(gain)} 計算；確認後才套用。`:'請選擇比例（10%、20%、30%、50%、100% 或自訂）';
+}
 function bindEvents(){
   for(const b of $$('[data-tab]'))b.addEventListener('click',()=>go(b.dataset.tab));
   $('#read-strategy').addEventListener('click',()=>{go('strategies');$('#strategy-search').value='#'+getCode();displayStrategyLibrary($('#strategy-search').value);});
@@ -2434,7 +2459,29 @@ function bindEvents(){
   $('#undo-button').addEventListener('click',()=>action('undo',{},'已撤銷上一局與相關鎖利變更'));
   $('#resume-button').addEventListener('click',()=>action('resume',{},'已進下一輪'));
   $('#finish-button').addEventListener('click',()=>{if(confirm('確認結算並停止目前計畫？歷史記錄會保留到建立新計畫為止。'))action('finish',{},'本次計畫已結算');});
-  for(const b of $$('[data-choice]'))b.addEventListener('click',()=>action('choose',{choice:b.dataset.choice},'已處理本輪獲利選項'));
+  for(const b of $('[data-choice]'))b.addEventListener('click',()=>{if(!b.disabled){allocationMode=b.dataset.choice;showAllocation();}});
+  for(const b of $('[data-allocation-percent]'))b.addEventListener('click',()=>{
+    for(const other of $('[data-allocation-percent]'))other.classList.toggle('selected',other===b);
+    if(b.dataset.allocationPercent==='custom'){
+      $('#allocation-custom-field').classList.remove('hidden');
+      allocationPct=Number($('#allocation-custom-percent').value);
+      $('#allocation-custom-percent').focus();
+    }else{
+      $('#allocation-custom-field').classList.add('hidden');
+      allocationPct=Number(b.dataset.allocationPercent);
+    }
+    updateAllocationPreview();
+  });
+  $('#allocation-custom-percent').addEventListener('input',e=>{allocationPct=Number(e.target.value);updateAllocationPreview();});
+  $('#allocation-close').addEventListener('click',closeAllocation);
+  $('#allocation-sheet').addEventListener('click',e=>{if(e.target.id==='allocation-sheet')closeAllocation();});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#allocation-sheet').classList.contains('hidden'))closeAllocation();});
+  $('#allocation-confirm').addEventListener('click',async()=>{
+    if(!allocationMode||!Number.isFinite(allocationPct)||allocationPct<=0||allocationPct>100)return;
+    const mode=allocationMode,pct=allocationPct;
+    const result=await action('choose',{choice:mode,percent:pct},'已套用'+(mode==='lock'?'鎖利':'滾利')+' '+fmt(pct,1)+'%');
+    if(result)closeAllocation();
+  });
   $('#kelly-apply').addEventListener('click',()=>action('probability',{value:Number($('#kelly-probability').value)},'已更新本期預估值'));
   $('#export-csv').addEventListener('click',exportCsv);
   $('#backup-button').addEventListener('click',()=>{
