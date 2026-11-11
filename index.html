@@ -1770,6 +1770,7 @@ def new_state(config):
         raise ValueError('限紅設定請輸入整數金額')
     s['table_min_bet']=min_bet
     s['table_max_bet']=max_bet
+    s['table_limit_version']=2
     sizing.initialize(s)
     return s
 
@@ -1969,6 +1970,11 @@ def web_call(action, payload_json='{}'):
                 raise ValueError('這不是可辨識的 RUBY Smart Chip 資料')
             STATE=s
             if STATE is not None:
+                # Old backups stored a baccarat-only default for other markets.
+                if STATE.get('table_limit_version')!=2 and STATE.get('market') in ('單球','兩面盤'):
+                    default_min,default_max=TABLE_LIMITS[STATE['market']]
+                    STATE['table_min_bet']=default_min
+                    STATE['table_max_bet']=default_max
                 n=max(1,int(STATE.get('web_batch_size') or STATE.get('planned_rounds') or 35))
                 complete=int(STATE.get('wins',0))+int(STATE.get('losses',0))
                 STATE.update(web_batch_mode=True,web_batch_size=n,web_batch_total_cap=(complete//n+1)*n,round_limit=(complete//n+1)*n)
