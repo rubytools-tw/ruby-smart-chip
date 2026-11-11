@@ -2006,7 +2006,8 @@ def web_call(action, payload_json='{}'):
                     and STATE.get('strategy_pause_reason')=='全部等分關卡已掛完；自動暫停'):
                     STATE['session_status']='active'
                     STATE['strategy_pause_reason']=''
-                    STATE.setdefault('plan_state',{})['exhausted']=False
+                    if isinstance(STATE.get('plan_state'),dict):
+                        STATE['plan_state']['exhausted']=False
                 STATE['round_offer']=False
             UNDO=p.get('undo') if isinstance(p.get('undo'),dict) else None
             LAST_ACTION_ID=None
