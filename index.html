@@ -902,7 +902,7 @@ def position(s):
     if sid=='twoleg':return f"第{p['step']+1}層／第{p['leg']+1}關"
     if sid=='recovery':return f"待回補 {p['debt']:g}"
     if sid=='labouchere':return '清單 '+ '/'.join(f'{x:g}' for x in p.get('list',s['cancel_list']))[:65]
-    if sid=='equal_reset':return f'第{p["step"]+1}關／共{s["risk_parts"]}關'
+    if sid=='equal_reset':return f'第{p["step"]+1}關／共{s["risk_parts"]}關 · {s["risk_parts"]}等份'
     return f"第{p['step']+1}關" if sid in ('custom','winner','martingale','tianmen','dalembert','fibonacci') else ''
 
 def settings_text(s):
@@ -933,6 +933,7 @@ Round bookkeeping is advanced exclusively by accepted results or explicit choice
 """
 import copy
 import math
+import random
 import statistics
 from decimal import Decimal, ROUND_FLOOR, ROUND_CEILING
 import progression
@@ -1289,6 +1290,14 @@ def apply_pending(s):
 
 def next_round(s,refresh=True):
     apply_pending(s)
+    if strategy26.active(s):
+        # One inclusive draw at the beginning of each new round; keep all losses
+        # in that round on the same selected parts count.
+        minimum=int(s.get('split_min',s['risk_parts']))
+        maximum=int(s.get('split_max',s['risk_parts']))
+        s['risk_parts']=random.randint(minimum,maximum)
+        s['max_steps']=s['risk_parts']
+        set_operation_budget(s,operation_budget(s))
     s.update(round_win_streak=0,round_id=s['round_id']+1,round_start_pnl=s['pnl'],round_start_count=s['wins']+s['losses'],round_offer=False,round_offer_advanced=False,open_quote=None,round_notice='')
     if progression.is_new(s):progression.init(s)
     if refresh:refresh_base(s)
@@ -1650,6 +1659,7 @@ The snapshot format is JSON and stored only by the hosting web page.
 """
 import copy
 import json
+import random
 from datetime import datetime, timezone
 from decimal import Decimal, ROUND_HALF_UP
 import progression
@@ -1667,6 +1677,8 @@ def cash(value):
     return float(Decimal(str(value)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP))
 
 
+TABLE_LIMITS={'單球':(1,20000),'兩面盤':(1,10000),'百家樂':(100,10000)}
+
 def new_state(config):
     strategy_code = int(config.get('strategy',26))
     if strategy_code not in strategy_engine.BY_CODE:
@@ -1676,6 +1688,21 @@ def new_state(config):
     count = int(config.get('count',6))
     parts = int(config.get('parts',6))
     max_steps = int(config.get('maxSteps',6))
+    if strategy_code==26:
+        raw_min=config.get('partsMin',parts)
+        raw_max=config.get('partsMax',parts)
+        try:
+            if not (float(raw_min).is_integer() and float(raw_max).is_integer()):
+                raise ValueError()
+            split_min,split_max=int(raw_min),int(raw_max)
+        except (TypeError,ValueError,OverflowError):
+            raise ValueError('#26 切分等份請輸入 2～50 的整數')
+        if not 2<=split_min<=split_max<=50:
+            raise ValueError('#26 切分等份區間應介於 2～50，且左邊不得大於右邊')
+        parts=random.randint(split_min,split_max)
+        max_steps=parts
+    else:
+        split_min=split_max=parts
     planned = int(config.get('planned',35))
     market = config.get('market','單球')
     if market not in ('單球','兩面盤','百家樂'):
@@ -1696,6 +1723,7 @@ def new_state(config):
         schema=16,operation_base=operation,bankroll=operation,session_operation_origin=operation,
         pnl=0.0,locked_profit=0.0,wins=0,losses=0,ties=0,total_bet=0.0,total_return=0.0,
         strategy=name,market=market,number_count=count,risk_parts=parts,max_steps=max_steps,
+        split_min=split_min,split_max=split_max,
         stop_profit_mode='percent',stop_profit_value=profit_pct,stop_loss_mode='percent',stop_loss_value=loss_pct,
         profit_target=cash(operation*profit_pct/100),loss_limit=cash(operation*loss_pct/100),
         planned_rounds=planned,round_limit=planned,web_batch_mode=True,web_batch_size=planned,web_batch_total_cap=planned,payout_multiplier=payout,
@@ -1720,13 +1748,13 @@ def new_state(config):
             if not isinstance(seq,list) or not seq or len(seq)>100 or any(not 0<x<=100000 for x in seq):
                 raise ValueError('倍率序列格式錯誤')
             s[key] = seq
-    min_bet=cash(config.get('minBet',100))
-    max_bet=cash(config.get('maxBet',10000))
-    if market=='百家樂':
-        if not (1<=min_bet<=max_bet<=1000000000):
-            raise ValueError('百家樂限紅不正確：最低與最高下注需為正數，最低不得高於最高')
-        if min_bet!=int(min_bet) or max_bet!=int(max_bet):
-            raise ValueError('百家樂限紅必須是整數金額')
+    default_min,default_max=TABLE_LIMITS[market]
+    min_bet=cash(config.get('minBet',default_min))
+    max_bet=cash(config.get('maxBet',default_max))
+    if not (1<=min_bet<=max_bet<=1000000000):
+        raise ValueError('限紅設定不正確：最低與最高下注必須是正數，且最低不得高於最高')
+    if min_bet!=int(min_bet) or max_bet!=int(max_bet):
+        raise ValueError('限紅設定請輸入整數金額')
     s['table_min_bet']=min_bet
     s['table_max_bet']=max_bet
     sizing.initialize(s)
@@ -1734,16 +1762,42 @@ def new_state(config):
 
 
 def enforce_table_limits(s,q,reason=''):
-    if s.get('market')!='百家樂' or q is None:
+    if q is None:
         return q,reason
-    total=cash(q['total'])
-    minimum=cash(s.get('table_min_bet',100))
-    maximum=cash(s.get('table_max_bet',10000))
-    if total<minimum:
-        return None,f'百家樂限紅：本局總注 {total:g} 低於最低下注 {minimum:g}；請重新編排操作金、切分及策略參數'
-    if total>maximum:
-        return None,f'百家樂限紅：本局總注 {total:g} 超過最高下注 {maximum:g}；請重新編排操作金、切分及策略參數'
+    market=s.get('market','單球')
+    default_min,default_max=TABLE_LIMITS.get(market,(1,10000))
+    amount=cash(q['per'] if market=='單球' else q['total'])
+    unit='每碼' if market=='單球' else '單注'
+    minimum=cash(s.get('table_min_bet',default_min))
+    maximum=cash(s.get('table_max_bet',default_max))
+    if amount<minimum:
+        return None,f'{market}限紅：{unit} {amount:g} 低於最低下注 {minimum:g}；請重新編排操作金、切分及策略參數'
+    if amount>maximum:
+        return None,f'{market}限紅：{unit} {amount:g} 超過最高下注 {maximum:g}；請重新編排操作金、切分及策略參數'
     return q,reason
+
+def validate_initial_quotes(s):
+    """Reject settings when *any* possible #26 split cannot place its first bet."""
+    if strategy26.active(s):
+        low=int(s.get('split_min',s['risk_parts']))
+        high=int(s.get('split_max',s['risk_parts']))
+        candidates=range(low,high+1)
+    else:
+        candidates=[int(s['risk_parts'])]
+    for parts in candidates:
+        probe=copy.deepcopy(s)
+        if strategy26.active(probe):
+            probe['risk_parts']=parts
+            probe['max_steps']=parts
+            sizing.set_operation_budget(probe,sizing.operation_budget(probe))
+            sizing.refresh_base(probe)
+        q,reason=sizing.quote(probe)
+        q,reason=enforce_table_limits(probe,q,reason)
+        if q is None:
+            prefix=f'切分 {parts} 等份：' if strategy26.active(s) else ''
+            raise ValueError(prefix+(reason or '無法產生符合限紅的下一局注碼，請重新編排參數'))
+    q,reason=sizing.quote(s)
+    return enforce_table_limits(s,q,reason)[0]
 
 def evaluate_state():
     if STATE is None:
@@ -1886,19 +1940,12 @@ def web_call(action, payload_json='{}'):
         p=json.loads(payload_json or '{}')
         if action=='validate':
             sample=new_state(p)
-            q,why=sizing.quote(sample)
-            q,why=enforce_table_limits(sample,q,why)
-            if sample.get('market')=='百家樂' and not q:
-                raise ValueError(why or '百家樂設定無法產生符合限紅的第一局注碼，請重新編排')
+            q=validate_initial_quotes(sample)
             out={'valid':True,'firstQuote':q}
             return json.dumps({'ok':True,'result':out},ensure_ascii=False,allow_nan=False)
         if action=='start':
             candidate=new_state(p)
-            if candidate.get('market')=='百家樂':
-                q,why=sizing.quote(candidate)
-                q,why=enforce_table_limits(candidate,q,why)
-                if not q:
-                    raise ValueError(why or '百家樂設定無法產生符合限紅的第一局注碼，請重新編排')
+            validate_initial_quotes(candidate)
             STATE=candidate
             UNDO=None
             LAST_ACTION_ID=None
