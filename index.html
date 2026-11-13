@@ -370,7 +370,7 @@ body[data-font-size="large"]{
 .layer-budget-summary{font-size:11px;color:var(--muted);line-height:1.6;overflow-wrap:anywhere}
 .layer-budget-summary .layer-budget-warning{display:block;color:var(--danger);font-weight:600}
 
-/* V0.1.14: #02 preview only; engine remains unchanged. */
+/* V0.1.15: #02 preview only; engine remains unchanged. */
 .balance-preview{display:grid;gap:10px;min-width:0;padding:11px;border:1px solid var(--stroke);border-radius:12px;background:#201334}
 .balance-preview.hidden{display:none!important}
 .balance-head{display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap}
@@ -421,7 +421,7 @@ body[data-font-size="large"]{
 <div class="app-shell">
   <div id="drawer-backdrop" class="drawer-backdrop" aria-hidden="true"></div>
   <aside class="sidebar drawer" id="drawer-menu" role="dialog" aria-modal="true" aria-label="主選單" aria-hidden="true">
-    <div class="drawer-head"><div class="brand-mini"><span class="brand-symbol">R</span><div><strong>RUBY Smart Chip</strong><small>霓虹直立版 · V0.1.14</small></div></div><button class="icon-btn close-drawer" aria-label="關閉主選單" type="button">×</button></div>
+    <div class="drawer-head"><div class="brand-mini"><span class="brand-symbol">R</span><div><strong>RUBY Smart Chip</strong><small>霓虹直立版 · V0.1.15</small></div></div><button class="icon-btn close-drawer" aria-label="關閉主選單" type="button">×</button></div>
     <div class="drawer-nav">
       <button type="button" class="nav-item active" data-tab="calculator"><span>▣</span> 籌碼計算機</button>
       <button type="button" class="nav-item" data-tab="strategies"><span>▤</span> 26 套策略中心</button>
@@ -433,7 +433,7 @@ body[data-font-size="large"]{
   <main class="main-view" id="main-content">
     <header class="topbar"><button type="button" class="icon-btn" id="open-menu" aria-label="開啟主選單">☰</button><div class="nav-brand"><strong>RUBY <span>Smart Chip</span></strong><small>兔寶寶籌碼計算機</small></div><button type="button" class="icon-btn" id="open-config" aria-label="開啟計畫參數">⚙</button></header>
     <div class="hero"><div class="hero-overlay"><small>RUBY · NEON PORTRAIT EDITION</small><h1 id="page-title">籌碼計算機</h1><p>策略 × 注碼 × 歷史 · 一頁掌握</p></div></div>
-    <div class="engine-row"><span id="engine-status" class="status-pill loading" role="status">計算核心載入中…</span><span id="session-label" class="soft-tag">未開始</span><button type="button" class="info-btn" data-info="RUBY Smart Chip V0.1.14：資料存於本機瀏覽器，歷史只保留最近 24 小時，設定持續保留。" aria-label="版本說明">ⓘ</button></div>
+    <div class="engine-row"><span id="engine-status" class="status-pill loading" role="status">計算核心載入中…</span><span id="session-label" class="soft-tag">未開始</span><button type="button" class="info-btn" data-info="RUBY Smart Chip V0.1.15：資料存於本機瀏覽器，歷史只保留最近 24 小時，設定持續保留。" aria-label="版本說明">ⓘ</button></div>
     <div id="alert" class="alert hidden" role="alert"></div>
     <section class="view active" id="view-calculator" aria-labelledby="page-title">
       <button type="button" class="current-strategy neon-card" id="open-strategies" aria-label="開啟策略中心"><span class="strategy-accent">當前策略</span><span class="strategy-text"><strong id="strategy-active-name">#26 等分倍盈歸本法</strong><small id="strategy-active-meta">尚未開始 · 點擊選擇策略</small></span><span class="chevron">›</span></button>
@@ -463,6 +463,7 @@ body[data-font-size="large"]{
         <div class="metrics"><div><span>當前可用金</span><b id="available">—</b></div><div><span>目前關卡</span><b id="stage-label">—</b></div><div><span>已結算局數</span><b id="round-count">0 / 35</b></div><div id="strategy-round-metric" style="display:none"><span>策略輪次</span><b id="strategy-round-count">第 1 輪</b></div><div><span>投注量 / 淨盈虧</span><b id="bet-pnl-pair"><span id="bet-volume">—</span><span class="bet-pnl-separator">/</span><span id="pnl">—</span></b></div></div>
         <div class="progress-block"><div class="progress-label"><span id="progress-title">進度 #1 · 計畫完成度</span><span id="progress-text">0%</span></div><div class="progress"><div id="progress-bar"></div></div></div>
       </section>
+      <div id="dual-live" class="notice hidden" aria-live="polite"></div>
       <div id="notice" class="notice">請先建立一個計畫，才能計算下一局注碼。</div>
       <button type="button" id="create-plan" class="button primary full create-plan">＋ 建立計畫／設定參數</button>
       <div class="action-grid"><button id="win-button" type="button" class="button win" disabled>✓ 中</button><button id="loss-button" type="button" class="button loss" disabled>✕ 掛</button></div>
@@ -476,7 +477,7 @@ body[data-font-size="large"]{
       </section>
       <section class="summary-panel neon-card"><div class="panel-title"><strong>目前策略摘要</strong><button type="button" class="info-btn" id="summary-info" data-info="選擇策略後顯示規則。" aria-label="查看目前策略摘要">ⓘ</button><button id="read-strategy" type="button" class="text-btn">完整說明 ›</button></div><p id="current-summary" class="sr-only">選擇策略後顯示規則。</p></section>
     </section>
-    <footer class="app-footer">RUBY Smart Chip V0.1.14 · 本機試算 · 非自動下注</footer>
+    <footer class="app-footer">RUBY Smart Chip V0.1.15 · 本機試算 · 非自動下注</footer>
   </main>
 
   <aside id="drawer-config" class="drawer drawer-right" role="dialog" aria-modal="true" aria-label="計畫參數設定" aria-hidden="true"><div class="drawer-head"><div><strong>計畫參數</strong><button type="button" class="info-btn" data-info="輸入後請按確認，進行中的計畫不會被暗中修改。" aria-label="參數套用說明">ⓘ</button></div><button class="icon-btn close-drawer" type="button" aria-label="關閉參數設定">×</button></div>
@@ -576,8 +577,9 @@ body[data-font-size="large"]{
         <p id="shock-math">每碼 × 碼數＝總注</p><p id="shock-warning" role="status">只做假設試算，不更改真實注碼。</p>
       </section>
       <section id="dual-preview" class="balance-preview field-full hidden" aria-label="#06 勝進獲利分配預覽">
-        <div class="balance-head"><strong>#06 勝進／獲利分配</strong><small>新方案B · 僅規格試算</small></div>
-        <p>本輪淨獲利達操作金10%，將可分配獲利70%鎖利、30%滾利；超出10%的實際獲利也一併分配。實際 #06 引擎目前仍使用舊公式。</p>
+        <div class="balance-head"><strong>#06 勝進／獲利分配</strong><small>實際策略已啟用 · 滑軌僅試算</small></div>
+        <p>遇中進下一勝進關，遇掛回第一關。當輪淨獲利達操作金10%，自動將全部當輪獲利70%鎖利、30%滾利，下一輪從第一關重新起注。</p>
+        <label class="field"><span>勝進倍率（2～10關；由1開始）</span><input id="dual-sequence" name="dualSequence" type="text" value="1,2" placeholder="例如 1,2,3" autocomplete="off" disabled></label>
         <div class="dual-rule-grid"><div><small>獲利目標</small><strong>10%</strong></div><div><small>鎖利</small><strong>70%</strong></div><div><small>滾利</small><strong>30%</strong></div></div>
         <div class="balance-slider-top"><span>模擬本輪獲利</span><strong id="dual-gain">0 元</strong></div><small id="dual-progress">目標完成 0%</small>
         <input id="dual-slider" type="range" min="0" max="2000" step="0.01" value="0" aria-label="#06 模擬本輪獲利">
@@ -586,7 +588,7 @@ body[data-font-size="large"]{
           <button type="button" data-dual="0">0%</button><button type="button" data-dual="25">25%</button><button type="button" data-dual="50">50%</button><button type="button" data-dual="75">75%</button><button type="button" data-dual="100">100%</button><button type="button" data-dual="125">125%</button><button type="button" data-dual="150">150%</button>
         </div>
         <div class="dual-result" aria-live="polite"><div><small>預計鎖利70%</small><strong id="dual-lock">—</strong></div><div><small>預計滾利30%</small><strong id="dual-roll">—</strong></div><div><small>下一輪操作金</small><strong id="dual-next">—</strong></div></div>
-        <p id="dual-warning" role="status">勝進倍率與分配流程尚未接入實際 #06 計算引擎。</p>
+        <p id="dual-warning" role="status">正式計算已啟用，滑軌本身只提供試算，不會修改正在運行的計畫。</p>
       </section>
       <details class="advanced field-full"><summary>進階設定 <span>停利、停損及策略專屬參數</span></summary><div class="fields">
         <label class="field"><span>停利比例（%）</span><input name="profitPct" type="number" min="1" max="10000" step="any" value="100" required></label>
@@ -614,7 +616,7 @@ body[data-font-size="large"]{
   </aside>
   <section class="view drawer drawer-left drawer-wide" id="view-strategies" role="dialog" aria-modal="true" aria-hidden="true" aria-label="策略中心"><div class="drawer-head"><div><strong>26 套策略中心</strong><button type="button" class="info-btn" data-info="可搜尋策略名稱與編號，點擊選用不會立即更改進行中的計畫。" aria-label="策略中心說明">ⓘ</button></div><button class="icon-btn close-drawer" type="button" aria-label="關閉策略中心">×</button></div><div class="drawer-scroll"><div class="search-wrap"><input id="strategy-search" type="search" placeholder="搜尋策略名稱或編號，例如 #26、馬丁"></div><div class="strategy-grid" id="strategy-grid"></div></div></section>
   <section class="view drawer drawer-bottom" id="view-history" role="dialog" aria-modal="true" aria-hidden="true" aria-label="結算紀錄"><div class="drawer-handle" aria-hidden="true"></div><div class="drawer-head"><div><strong>本次與歷史結算</strong><small id="history-count">0 筆</small></div><button class="icon-btn close-drawer" type="button" aria-label="關閉歷史紀錄">×</button></div><div class="drawer-scroll"><div class="history-summary"><div class="mini-panel"><small>累積投注</small><strong id="sum-cost">—</strong></div><div class="mini-panel"><small>累積盈虧</small><strong id="sum-pnl">—</strong></div><div class="mini-panel"><small>已鎖利</small><strong id="sum-locked">—</strong></div></div><div class="panel history-panel"><div class="panel-head"><h3>結算明細</h3><button id="export-csv" type="button" class="button subtle">匯出 CSV</button></div><div class="table-wrap"><table><thead><tr><th>局數</th><th>策略</th><th>中／掛</th><th>每碼</th><th>投注</th><th>本局損益</th></tr></thead><tbody id="history-rows"><tr><td colspan="6" class="empty">目前沒有紀錄</td></tr></tbody></table></div></div></div></section>
-  <section class="view drawer drawer-left drawer-wide" id="view-settings" role="dialog" aria-modal="true" aria-hidden="true" aria-label="網站設定"><div class="drawer-head"><div><strong>系統設定</strong><small>字體及本機資料管理</small></div><button class="icon-btn close-drawer" type="button" aria-label="關閉設定">×</button></div><div class="drawer-scroll"><section class="panel plan-management"><div class="panel-head"><h3>計畫管理</h3></div><div class="secondary-actions more-actions" id="more-actions"><button id="resume-button" type="button" class="button subtle hidden" disabled>下一輪</button><button id="finish-button" type="button" class="button subtle" disabled>結算本次</button></div></section><div class="settings-grid"><section class="panel"><div class="panel-head"><h3>文字大小</h3><button type="button" class="info-btn" data-info="調整網站標題、卡片、按鈕、說明的字體大小；變更後會記住設定。" aria-label="文字大小說明">ⓘ</button></div><div class="font-controls" role="group" aria-label="文字大小"><button type="button" data-font="small">小</button><button type="button" data-font="medium">中</button><button type="button" data-font="large">大</button></div></section><section class="panel"><h3>本機資料備份</h3><button type="button" class="info-btn" data-info="歷史明細只保留最近 24 小時，超過期限會在開啟或操作時移除。策略、操作金及其他設定會保留；重新開啟網頁會從新計畫開始，不自動接續上一個計畫。資料只存於本機瀏覽器，清除瀏覽資料可能遺失。" aria-label="歷史保存說明">ⓘ</button><div class="button-row"><button id="backup-button" type="button" class="button subtle">匯出 JSON</button><button id="restore-button" type="button" class="button subtle">還原 JSON</button><input id="restore-file" type="file" accept=".json,application/json" hidden></div></section><section class="panel"><h3>版本資訊</h3><p>RUBY Smart Chip V0.1.14 Neon Portrait · 26 套策略 Python 引擎沿用原版；只作本機籌碼試算，不會送出訂單或 Telegram 訊息。</p></section></div></div></section>
+  <section class="view drawer drawer-left drawer-wide" id="view-settings" role="dialog" aria-modal="true" aria-hidden="true" aria-label="網站設定"><div class="drawer-head"><div><strong>系統設定</strong><small>字體及本機資料管理</small></div><button class="icon-btn close-drawer" type="button" aria-label="關閉設定">×</button></div><div class="drawer-scroll"><section class="panel plan-management"><div class="panel-head"><h3>計畫管理</h3></div><div class="secondary-actions more-actions" id="more-actions"><button id="resume-button" type="button" class="button subtle hidden" disabled>下一輪</button><button id="finish-button" type="button" class="button subtle" disabled>結算本次</button></div></section><div class="settings-grid"><section class="panel"><div class="panel-head"><h3>文字大小</h3><button type="button" class="info-btn" data-info="調整網站標題、卡片、按鈕、說明的字體大小；變更後會記住設定。" aria-label="文字大小說明">ⓘ</button></div><div class="font-controls" role="group" aria-label="文字大小"><button type="button" data-font="small">小</button><button type="button" data-font="medium">中</button><button type="button" data-font="large">大</button></div></section><section class="panel"><h3>本機資料備份</h3><button type="button" class="info-btn" data-info="歷史明細只保留最近 24 小時，超過期限會在開啟或操作時移除。策略、操作金及其他設定會保留；重新開啟網頁會從新計畫開始，不自動接續上一個計畫。資料只存於本機瀏覽器，清除瀏覽資料可能遺失。" aria-label="歷史保存說明">ⓘ</button><div class="button-row"><button id="backup-button" type="button" class="button subtle">匯出 JSON</button><button id="restore-button" type="button" class="button subtle">還原 JSON</button><input id="restore-file" type="file" accept=".json,application/json" hidden></div></section><section class="panel"><h3>版本資訊</h3><p>RUBY Smart Chip V0.1.15 Neon Portrait · 26 套策略 Python 引擎沿用原版；只作本機籌碼試算，不會送出訂單或 Telegram 訊息。</p></section></div></div></section>
 </div>
 <div class="info-backdrop hidden" id="info-backdrop"><div class="info-modal" role="dialog" aria-modal="true" aria-label="功能說明"><div class="panel-title"><strong>ⓘ 操作說明</strong><button type="button" id="info-close" class="icon-btn" aria-label="關閉說明">×</button></div><p id="info-text"></p></div></div>
 <nav class="mobile-nav" aria-label="底部分頁"><button type="button" class="active" data-tab="calculator">▣<span>計算</span></button><button type="button" data-tab="strategies">▤<span>策略</span></button><button type="button" data-tab="history">◷<span>紀錄</span></button><button type="button" data-tab="settings">⚙<span>設定</span></button></nav>
@@ -682,7 +684,7 @@ body[data-font-size="large"]{
     "name": "本金獲利雙池法",
     "code": 6,
     "kind": "中性",
-    "description": "目前實際引擎仍按原本金獲利雙池公式運作。已確認下一版B方案為勝進、獲利達10%後70%鎖利／30%滾利；目前參數頁提供試算，尚未正式套用。"
+    "description": "新建#06計畫採自訂勝進倍率（預設1,2），遇中進階、遇掛回首關；當輪獲利達操作金10%，全部當輪獲利70%自動鎖利、30%滾入下一輪操作金。舊備份依原規則運作。"
   },
   {
     "id": "cooldown",
@@ -1113,6 +1115,8 @@ def position(s):
     if sid=='recovery':return f"待回補 {p['debt']:g}"
     if sid=='labouchere':return '清單 '+ '/'.join(f'{x:g}' for x in p.get('list',s['cancel_list']))[:65]
     if sid=='equal_reset':return f'第{p["step"]+1}關 · 本輪{s["risk_parts"]}等份'
+    if sid=='dual' and s.get('dual_v2'):
+        return f"勝進第{p['step']+1}/{len(s.get('dual_sequence',[1,2]))}關"
     return f"第{p['step']+1}關" if sid in ('custom','custom_win','winner','martingale','tianmen','dalembert','fibonacci') else ''
 
 def settings_text(s):
@@ -1253,6 +1257,8 @@ def base_raw(s):
         q=dec(p)/100;frac=(b*q-(1-q))/b
         return max(dec(0),u*frac*dec(s['kelly_fraction'])/100/n)
     code=s.get('_code')
+    if s['strategy']=='本金獲利雙池法' and s.get('dual_v2'):
+        return dec(s['dual_round_budget'])/f/n/sum(map(dec,s['dual_sequence']))
     if s['strategy']=='本金獲利雙池法':return u/(2*f)/n
     if s['strategy']=='剩餘局數預算法':
         remain=s['planned_rounds']-(s['wins']+s['losses'])
@@ -1393,6 +1399,10 @@ def quote(s):
         branch=progression.attack_branch(s,'attack_sequence' if p['mode']=='attack' else 'retreat_sequence') if p['mode']!='trigger' else [2]
         if i>=len(branch):return None,'已達最大關卡或有效序列末階，請結算或重新設定'
         mult=branch[i]
+    elif k=='dual' and s.get('dual_v2'):
+        stages=s.get('dual_sequence') or [1,2]
+        if i<0 or i>=len(stages):return None,'#06 勝進關數異常'
+        mult=stages[i]
     elif k=='labouchere':
         seq=p.get('list',s['cancel_list']);mult=seq[0]+seq[-1] if len(seq)>1 else seq[0]
     elif not k and not peak_v2:mult=adjustment(s)[0]
@@ -1508,6 +1518,42 @@ def after_result(s,win,delta):
         set_operation_budget(s,available(s))
         refresh_base(s)
         return
+
+    if s['strategy']=='本金獲利雙池法' and s.get('dual_v2'):
+        # #06 v2: only this branch performs 70/30 automatic allocation.
+        # Completed stage cycles do NOT trigger allocation without 10% gain.
+        sequence=s.get('dual_sequence') or [1,2]
+        p['step']=(i+1)%len(sequence) if win else 0
+        p['exhausted']=False
+        p['done']=False
+        s['plan_state']=p
+        s['peak_pnl']=max(s.get('peak_pnl',0),s['pnl'],0)
+        starting=cents(s.get('dual_round_budget',operation_budget(s)))
+        gain=cents(dec(s['pnl'])-dec(s.get('dual_round_start_pnl',s['round_start_pnl'])))
+        target=cents(dec(starting)*dec(s.get('dual_target_pct',10))/dec(100))
+        if gain>0 and gain+0.00000001>=target:
+            kept=float((dec(gain)*dec(s.get('dual_lock_pct',70))/dec(100)).quantize(Decimal('.01'),rounding=ROUND_HALF_UP))
+            rolled=cents(dec(gain)-dec(kept))
+            s['locked_profit']=cents(dec(s['locked_profit'])+dec(kept))
+            s['allocation_mark']=s['pnl']
+            s['protected_unallocated']=0.0
+            s['auto_roll_pending']=0.0
+            s['round_offer']=False
+            s['round_offer_advanced']=False
+            s['dual_last_gain']=gain
+            s['dual_last_lock']=kept
+            s['dual_last_roll']=rolled
+            s['dual_cycle_count']=int(s.get('dual_cycle_count',0))+1
+            s['round_complete_count']=int(s.get('round_complete_count',0))+1
+            # Update budget BEFORE next_round() refreshes the per-code base.
+            set_operation_budget(s,dec(starting)+dec(rolled))
+            s['dual_round_budget']=cents(operation_budget(s))
+            next_round(s,refresh=True)
+            s['dual_round_start_pnl']=s['pnl']
+            s['round_notice']=f'#06 第{s["dual_cycle_count"]}輪達標，淨利{gain:g}；鎖利{kept:g}、滾利{rolled:g}；下一輪操作金{s["dual_round_budget"]:g}'
+        else:
+            s['round_notice']=f'#06 本輪盈虧{gain:g}／目標{target:g}；勝進第{p["step"]+1}關'
+        return
     if k=='equal_reset':
         s['cycle_notice']=''  # A completed cycle notice is shown for one result only.
         # The split count is ONLY a divisor; it is NOT a stage ceiling.
@@ -1597,7 +1643,7 @@ def after_result(s,win,delta):
     s['peak_pnl']=max(s.get('peak_pnl',0),s['pnl'],0)
     old_protection=s['locked_profit']
     # Retain original 06/08/10 protections. 01 now locks only on round completion.
-    if s['strategy']=='本金獲利雙池法':s['locked_profit']=max(s['locked_profit'],max(0,s['pnl'])*.7)
+    if s['strategy']=='本金獲利雙池法' and not s.get('dual_v2'):s['locked_profit']=max(s['locked_profit'],max(0,s['pnl'])*.7)
     if s['strategy']=='多因子防守共識法':s['locked_profit']=max(s['locked_profit'],max(0,s['pnl'])*.5)
     if s['strategy']=='獲利回吐底線法' and s['peak_pnl']>=s['loss_limit']*.2:
         s['giveback_active']=True
@@ -1697,6 +1743,8 @@ def choose(s,action,percent=None):
     is_peak=s['strategy']=='高點獲利鎖定法'
     if is_peak and s.get('peak_lock_version')==2:
         return False,'#01 已啟用每局自動鎖利與滾利，不需手動分配'
+    if s['strategy']=='本金獲利雙池法' and s.get('dual_v2'):
+        return False,'#06 已自動依70%鎖利、30%滾利分配，不允許手動重複分配'
     gain=unallocated(s)
     pending=cents(s.get('auto_roll_pending',0)) if is_peak else 0.
     if action=='lock' and (is_peak or gain<=0):return False,'此策略目前無可鎖定獲利'
@@ -2192,6 +2240,18 @@ def new_state(config):
         s['layer_active_count']=sum(1 for c in active_counts if c>0)
         s['twoleg_version']=4
         s['max_steps']=len(grid)
+    if strategy_code==6:
+        src=config.get('dualSequence',[1,2])
+        if not isinstance(src,list):raise ValueError('#06 勝進倍率格式錯誤')
+        try: seq=[Decimal(str(x)) for x in src]
+        except (TypeError,ValueError,ArithmeticError):raise ValueError('#06 倍率請填有效數字')
+        if (not 2<=len(seq)<=10 or any(not x.is_finite() or x<1 or x>100 for x in seq)
+                or seq[0]!=1 or any(seq[i]<seq[i-1] for i in range(1,len(seq)))):
+            raise ValueError('#06 勝進倍率需2～10關，以1開始，逐關不下降，最多100倍')
+        s.update(dual_v2=True,dual_sequence=[float(x) for x in seq],
+                 dual_round_budget=operation,dual_round_start_pnl=0.0,
+                 dual_target_pct=10.0,dual_lock_pct=70.0,dual_roll_pct=30.0,
+                 dual_cycle_count=0,dual_last_gain=0.0,dual_last_lock=0.0,dual_last_roll=0.0)
     if strategy_code==1:
         try:
             pct_raw=Decimal(str(config.get('peakLockPercent',50)))
@@ -2335,9 +2395,10 @@ def evaluate_state():
            'cycleProgress':strategy26.cycle_progress(s) if strategy26.active(s) else None,
            'allocatable':sizing.unallocated(s),
            'pendingRoll':s.get('auto_roll_pending',0),
-           'canLock':s.get('strategy')!='高點獲利鎖定法',
+           'canLock':s.get('strategy')!='高點獲利鎖定法' and not (s.get('strategy')=='本金獲利雙池法' and s.get('dual_v2')),
            'canRoll':(bool(s.get('compound_enabled',True)) and
-                      not (s['strategy']=='高點獲利鎖定法' and s.get('peak_lock_version')==2))}
+                      not (s['strategy']=='高點獲利鎖定法' and s.get('peak_lock_version')==2)
+                      and not (s.get('strategy')=='本金獲利雙池法' and s.get('dual_v2')))}
     return out
 
 
@@ -3125,7 +3186,7 @@ function updateDualPreview(){
   $('#dual-roll').textContent=money(r.roll)+' 元';
   $('#dual-next').textContent=money(r.next)+' 元';
   for(const b of $$('[data-dual]'))b.classList.toggle('active',Math.abs(rate-Number(b.dataset.dual))<.1);
-  $('#dual-warning').textContent=r.hit?'已達10%：這是新方案B的分配試算，實際引擎尚未自動鎖利／滾利。':'未達10%，暫不分配；實際 #06 仍使用舊引擎。';
+  $('#dual-warning').textContent=r.hit?'假設達標：正式結算會自動鎖利70%與滾利30%。滑軌本身不會執行結算。':'假設未達標：正式結算暫不觸發分配。滑軌僅供試算。';
 }
 function persistBalancePreview(){
   try{localStorage.setItem(SETTINGS_KEY,JSON.stringify({version:1,fields:getSavedFields()}));}
@@ -3253,6 +3314,7 @@ function changeStrategyFields(){
   $('#shock-preview').classList.toggle('hidden',code!==5);
   $('#shock-worst').disabled=code!==5;
   $('#dual-preview').classList.toggle('hidden',code!==6);
+  $('#dual-sequence').disabled=code!==6;
   for(const input of $$('#high-preview input[name]'))input.disabled=code!==3;
   const fieldMap={0:['loss_sequence','自訂關卡倍率','1,2'],99:['custom_win_sequence','勝進倍率','1,1'],20:['attack_sequence','攻擊倍率','1,1.6,2,2.6,3.2,4,5,6'],24:['cancel_list','清單數值','1,1']};
   for(const id of ['fraction-field','kelly-field','probability-field','sequence-field','sequence-secondary-field','twoleg-layers-field','peak-lock-fields'])$('#'+id).classList.add('hidden');
@@ -3327,6 +3389,7 @@ function readConfig(){
     config.peakLockPercent=Number($('[name=peakLockPercent]').value);
     config.peakLockCount=Number($('[name=peakLockCount]').value);
   }
+  if(config.strategy===6)config.dualSequence=parseSeq($('[name=dualSequence]').value);
   if(config.strategy===17)config.maxSteps=Math.min(config.maxSteps,5);
   if(config.strategy===14){
     config.sprintStart=Number($('[name=sprintStart]').value);
@@ -3371,6 +3434,7 @@ function firstQuoteConfigForStrategy(code){
     base.retreat_sequence=[2,3,5,8,13,20,30];
   }
   if(code===24)base.cancel_list=[1,1];
+  if(code===6){try{base.dualSequence=parseSeq($('[name=dualSequence]').value);}catch{base.dualSequence=[1,2];}}
   if(code===getCode()){try{return readConfig();}catch{}}
   return base;
 }
@@ -3456,7 +3520,14 @@ function render(){
   const pct=is26?Math.min(100,Math.max(0,Number(data.cycleProgress||0))):Math.min(100,batch.count/batch.size*100);
   $('#progress-text').textContent=`${fmt(pct,1)}%`;
   $('#progress-bar').style.width=pct+'%';
-  $('#notice').textContent=(data?.status||'')||(!on?'請先設定並開始新計畫。':q?'中／掛後自動更新下一局；鎖利／滾利為自主選擇。':'目前沒有下一局的建議金額。');
+  const dualLive=on&&s.strategy==='本金獲利雙池法'&&s.dual_v2===true;
+  $('#dual-live').classList.toggle('hidden',!dualLive);
+  if(dualLive){
+    const budget=Number(s.dual_round_budget||0),gain=Number(s.pnl||0)-Number(s.dual_round_start_pnl||0),target=budget*.1;
+    const progress=target>0?Math.max(0,Math.min(100,gain/target*100)):0;
+    $('#dual-live').textContent='#06 第'+String(s.round_id||1)+'輪 · 本輪操作金 '+money(budget)+' · 本輪盈虧 '+money(gain)+'／'+money(target)+'（'+fmt(progress,1)+'%） · 累積鎖利 '+money(s.locked_profit||0)+' · 已達標 '+Number(s.dual_cycle_count||0)+' 輪';
+  }
+  $('#notice').textContent=(data?.status||'')||(!on?'請先設定並開始新計畫。':q?(dualLive?'中／掛後依 #06 規則自動結算鎖利與滾利。':'中／掛後自動更新下一局；鎖利／滾利為自主選擇。'):'目前沒有下一局的建議金額。');
   $('#notice').classList.toggle('hidden',on&&s.session_status==='active'&&!!q&&!(data?.status||'').trim());
   $('#win-button').disabled=!valid;$('#loss-button').disabled=!valid;
   $('#undo-button').disabled=busy||!data?.undoAvailable;
@@ -3576,7 +3647,7 @@ function bindEvents(){
 
   $('#config-form').addEventListener('input',e=>{
     if(e.target.closest('#shock-preview')){updateShockPreview();if(e.target.name)persistBalancePreview();return;}
-    if(e.target.closest('#dual-preview')){updateDualPreview();return;}
+    if(e.target.closest('#dual-preview')){if(e.target.name)saveSettings();else updateDualPreview();return;}
     if(e.target.closest('#vol-preview')){updateVolatilityPreview();if(e.target.name)persistBalancePreview();return;}
     if(e.target.closest('#high-preview')){
       if(e.target.id==='high-base')$('[name=highBaseMode]').value='manual';
@@ -3590,7 +3661,7 @@ function bindEvents(){
   });
   $('#config-form').addEventListener('change',e=>{
     if(e.target.closest('#shock-preview')){updateShockPreview();if(e.target.name)persistBalancePreview();return;}
-    if(e.target.closest('#dual-preview')){updateDualPreview();return;}
+    if(e.target.closest('#dual-preview')){if(e.target.name)saveSettings();else updateDualPreview();return;}
     if(e.target.closest('#vol-preview')){updateVolatilityPreview();if(e.target.name)persistBalancePreview();return;}
     if(e.target.closest('#high-preview')){updateHighPreview();if(e.target.name)persistBalancePreview();return;}
     if(e.target.closest('#balance-preview')){updateBalancePreview();if(e.target.name)persistBalancePreview();return;}
