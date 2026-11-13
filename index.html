@@ -2553,7 +2553,7 @@ function go(tab){
   clearError();
   if(tab==='calculator'){closeDrawers();return;}
   const id=({strategies:'view-strategies',history:'view-history',settings:'view-settings'})[tab];
-  if(id){if(tab==='strategies')displayStrategyLibrary($('#strategy-search').value);showDrawer(id);for(const b of $('[data-tab]'))b.classList.toggle('active',b.dataset.tab===tab);}
+  if(id){if(tab==='strategies')displayStrategyLibrary($('#strategy-search').value);showDrawer(id);for(const b of $$('[data-tab]'))b.classList.toggle('active',b.dataset.tab===tab);}
 }
  let rubyRingFrame=0;
  const rubyRingValues=new Map();
@@ -2893,7 +2893,7 @@ function configuredGoalSlider(selector,min,max,dataName){
   const current=Math.max(lower,Math.min(upper,Math.round(Number(slider.value)||0)));
   slider.value=String(current);
   const ratios=[-1,-.5,-.25,0,.25,.5,1];
-  for(const [idx,btn] of $('[data-'+dataName+']').entries()){
+  for(const [idx,btn] of $$('[data-'+dataName+']').entries()){
     const p=ratios[idx]??0;
     const amount=Math.round(p<0?-Math.abs(lower)*Math.abs(p):upper*p);
     btn.dataset[dataName]=String(amount);
@@ -3272,7 +3272,7 @@ function firstQuoteConfigForStrategy(code){
 }
 let firstQuoteRequest=0;
 function refreshStrategyFirstQuotes(){
-  const nodes=$('#strategy-grid [data-quote-code]');
+  const nodes=$$('#strategy-grid [data-quote-code]');
   const request=++firstQuoteRequest;
   if(!callPython)return;
   let index=0;
@@ -3495,7 +3495,7 @@ function bindEvents(){
   for(const b of $$('[data-high]'))b.addEventListener('click',()=>{$('#high-slider').value=b.dataset.high;updateHighPreview();});
   $('#high-auto').addEventListener('click',()=>{$('[name=highBaseMode]').value='auto';updateHighPreview();persistBalancePreview();});
   $('#vol-slider').addEventListener('input',updateVolatilityPreview);
-  for(const b of $('[data-vol]'))b.addEventListener('click',()=>{$('#vol-slider').value=b.dataset.vol;updateVolatilityPreview();});
+  for(const b of $$('[data-vol]'))b.addEventListener('click',()=>{$('#vol-slider').value=b.dataset.vol;updateVolatilityPreview();});
   document.addEventListener('visibilitychange',()=>{
     if(!document.hidden&&snapshot){persist();render();}
   });
