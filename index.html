@@ -2487,14 +2487,11 @@ function fieldsFromLegacyState(state){
   const seqByCode={0:'loss_sequence',99:'custom_win_sequence',20:'attack_sequence',24:'cancel_list'};
   const seq=state[seqByCode[selected?.code]];
   if(Array.isArray(seq)&&seq.length)fields.sequenceInput=seq.join(',');
-  if(selected?.code===66&&state.twoleg_version===2&&Array.isArray(state.layer_pairs)){
-    for(let i=0;i<Math.min(3,state.layer_pairs.length);i++){
-      const pair=state.layer_pairs[i];
-      if(Array.isArray(pair)&&pair.length===2){
-        fields['layer'+(i+1)+'First']=pair[0];
-        fields['layer'+(i+1)+'Second']=pair[1];
-      }
-    }
+  if(selected?.code===66&&state.twoleg_version===3&&Array.isArray(state.layer_stakes))
+    fields.layerGrid=JSON.stringify(state.layer_stakes);
+  if(selected?.code===1&&state.peak_lock_version===2){
+    fields.peakLockPercent=state.peak_lock_percent;
+    fields.peakLockCount=state.peak_lock_target;
   }
   if(selected?.code===20&&Array.isArray(state.retreat_sequence))fields.sequenceSecondary=state.retreat_sequence.join(',');
   return Object.fromEntries(Object.entries(fields).filter(([,v])=>v!==undefined&&v!==null));
@@ -2701,11 +2698,66 @@ function updateWinStartPreview(result=null,error=''){
     (range.splitMin!==range.splitMax?'（隨機 '+range.splitMin+'～'+range.splitMax+' 等份，顯示可行範圍）':'');
   detail.classList.remove('invalid');
 }
+
+const DEFAULT_LAYER_GRID=[[10,20,40,80],[30,60,120,240],[50,100,200,400],[100,200,400,800]];
+function readLayerGrid(){
+  try{
+    const value=JSON.parse($('#layer-grid-data').value);
+    if(Array.isArray(value)&&value.length===4&&value.every(row=>Array.isArray(row)&&row.length>=4&&row.length<=10))
+      return value.map(row=>row.slice());
+  }catch{}
+  return DEFAULT_LAYER_GRID.map(row=>row.slice());
+}
+function writeLayerGrid(rows){$('#layer-grid-data').value=JSON.stringify(rows);}
+function renderLayerGrid(){
+  const root=$('#layer-grid-editor');if(!root)return;
+  root.replaceChildren();
+  const grid=readLayerGrid(),active=getCode()===66;
+  grid.forEach((values,layer)=>{
+    const group=document.createElement('section');group.className='layer-grid-row';
+    const header=document.createElement('div');header.className='layer-grid-bar';
+    const name=document.createElement('strong');name.textContent='第'+(layer+1)+'層';
+    const count=document.createElement('small');count.textContent=values.length+' 關';
+    const remove=document.createElement('button');
+    remove.type='button';remove.textContent='－';remove.disabled=!active||values.length<=4;
+    remove.setAttribute('aria-label','刪除第'+(layer+1)+'層最後一關');
+    remove.addEventListener('click',()=>{
+      const rows=readLayerGrid();if(rows[layer].length<=4)return;
+      rows[layer].pop();writeLayerGrid(rows);renderLayerGrid();saveSettings();
+    });
+    const add=document.createElement('button');
+    add.type='button';add.textContent='＋';add.disabled=!active||values.length>=10;
+    add.setAttribute('aria-label','第'+(layer+1)+'層新增一關');
+    add.addEventListener('click',()=>{
+      const rows=readLayerGrid();if(rows[layer].length>=10)return;
+      rows[layer].push('');writeLayerGrid(rows);renderLayerGrid();
+      root.querySelector('[data-layer="'+layer+'"][data-step="'+(rows[layer].length-1)+'"]')?.focus();
+    });
+    header.append(name,count,remove,add);
+    const cells=document.createElement('div');cells.className='layer-grid-cells';
+    values.forEach((value,step)=>{
+      const cell=document.createElement('label');cell.className='layer-grid-cell';
+      const caption=document.createElement('small');caption.textContent='第'+(step+1)+'關';
+      const input=document.createElement('input');
+      input.type='number';input.inputMode='numeric';input.min='1';input.max='1000000000';
+      input.step='1';input.required=true;input.value=String(value);
+      input.disabled=!active;input.dataset.layer=String(layer);input.dataset.step=String(step);
+      input.setAttribute('aria-label','第'+(layer+1)+'層第'+(step+1)+'關總下注金額');
+      input.addEventListener('input',()=>{
+        const rows=readLayerGrid();
+        if(rows[layer]&&step<rows[layer].length){rows[layer][step]=input.value;writeLayerGrid(rows);}
+      });
+      cell.append(caption,input);cells.append(cell);
+    });
+    group.append(header,cells);root.append(group);
+  });
+}
 function changeStrategyFields(){
   const code=getCode();
   const fieldMap={0:['loss_sequence','自訂關卡倍率','1,2'],99:['custom_win_sequence','勝進倍率','1,1'],20:['attack_sequence','攻擊倍率','1,1.6,2,2.6,3.2,4,5,6'],24:['cancel_list','清單數值','1,1']};
-  for(const id of ['fraction-field','kelly-field','probability-field','sequence-field','sequence-secondary-field','twoleg-layers-field'])$('#'+id).classList.add('hidden');
+  for(const id of ['fraction-field','kelly-field','probability-field','sequence-field','sequence-secondary-field','twoleg-layers-field','peak-lock-fields'])$('#'+id).classList.add('hidden');
   if(code===66)$('#twoleg-layers-field').classList.remove('hidden');
+  if(code===1)$('#peak-lock-fields').classList.remove('hidden');
   if(code===12)$('#fraction-field').classList.remove('hidden');
   if(code===23){$('#kelly-field').classList.remove('hidden');$('#probability-field').classList.remove('hidden');}
   if(fieldMap[code]){
@@ -2720,6 +2772,9 @@ function changeStrategyFields(){
     const hidden=field.classList.contains('hidden');
     for(const input of field.querySelectorAll('input,select,textarea'))input.disabled=hidden;
   }
+  if(code===66)renderLayerGrid();
+  if(code===1)$('#planned-field').before($('#win-start-preview'));
+  else $('#win-sprint-fields').after($('#win-start-preview'));
   const is26=code===26;
   $('#win-start-preview').classList.remove('hidden');
   $('#win-sprint-fields').classList.toggle('hidden',code!==14);
@@ -2763,11 +2818,12 @@ function readConfig(){
   if([0,99].includes(config.strategy))
     config.maxSteps=config[{0:'loss_sequence',99:'custom_win_sequence'}[config.strategy]].length;
   if(config.strategy===66){
-    config.layerPairs=[1,2,3].map(i=>[
-      Number($('[name=layer'+i+'First]').value),
-      Number($('[name=layer'+i+'Second]').value)
-    ]);
-    config.maxSteps=config.layerPairs.length;
+    config.layerStakes=readLayerGrid().map(row=>row.map(v=>v===''?0:Number(v)));
+    config.maxSteps=config.layerStakes.length;
+  }
+  if(config.strategy===1){
+    config.peakLockPercent=Number($('[name=peakLockPercent]').value);
+    config.peakLockCount=Number($('[name=peakLockCount]').value);
   }
   if(config.strategy===17)config.maxSteps=Math.min(config.maxSteps,5);
   if(config.strategy===14){
