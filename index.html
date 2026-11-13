@@ -2367,7 +2367,8 @@ function getSavedFields(){
 }
 function fieldsFromLegacyState(state){
   if(!state||typeof state!=='object')return null;
-  const selected=strategies.find(x=>x.name===state.strategy);
+  const selected=strategies.find(x=>x.name===state.strategy)||
+    (state.strategy==='兩關分層法'?strategies.find(x=>x.code===66):null);
   const fields={
     strategy:selected?.code??26,operation:state.operation_base,market:state.market,
     count:state.number_count,parts:state.risk_parts,maxSteps:state.max_steps,
@@ -2375,9 +2376,18 @@ function fieldsFromLegacyState(state){
     fraction:state.stake_fraction,kellyFraction:state.kelly_fraction,
     probability:state.kelly_probability
   };
-  const seqByCode={0:'loss_sequence',99:'custom_win_sequence',66:'layer_sequence',20:'attack_sequence',24:'cancel_list'};
+  const seqByCode={0:'loss_sequence',99:'custom_win_sequence',20:'attack_sequence',24:'cancel_list'};
   const seq=state[seqByCode[selected?.code]];
   if(Array.isArray(seq)&&seq.length)fields.sequenceInput=seq.join(',');
+  if(selected?.code===66&&state.twoleg_version===2&&Array.isArray(state.layer_pairs)){
+    for(let i=0;i<Math.min(3,state.layer_pairs.length);i++){
+      const pair=state.layer_pairs[i];
+      if(Array.isArray(pair)&&pair.length===2){
+        fields['layer'+(i+1)+'First']=pair[0];
+        fields['layer'+(i+1)+'Second']=pair[1];
+      }
+    }
+  }
   if(selected?.code===20&&Array.isArray(state.retreat_sequence))fields.sequenceSecondary=state.retreat_sequence.join(',');
   return Object.fromEntries(Object.entries(fields).filter(([,v])=>v!==undefined&&v!==null));
 }
@@ -2585,8 +2595,9 @@ function updateWinStartPreview(result=null,error=''){
 }
 function changeStrategyFields(){
   const code=getCode();
-  const fieldMap={0:['loss_sequence','自訂關卡倍率','1,2'],99:['custom_win_sequence','勝進倍率','1,1'],66:['layer_sequence','分層倍率','1,1'],20:['attack_sequence','攻擊倍率','1,1.6,2,2.6,3.2,4,5,6'],24:['cancel_list','清單數值','1,1']};
-  for(const id of ['fraction-field','kelly-field','probability-field','sequence-field','sequence-secondary-field'])$('#'+id).classList.add('hidden');
+  const fieldMap={0:['loss_sequence','自訂關卡倍率','1,2'],99:['custom_win_sequence','勝進倍率','1,1'],20:['attack_sequence','攻擊倍率','1,1.6,2,2.6,3.2,4,5,6'],24:['cancel_list','清單數值','1,1']};
+  for(const id of ['fraction-field','kelly-field','probability-field','sequence-field','sequence-secondary-field','twoleg-layers-field'])$('#'+id).classList.add('hidden');
+  if(code===66)$('#twoleg-layers-field').classList.remove('hidden');
   if(code===12)$('#fraction-field').classList.remove('hidden');
   if(code===23){$('#kelly-field').classList.remove('hidden');$('#probability-field').classList.remove('hidden');}
   if(fieldMap[code]){
@@ -2621,7 +2632,7 @@ function changeStrategyFields(){
   if(code===17&&Number(max.value)>5)max.value='5';
   if(is26)max.value=$('[name=partsMax]').value;
   const s=strategies.find(x=>x.code===code);
-  $('#strategy-hint').dataset.info=is26?'#26：等份數只是每局的除數，不是關卡上限。固定等份填相同數字；區間每輪隨機抽一次。每局依目前操作金加淨盈虧重新分切至整數，直到不能符合限紅或資金限制才停止。':code===14?'#14：第一關按操作金÷份數起注；前段以起注總額＋本輪已獲淨利，衝刺階段僅用本輪獲利的固定或隨機百分比。掛回首關。':code===99?'#99：首關倍率必須為1；每關以固定起注×自訂倍率，中進、掛回首。倍率長度就是勝進關數，不會反推縮小第一關。':s?.description||'此策略依原本 RUBY TG Chip V1.8.18 計算規則運作。';
+  $('#strategy-hint').dataset.info=is26?'#26：等份數只是每局的除數，不是關卡上限。固定等份填相同數字；區間每輪隨機抽一次。每局依目前操作金加淨盈虧重新分切至整數，直到不能符合限紅或資金限制才停止。':code===66?'#66：每層兩關可各自設定倍率。首注中後用本層第二關倍率；第二關中回上一層第一關，任何關卡掛則跳下一層第一關；首層不再退、末層掛後暫停。基額依整套倍率與資金份數計算，限紅不符時拒絕起注。':code===14?'#14：第一關按操作金÷份數起注；前段以起注總額＋本輪已獲淨利，衝刺階段僅用本輪獲利的固定或隨機百分比。掛回首關。':code===99?'#99：首關倍率必須為1；每關以固定起注×自訂倍率，中進、掛回首。倍率長度就是勝進關數，不會反推縮小第一關。':s?.description||'此策略依原本 RUBY TG Chip V1.8.18 計算規則運作。';
   updateWinStartPreview();
   $('#current-summary').textContent=s?.description||'請選擇策略。';$('#summary-info').dataset.info=s?.description||'請選擇策略。';
 }
@@ -2639,10 +2650,17 @@ function readConfig(){
     profitPct:Number(f.get('profitPct')),lossPct:Number(f.get('lossPct')),
     fraction:Number(f.get('fraction')||20),kellyFraction:Number(f.get('kellyFraction')||25)};
   if(config.strategy===26){config.parts=config.partsMin;config.maxSteps=config.partsMax;}
-  const codes={0:'loss_sequence',99:'custom_win_sequence',66:'layer_sequence',20:'attack_sequence',24:'cancel_list'};
+  const codes={0:'loss_sequence',99:'custom_win_sequence',20:'attack_sequence',24:'cancel_list'};
   if(codes[config.strategy])config[codes[config.strategy]]=parseSeq(f.get('sequenceInput')||'');
-  if([0,66,99].includes(config.strategy))
-    config.maxSteps=config[{0:'loss_sequence',66:'layer_sequence',99:'custom_win_sequence'}[config.strategy]].length;
+  if([0,99].includes(config.strategy))
+    config.maxSteps=config[{0:'loss_sequence',99:'custom_win_sequence'}[config.strategy]].length;
+  if(config.strategy===66){
+    config.layerPairs=[1,2,3].map(i=>[
+      Number($('[name=layer'+i+'First]').value),
+      Number($('[name=layer'+i+'Second]').value)
+    ]);
+    config.maxSteps=config.layerPairs.length;
+  }
   if(config.strategy===17)config.maxSteps=Math.min(config.maxSteps,5);
   if(config.strategy===14){
     config.sprintStart=Number($('[name=sprintStart]').value);
