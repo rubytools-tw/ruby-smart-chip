@@ -3064,16 +3064,17 @@ function readConfig(){
   if(config.strategy===23)config.probability=Number(f.get('probability'));
   return config;
 }
+function displayStrategyName(name){return name==='停利進度收斂法'?'天秤對稱法':name;}
 function displayStrategyLibrary(query=''){
   const holder=$('#strategy-grid');holder.textContent='';
   const q=query.trim().toLocaleLowerCase();
-  const visible=strategies.filter(s=>!q||(`${s.code} #${s.code} ${s.name} ${s.kind} ${s.description}`).toLocaleLowerCase().includes(q));
+  const visible=strategies.filter(s=>!q||(`${s.code} #${s.code} ${displayStrategyName(s.name)} ${s.name} ${s.kind} ${s.description}`).toLocaleLowerCase().includes(q));
   if(!visible.length){const p=document.createElement('p');p.className='muted';p.textContent='沒有符合條件的策略';holder.append(p);return;}
   for(const item of visible){
     const card=document.createElement('article');card.className='strategy-card';
     const head=document.createElement('header');
     const code=document.createElement('div');code.className='strategy-code';code.textContent='#'+String(item.code).padStart(2,'0');
-    const detail=document.createElement('div');const name=document.createElement('h3');name.textContent=item.name;
+    const detail=document.createElement('div');const name=document.createElement('h3');name.textContent=displayStrategyName(item.name);
     const kind=document.createElement('small');kind.textContent=item.kind;detail.append(name,kind);head.append(code,detail);
     const desc=document.createElement('p');desc.textContent=item.description;
     const btn=document.createElement('button');btn.type='button';btn.className='text-btn';btn.textContent='選擇此策略 →';
@@ -3104,7 +3105,7 @@ function render(){
   $('#strategy-round-metric').style.display=is66?'':'none';
   $('#strategy-round-count').textContent=is66?`第 ${Math.max(Number(s.round_id||1),Number(s.round_complete_count||0)+1)} 輪`:'第 1 輪';
   const activeCode=on?(strategies.find(x=>x.name===s.strategy)?.code??'—'):getCode();
-  $('#strategy-active-name').textContent='#'+String(activeCode).padStart(2,'0')+' '+(on?s.strategy:(strategies.find(x=>x.code===getCode())?.name||'尚未選擇'));
+  $('#strategy-active-name').textContent='#'+String(activeCode).padStart(2,'0')+' '+displayStrategyName(on?s.strategy:(strategies.find(x=>x.code===getCode())?.name||'尚未選擇'));
   $('#strategy-active-meta').textContent=on?`${data.position||'計畫執行中'} · ${complete}/${planned} 局`:'尚未開始 · 點擊選擇策略';
   updateRing(data);
   $('#create-plan').classList.toggle('hidden',on&&s.session_status==='active');
@@ -3145,7 +3146,7 @@ function render(){
   if(!ledger.length){const row=document.createElement('tr');const cell=document.createElement('td');cell.colSpan=6;cell.className='empty';cell.textContent='目前沒有紀錄';row.append(cell);rows.append(row);}
   else for(const record of [...ledger].reverse().slice(0,200)){
     const tr=document.createElement('tr');
-    const values=[record.sequence||'',record.strategy||'—',record.outcome==='win'?'中':'掛',fmt(record.stake),money(record.cost),(Number(record.delta)>0?'+':'')+money(record.delta)];
+    const values=[record.sequence||'',displayStrategyName(record.strategy||'—'),record.outcome==='win'?'中':'掛',fmt(record.stake),money(record.cost),(Number(record.delta)>0?'+':'')+money(record.delta)];
     for(let i=0;i<values.length;i++){const td=document.createElement('td');td.textContent=values[i];if(i===2)td.className=record.outcome==='win'?'positive':'negative';if(i===5)td.className=Number(record.delta)>=0?'positive':'negative';tr.append(td);}rows.append(tr);
   }
 }
@@ -3328,7 +3329,7 @@ async function initialize(){
     strategies=JSON.parse(document.getElementById('ruby-strategies-json').textContent);
     if(strategies.length!==26)throw Error('策略數量不正確，請重新部署');
     const select=$('#strategy-select');
-    for(const item of strategies){const option=document.createElement('option');option.value=item.code;option.textContent=`#${String(item.code).padStart(2,'0')} ${item.name}`;select.append(option);}
+    for(const item of strategies){const option=document.createElement('option');option.value=item.code;option.textContent=`#${String(item.code).padStart(2,'0')} ${displayStrategyName(item.name)}`;select.append(option);}
     select.value='26';changeStrategyFields();displayStrategyLibrary();
     const bundle=PY_FILES.map(name=>{
       const el=document.getElementById('py-src-'+name);
