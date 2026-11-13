@@ -2585,6 +2585,7 @@ def settle(outcome, action_id=None):
     exhausted=bool(s.get('plan_state',{}).get('exhausted'))
     if (strategy26.active(s) or
         (s['strategy']=='高點獲利鎖定法' and s.get('peak_lock_version')==2) or
+        (s['strategy']=='獲利回吐底線法' and s.get('giveback_roll_v2')) or
         layer4
         ) and s.get('session_status')=='active' and not (layer4 and exhausted):
         # After settlement, stop if no next whole-number stake meets funds,
