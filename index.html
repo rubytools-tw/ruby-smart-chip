@@ -318,7 +318,7 @@ body[data-font-size="large"]{
 .limit-warning{grid-column:1/-1;margin:0;font-size:var(--ruby-fs-label,13px);color:var(--danger);line-height:1.45}
 @media(max-width:355px){.ring-title-actions{gap:4px}.ring-title-actions .small-action{padding:5px 4px}.ring-panel.compact .ring-body{grid-template-columns:minmax(0,35%) minmax(0,1fr);column-gap:3px}}
 
-/* V0.1.9: only parameter field geometry; original Neon palette and typography retained. */
+/* V0.1.10: only parameter field geometry; original Neon palette and typography retained. */
 .market-limits{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .market-limits .field{min-width:0}
 .market-limits .limit-warning{grid-column:1/-1}
@@ -327,7 +327,7 @@ body[data-font-size="large"]{
 .parts-range-inputs>span{white-space:nowrap;color:var(--muted);font-weight:700}
 #range-parts-field{min-width:0}
 
-/* V0.1.9: winning strategy inputs only; original colors and buttons retained. */
+/* V0.1.10: winning strategy inputs only; original colors and buttons retained. */
 .win-start-preview{min-width:0}
 .win-start-preview input{width:100%;font-weight:700;font-size:var(--ruby-fs-value,16px);color:inherit}
 .win-start-preview small{font-size:var(--ruby-fs-note,12px);color:var(--muted);line-height:1.35}
@@ -339,7 +339,7 @@ body[data-font-size="large"]{
 .win-sprint-fields .parts-range-inputs input{width:100%;min-width:0}
 @media(max-width:355px){.win-sprint-fields{grid-template-columns:1fr}}
 
-/* V0.1.9: compact three-row #66 layer editor within existing Neon palette. */
+/* V0.1.10: compact three-row #66 layer editor within existing Neon palette. */
 .twoleg-layers{display:grid;gap:8px;min-width:0}
 .twoleg-heading{display:grid;gap:3px}
 .twoleg-heading>span{font-weight:700}
@@ -349,7 +349,7 @@ body[data-font-size="large"]{
 .twoleg-row>span:nth-child(3){font-weight:700;text-align:center;color:var(--muted)}
 .twoleg-row input{width:100%;min-width:0;text-align:center;padding-inline:3px}
 
-/* V0.1.9: compact editable 4-layer stake grid and #01 lock settings. */
+/* V0.1.10: compact editable 4-layer stake grid and #01 lock settings. */
 .peak-lock-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;min-width:0}
 .peak-lock-grid .field{min-width:0}
 .layer-grid-panel{display:grid;gap:10px;min-width:0}
@@ -366,6 +366,9 @@ body[data-font-size="large"]{
 .layer-grid-cell small{font-size:10px;line-height:1.2;color:var(--muted)}
 .layer-grid-cell input{width:100%;min-width:0;text-align:center;padding:6px 2px;font-size:13px;appearance:textfield}
 .layer-grid-cell input::-webkit-inner-spin-button,.layer-grid-cell input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.layer-grid-cell input.layer-inactive{opacity:.57}
+.layer-budget-summary{font-size:11px;color:var(--muted);line-height:1.6;overflow-wrap:anywhere}
+.layer-budget-summary .layer-budget-warning{display:block;color:var(--danger);font-weight:600}
 </style>
 </head>
 <body data-theme="neon">
@@ -373,7 +376,7 @@ body[data-font-size="large"]{
 <div class="app-shell">
   <div id="drawer-backdrop" class="drawer-backdrop" aria-hidden="true"></div>
   <aside class="sidebar drawer" id="drawer-menu" role="dialog" aria-modal="true" aria-label="主選單" aria-hidden="true">
-    <div class="drawer-head"><div class="brand-mini"><span class="brand-symbol">R</span><div><strong>RUBY Smart Chip</strong><small>霓虹直立版 · V0.1.9</small></div></div><button class="icon-btn close-drawer" aria-label="關閉主選單" type="button">×</button></div>
+    <div class="drawer-head"><div class="brand-mini"><span class="brand-symbol">R</span><div><strong>RUBY Smart Chip</strong><small>霓虹直立版 · V0.1.10</small></div></div><button class="icon-btn close-drawer" aria-label="關閉主選單" type="button">×</button></div>
     <div class="drawer-nav">
       <button type="button" class="nav-item active" data-tab="calculator"><span>▣</span> 籌碼計算機</button>
       <button type="button" class="nav-item" data-tab="strategies"><span>▤</span> 26 套策略中心</button>
@@ -385,7 +388,7 @@ body[data-font-size="large"]{
   <main class="main-view" id="main-content">
     <header class="topbar"><button type="button" class="icon-btn" id="open-menu" aria-label="開啟主選單">☰</button><div class="nav-brand"><strong>RUBY <span>Smart Chip</span></strong><small>兔寶寶籌碼計算機</small></div><button type="button" class="icon-btn" id="open-config" aria-label="開啟計畫參數">⚙</button></header>
     <div class="hero"><div class="hero-overlay"><small>RUBY · NEON PORTRAIT EDITION</small><h1 id="page-title">籌碼計算機</h1><p>策略 × 注碼 × 歷史 · 一頁掌握</p></div></div>
-    <div class="engine-row"><span id="engine-status" class="status-pill loading" role="status">計算核心載入中…</span><span id="session-label" class="soft-tag">未開始</span><button type="button" class="info-btn" data-info="RUBY Smart Chip V0.1.9：資料存於本機瀏覽器，歷史只保留最近 24 小時，設定持續保留。" aria-label="版本說明">ⓘ</button></div>
+    <div class="engine-row"><span id="engine-status" class="status-pill loading" role="status">計算核心載入中…</span><span id="session-label" class="soft-tag">未開始</span><button type="button" class="info-btn" data-info="RUBY Smart Chip V0.1.10：資料存於本機瀏覽器，歷史只保留最近 24 小時，設定持續保留。" aria-label="版本說明">ⓘ</button></div>
     <div id="alert" class="alert hidden" role="alert"></div>
     <section class="view active" id="view-calculator" aria-labelledby="page-title">
       <button type="button" class="current-strategy neon-card" id="open-strategies" aria-label="開啟策略中心"><span class="strategy-accent">當前策略</span><span class="strategy-text"><strong id="strategy-active-name">#26 等分倍盈歸本法</strong><small id="strategy-active-meta">尚未開始 · 點擊選擇策略</small></span><span class="chevron">›</span></button>
@@ -428,7 +431,7 @@ body[data-font-size="large"]{
       </section>
       <section class="summary-panel neon-card"><div class="panel-title"><strong>目前策略摘要</strong><button type="button" class="info-btn" id="summary-info" data-info="選擇策略後顯示規則。" aria-label="查看目前策略摘要">ⓘ</button><button id="read-strategy" type="button" class="text-btn">完整說明 ›</button></div><p id="current-summary" class="sr-only">選擇策略後顯示規則。</p></section>
     </section>
-    <footer class="app-footer">RUBY Smart Chip V0.1.9 · 本機試算 · 非自動下注</footer>
+    <footer class="app-footer">RUBY Smart Chip V0.1.10 · 本機試算 · 非自動下注</footer>
   </main>
 
   <aside id="drawer-config" class="drawer drawer-right" role="dialog" aria-modal="true" aria-label="計畫參數設定" aria-hidden="true"><div class="drawer-head"><div><strong>計畫參數</strong><button type="button" class="info-btn" data-info="輸入後請按確認，進行中的計畫不會被暗中修改。" aria-label="參數套用說明">ⓘ</button></div><button class="icon-btn close-drawer" type="button" aria-label="關閉參數設定">×</button></div>
@@ -463,10 +466,12 @@ body[data-font-size="large"]{
         <label class="field field-full special-param hidden" id="sequence-field"><span id="sequence-label">自訂倍率</span><input name="sequenceInput" type="text" placeholder="1,2,3,5"></label>
         <label class="field field-full special-param hidden" id="sequence-secondary-field"><span id="sequence-secondary-label">退守倍率</span><input name="sequenceSecondary" type="text" placeholder="2,3,5,8,13,20,30"></label>
         <div class="field-full special-param hidden layer-grid-panel" id="twoleg-layers-field">
-          <div class="layer-grid-heading"><strong>#66 分層下注金額</strong><small>4 層 × 預設每層 4 關；每層可使用＋增加到 10 關。輸入每關「總下注金額」，非倍率。</small></div>
+          <div class="layer-grid-heading"><strong>#66 每碼配注金額</strong><small>4 層 × 預設每層 4 格，各層可按＋增加到 10 格。輸入的是「每碼金額」，實際總注＝每碼 × 下注碼數。0／空白代表停用尾端關卡。</small></div>
           <div id="layer-grid-editor" class="layer-grid-editor"></div>
-          <input type="hidden" name="layerGrid" id="layer-grid-data" value="[[12,24,48,96],[36,72,144,288],[60,120,240,480],[120,240,480,960]]" disabled>
-          <small class="twoleg-rule">第 1～倒數第 2 關中獎→同層下一關；最後一關中獎→上一層第一關；任何一關掛→下一層第一關；第四層掛則暫停。</small>
+          <input type="hidden" name="layerGrid" id="layer-grid-data" value="[[6,12,0,0],[12,36,0,0],[36,180,0,0],[0,0,0,0]]" disabled>
+          <input type="hidden" name="layerGridUnit" value="per_code_v4" disabled>
+          <div id="layer-budget-summary" class="layer-budget-summary" aria-live="polite"></div>
+          <small class="twoleg-rule">連中進下一個有金額的關卡，最後啟用關中回上一層第一關；任一關掛往下一個啟用層，沒有下一層就暫停。未使用格請填0或留空。</small>
         </div>
       </div></details>
       <div class="form-note info-row"><span>策略使用說明</span><button type="button" id="strategy-hint" class="info-btn" data-info="#26：依切分份數固定等額配置。" aria-label="查看策略規則">ⓘ</button></div><div class="drawer-form-actions"><button type="button" class="button subtle close-drawer">取消修改</button><button id="start-button" type="submit" class="button primary" disabled>確認設定／開始新計畫</button></div>
@@ -474,7 +479,7 @@ body[data-font-size="large"]{
   </aside>
   <section class="view drawer drawer-left drawer-wide" id="view-strategies" role="dialog" aria-modal="true" aria-hidden="true" aria-label="策略中心"><div class="drawer-head"><div><strong>26 套策略中心</strong><button type="button" class="info-btn" data-info="可搜尋策略名稱與編號，點擊選用不會立即更改進行中的計畫。" aria-label="策略中心說明">ⓘ</button></div><button class="icon-btn close-drawer" type="button" aria-label="關閉策略中心">×</button></div><div class="drawer-scroll"><div class="search-wrap"><input id="strategy-search" type="search" placeholder="搜尋策略名稱或編號，例如 #26、馬丁"></div><div class="strategy-grid" id="strategy-grid"></div></div></section>
   <section class="view drawer drawer-bottom" id="view-history" role="dialog" aria-modal="true" aria-hidden="true" aria-label="結算紀錄"><div class="drawer-handle" aria-hidden="true"></div><div class="drawer-head"><div><strong>本次與歷史結算</strong><small id="history-count">0 筆</small></div><button class="icon-btn close-drawer" type="button" aria-label="關閉歷史紀錄">×</button></div><div class="drawer-scroll"><div class="history-summary"><div class="mini-panel"><small>累積投注</small><strong id="sum-cost">—</strong></div><div class="mini-panel"><small>累積盈虧</small><strong id="sum-pnl">—</strong></div><div class="mini-panel"><small>已鎖利</small><strong id="sum-locked">—</strong></div></div><div class="panel history-panel"><div class="panel-head"><h3>結算明細</h3><button id="export-csv" type="button" class="button subtle">匯出 CSV</button></div><div class="table-wrap"><table><thead><tr><th>局數</th><th>策略</th><th>中／掛</th><th>每碼</th><th>投注</th><th>本局損益</th></tr></thead><tbody id="history-rows"><tr><td colspan="6" class="empty">目前沒有紀錄</td></tr></tbody></table></div></div></div></section>
-  <section class="view drawer drawer-left drawer-wide" id="view-settings" role="dialog" aria-modal="true" aria-hidden="true" aria-label="網站設定"><div class="drawer-head"><div><strong>系統設定</strong><small>字體及本機資料管理</small></div><button class="icon-btn close-drawer" type="button" aria-label="關閉設定">×</button></div><div class="drawer-scroll"><section class="panel plan-management"><div class="panel-head"><h3>計畫管理</h3></div><div class="secondary-actions more-actions" id="more-actions"><button id="resume-button" type="button" class="button subtle hidden" disabled>下一輪</button><button id="finish-button" type="button" class="button subtle" disabled>結算本次</button></div></section><div class="settings-grid"><section class="panel"><div class="panel-head"><h3>文字大小</h3><button type="button" class="info-btn" data-info="調整網站標題、卡片、按鈕、說明的字體大小；變更後會記住設定。" aria-label="文字大小說明">ⓘ</button></div><div class="font-controls" role="group" aria-label="文字大小"><button type="button" data-font="small">小</button><button type="button" data-font="medium">中</button><button type="button" data-font="large">大</button></div></section><section class="panel"><h3>本機資料備份</h3><button type="button" class="info-btn" data-info="歷史明細只保留最近 24 小時，超過期限會在開啟或操作時移除。策略、操作金及其他設定會保留；重新開啟網頁會從新計畫開始，不自動接續上一個計畫。資料只存於本機瀏覽器，清除瀏覽資料可能遺失。" aria-label="歷史保存說明">ⓘ</button><div class="button-row"><button id="backup-button" type="button" class="button subtle">匯出 JSON</button><button id="restore-button" type="button" class="button subtle">還原 JSON</button><input id="restore-file" type="file" accept=".json,application/json" hidden></div></section><section class="panel"><h3>版本資訊</h3><p>RUBY Smart Chip V0.1.9 Neon Portrait · 26 套策略 Python 引擎沿用原版；只作本機籌碼試算，不會送出訂單或 Telegram 訊息。</p></section></div></div></section>
+  <section class="view drawer drawer-left drawer-wide" id="view-settings" role="dialog" aria-modal="true" aria-hidden="true" aria-label="網站設定"><div class="drawer-head"><div><strong>系統設定</strong><small>字體及本機資料管理</small></div><button class="icon-btn close-drawer" type="button" aria-label="關閉設定">×</button></div><div class="drawer-scroll"><section class="panel plan-management"><div class="panel-head"><h3>計畫管理</h3></div><div class="secondary-actions more-actions" id="more-actions"><button id="resume-button" type="button" class="button subtle hidden" disabled>下一輪</button><button id="finish-button" type="button" class="button subtle" disabled>結算本次</button></div></section><div class="settings-grid"><section class="panel"><div class="panel-head"><h3>文字大小</h3><button type="button" class="info-btn" data-info="調整網站標題、卡片、按鈕、說明的字體大小；變更後會記住設定。" aria-label="文字大小說明">ⓘ</button></div><div class="font-controls" role="group" aria-label="文字大小"><button type="button" data-font="small">小</button><button type="button" data-font="medium">中</button><button type="button" data-font="large">大</button></div></section><section class="panel"><h3>本機資料備份</h3><button type="button" class="info-btn" data-info="歷史明細只保留最近 24 小時，超過期限會在開啟或操作時移除。策略、操作金及其他設定會保留；重新開啟網頁會從新計畫開始，不自動接續上一個計畫。資料只存於本機瀏覽器，清除瀏覽資料可能遺失。" aria-label="歷史保存說明">ⓘ</button><div class="button-row"><button id="backup-button" type="button" class="button subtle">匯出 JSON</button><button id="restore-button" type="button" class="button subtle">還原 JSON</button><input id="restore-file" type="file" accept=".json,application/json" hidden></div></section><section class="panel"><h3>版本資訊</h3><p>RUBY Smart Chip V0.1.10 Neon Portrait · 26 套策略 Python 引擎沿用原版；只作本機籌碼試算，不會送出訂單或 Telegram 訊息。</p></section></div></div></section>
 </div>
 <div class="info-backdrop hidden" id="info-backdrop"><div class="info-modal" role="dialog" aria-modal="true" aria-label="功能說明"><div class="panel-title"><strong>ⓘ 操作說明</strong><button type="button" id="info-close" class="icon-btn" aria-label="關閉說明">×</button></div><p id="info-text"></p></div></div>
 <nav class="mobile-nav" aria-label="底部分頁"><button type="button" class="active" data-tab="calculator">▣<span>計算</span></button><button type="button" data-tab="strategies">▤<span>策略</span></button><button type="button" data-tab="history">◷<span>紀錄</span></button><button type="button" data-tab="settings">⚙<span>設定</span></button></nav>
@@ -500,7 +505,7 @@ body[data-font-size="large"]{
     "name": "逐關分層法",
     "code": 66,
     "kind": "雙向",
-    "description": "#66 逐關分層：固定4層、各層預設4關，可各自加到最多10關。每格設定本關總注金額，賽車多碼依碼數無條件捨去；中則同層進下一關，該層最後一關中回上一層第1關；任一關掛跳下一層第1關，第4層掛則暫停。限紅與可用資金逐關檢查。"
+    "description": "#66 逐關分層：固定4層、每層預設4格、最多10格。每格填寫每碼下注金額，實際本局總注＝每碼×下注碼數。每層尾端可填0或留空，整個尾端層可停用。中獎進同層下一個啟用關，最後關中退上一層第1關；掛則跳下一個啟用層，若沒有下一層就暫停。每局皆檢查可用資金、停損和限紅。"
   },
   {
     "id": "peak",
@@ -1086,9 +1091,9 @@ def base_raw(s):
     if k=='dalembert':return u/n/sum(range(1,s['max_steps']+1))
     if k=='fibonacci':return u/n/sum(fibs(s['max_steps']))
     if k=='twoleg':
-        if s.get('twoleg_version')==3:
-            # User enters exact total stakes for every cell; no derived
-            # multiplier budget is allowed to alter those values.
+        if s.get('twoleg_version') in (3,4):
+            # v3 stores absolute total amounts; v4 stores per-code amounts.
+            # Both bypass legacy multiplier-sum sizing.
             return dec(s['operation_base'])/dec(s['risk_parts'])/n
         if s.get('twoleg_version')==2:
             # Reserve one share for the complete set of paired stages; do
@@ -1191,7 +1196,7 @@ def quote(s):
             return None,'下局總注超過剩餘停損額度，不得執行'
         if dec(existing['total']) > dec(available(s)):
             return None,'本局總投入超過可用資金，不得執行'
-        if sid(s)!='equal_reset' and not (s['strategy']=='高點獲利鎖定法' and s.get('peak_lock_version')==2) and not (sid(s)=='twoleg' and s.get('twoleg_version')==3) and not (sid(s) in ('winner','custom_win') and s.get('win_mode_version')==2) and 'active_operation_budget' in s and dec(existing['total']) > dec(operation_budget(s)):
+        if sid(s)!='equal_reset' and not (s['strategy']=='高點獲利鎖定法' and s.get('peak_lock_version')==2) and not (sid(s)=='twoleg' and s.get('twoleg_version') in (3,4)) and not (sid(s) in ('winner','custom_win') and s.get('win_mode_version')==2) and 'active_operation_budget' in s and dec(existing['total']) > dec(operation_budget(s)):
             return None,'本局總投入超過當前操作預算，不得執行'
         return copy.deepcopy(existing),''
     a=available(s);n=s['number_count'];k=sid(s);p=progression._p(s)
@@ -1209,6 +1214,7 @@ def quote(s):
     # quote. Other strategies keep their previously committed round base.
     peak_v2=s['strategy']=='高點獲利鎖定法' and s.get('peak_lock_version')==2
     layer_v3=k=='twoleg' and s.get('twoleg_version')==3
+    layer_v4=k=='twoleg' and s.get('twoleg_version')==4
     raw=base_raw(s) if k in ('fixed','kelly','recovery','equal_reset') or peak_v2 or s['strategy']=='剩餘局數預算法' else None
     b=(int(raw.to_integral_value(rounding=ROUND_CEILING if k=='recovery' else ROUND_FLOOR)) if raw is not None else s.get('round_base'))
     if k=='recovery' and dec(progression.conservative_rate(s))<=dec(n):return None,'賠率減碼數小於或等於0，禁止計算下注額'
@@ -1217,16 +1223,18 @@ def quote(s):
         if raw<=0:return None,'凱利比例≤0，本次不進場'
     if b is None:return None,'基額無法計算，請重新設定參數或變更策略'
     i=p['step'];mult=1
-    if layer_v3:
+    if layer_v3 or layer_v4:
         grid=s.get('layer_stakes') or []
         leg=int(p.get('leg',0))
         if i<0 or i>=len(grid) or leg<0 or leg>=len(grid[i]):
             return None,'#66 分層下注位置不正確'
+        if layer_v4 and (i>=s['layer_active_count'] or
+                         leg>=s['layer_active_counts'][i] or grid[i][leg]<=0):
+            return None,'#66 此格尚未啟用（0／空白）；不能產生0元下注'
     keys={'custom':'loss_sequence','custom_win':'custom_win_sequence','winner':'win_sequence','tianmen':None,'twoleg':'layer_sequence'}
     if k in keys:
-        if layer_v3:
-            # 4 layers may each contain up to 10 absolute total stakes.
-            # NEVER consult the obsolete 2-entry layer_sequence here.
+        if layer_v3 or layer_v4:
+            # Do not use obsolete two-stage multiplier sequence.
             mult=1
         elif k=='twoleg' and s.get('twoleg_version')==2:
             pairs=s['layer_pairs']
@@ -1283,6 +1291,10 @@ def quote(s):
                 chosen_pct=int(s.get('win_sprint_min_pct',80))
                 s['win_sprint_selected_pct']=chosen_pct
             per=floor(accumulated*dec(chosen_pct)/dec(100)/dec(n))
+    elif layer_v4:
+        # The user specifies integer PER-CODE amount, not total.
+        per=int(s['layer_stakes'][i][p['leg']])
+        chosen_pct=None
     elif layer_v3:
         requested=dec(s['layer_stakes'][i][p['leg']])
         per=floor(requested/dec(n))
@@ -1305,7 +1317,7 @@ def quote(s):
     if total > max(dec(0), dec(s['loss_limit']) + dec(s['pnl'])):
         return None,'下局總注超過剩餘停損額度，不得執行'
     if total>a+1e-8:return None,'本局總投入超過可用資金，不得執行'
-    if k!='equal_reset' and not peak_v2 and not layer_v3 and not (k in ('winner','custom_win') and s.get('win_mode_version')==2) and 'active_operation_budget' in s and total>operation_budget(s)+1e-8:
+    if k!='equal_reset' and not peak_v2 and not layer_v3 and not layer_v4 and not (k in ('winner','custom_win') and s.get('win_mode_version')==2) and 'active_operation_budget' in s and total>operation_budget(s)+1e-8:
         return None,'本局總投入超過當前操作預算，不得執行'
     # Legacy fixed caps are explicit opt-in, never determine the base of 20/24.
     if s.get('extra_caps_enabled') and k not in ('attack','labouchere') and (per>s['stake_cap'] or total>s['total_cap']):
@@ -1389,6 +1401,20 @@ def after_result(s,win,delta):
         move=not win if k=='custom' else win
         j=i+1 if move else 0
         p['step']=j%len(sequence(s,key));boundary=p['step']==0
+    elif k=='twoleg' and s.get('twoleg_version')==4:
+        active_layers=int(s['layer_active_count'])
+        active_steps=int(s['layer_active_counts'][i])
+        leg=int(p.get('leg',0))
+        if win and leg+1<active_steps:
+            p['leg']=leg+1
+        elif win:
+            p.update(step=max(0,i-1),leg=0,exhausted=False)
+            boundary=i==0
+        else:
+            next_layer=i+1
+            p.update(step=min(next_layer,active_layers-1),leg=0,
+                     exhausted=next_layer>=active_layers)
+        s['plan_state']=p
     elif k=='twoleg' and s.get('twoleg_version')==3:
         grid=s['layer_stakes']
         if win and int(p.get('leg',0))+1<len(grid[i]):
@@ -1791,7 +1817,11 @@ def details(s):
             result['warning'] = (f'攻擊序列{len(s.get("attack_sequence", []))}筆、退守序列{len(s.get("retreat_sequence", []))}筆；'
                                  f'設定{maximum}關必須各有至少{maximum-1}筆（另含測試1關）。不足者會在序列末階暫停。')
     elif sid == 'twoleg':
-        if s.get('twoleg_version')==3:
+        if s.get('twoleg_version')==4:
+            counts=s.get('layer_active_counts',[])
+            result['effective']=s.get('layer_active_count',len(counts))
+            result['line']='#66 每碼配注｜有效關卡 '+('/'.join(str(c) for c in counts))+'；0／空白不下注，最後啟用層掛則暫停'
+        elif s.get('twoleg_version')==3:
             grid=s.get('layer_stakes',[])
             result['effective']=len(grid)
             result['line']='#66 固定4層，逐層各4～10關；末關中退上一層，任一關掛進下一層，第4層掛暫停'
@@ -1854,7 +1884,7 @@ def progress_line(s):
 FORMULAS={
 0:'未取整每碼基額＝(一份÷碼數÷有效配注序列和)。掛進、中回首；末階後回首開新輪。',
 99:'第一關每碼=floor(操作金÷切分份數÷碼數)，自訂倍率第一項固定為1；之後依首關基額×指定倍率（不除倍率總和），中進、掛回首，序列走完下一輪。',
-66:'#66 逐關分層：固定4層、各層預設4關，可各自加到最多10關。每格設定本關總注金額，賽車多碼依碼數無條件捨去；中則同層進下一關，該層最後一關中回上一層第1關；任一關掛跳下一層第1關，第4層掛則暫停。限紅與可用資金逐關檢查。',
+66:'#66 逐關分層：固定4層、每層預設4格、最多10格。每格填寫每碼下注金額，實際本局總注＝每碼×下注碼數。每層尾端可填0或留空，整個尾端層可停用。中獎進同層下一個啟用關，最後關中退上一層第1關；掛則跳下一個啟用層，若沒有下一層就暫停。每局皆檢查可用資金、停損和限紅。',
 1:'#01 高點獲利鎖定：第一局每碼＝floor(操作金÷切分份數÷碼數)。每局依可用操作金（原操作金＋累積淨盈虧－已鎖利）重新分切；每次獲利按自訂比例自動鎖利，未鎖獲利持續投入。連續達指定鎖利次數完成一週期，掛則連續次數歸零；不設最大關卡。',
 2:'起始基額＝floor(一份÷碼數÷10)。調節倍數＝剩餘停損÷初始停損×份數÷(份數＋floor(停利進度×12))。',
 3:'起始基額＝floor(一份÷碼數÷10)。每回撤初始操作金5%，分母增加4份；回撤20%暫停，恢復不重置高點。',
@@ -1981,26 +2011,44 @@ def new_state(config):
     if prob not in (None,''):
         s['kelly_probability']=float(prob)
     if strategy_code==66:
-        raw_grid=config.get('layerStakes',[[12,24,48,96],[36,72,144,288],
-                                           [60,120,240,480],[120,240,480,960]])
+        # Version 4: four rows of PER-CODE amounts. Empty and zero values
+        # disable unused trailing cells. Empty final rows are allowed.
+        default_grid=[[6,12,0,0],[12,36,0,0],[36,180,0,0],[0,0,0,0]]
+        raw_grid=config.get('layerStakes',default_grid)
         if not isinstance(raw_grid,list) or len(raw_grid)!=4:
-            raise ValueError('#66 必須設定4層，每層4～10個總注金額')
+            raise ValueError('#66 需要4層，每層顯示4～10格每碼下注金額')
         grid=[]
+        active_counts=[]
+        seen_empty_layer=False
         for layer,row in enumerate(raw_grid,1):
             if not isinstance(row,list) or not 4<=len(row)<=10:
-                raise ValueError(f'#66 第{layer}層必須設定4～10關')
+                raise ValueError(f'#66 第{layer}層必須顯示4～10個欄位')
             numbers=[]
+            found_disabled=False
             for step,value in enumerate(row,1):
                 try:
-                    amount=Decimal(str(value))
+                    raw=Decimal('0') if value is None or value=='' else Decimal(str(value))
                 except (TypeError,ValueError,ArithmeticError):
-                    raise ValueError(f'#66 第{layer}層第{step}關請輸入有效總注金額')
-                if not amount.is_finite() or amount!=amount.to_integral_value() or not 1<=amount<=1000000000:
-                    raise ValueError(f'#66 第{layer}層第{step}關總注必須是1～10億的整數')
-                numbers.append(int(amount))
+                    raise ValueError(f'#66 第{layer}層第{step}關請輸入整數每碼金額或0／空白')
+                if not raw.is_finite() or raw!=raw.to_integral_value() or not 0<=raw<=1000000000:
+                    raise ValueError(f'#66 第{layer}層第{step}關只接受0～10億的整數')
+                unit=int(raw)
+                if unit==0:found_disabled=True
+                elif found_disabled:
+                    raise ValueError(f'#66 第{layer}層請把未使用的0／空白集中在最後；不能在停用格之後設定正數')
+                numbers.append(unit)
+            count_active=sum(1 for v in numbers if v>0)
+            if count_active==0:seen_empty_layer=True
+            elif seen_empty_layer:
+                raise ValueError('#66 空白層只能位於最後；不要在空白層後面設定有效金額')
             grid.append(numbers)
+            active_counts.append(count_active)
+        if active_counts[0]==0:
+            raise ValueError('#66 第一層第一關必須設定正數每碼注額')
         s['layer_stakes']=grid
-        s['twoleg_version']=3
+        s['layer_active_counts']=active_counts
+        s['layer_active_count']=sum(1 for c in active_counts if c>0)
+        s['twoleg_version']=4
         s['max_steps']=len(grid)
     if strategy_code==1:
         try:
@@ -2207,9 +2255,12 @@ def settle(outcome, action_id=None):
     elif not strategy26.active(s) and s['pnl']>=s['profit_target']:
         s['session_status']='paused_profit'
         s['strategy_pause_reason']='已達設定停利'
+    layer4=(s.get('strategy')=='逐關分層法' and s.get('twoleg_version')==4)
+    exhausted=bool(s.get('plan_state',{}).get('exhausted'))
     if (strategy26.active(s) or
-        (s['strategy']=='高點獲利鎖定法' and s.get('peak_lock_version')==2)
-        ) and s.get('session_status')=='active':
+        (s['strategy']=='高點獲利鎖定法' and s.get('peak_lock_version')==2) or
+        layer4
+        ) and s.get('session_status')=='active' and not (layer4 and exhausted):
         # After settlement, stop if no next whole-number stake meets funds,
         # configured stop loss and table limits. Never silently auto-top-up.
         next_quote,reason=sizing.quote(s)
@@ -2217,11 +2268,12 @@ def settle(outcome, action_id=None):
         if next_quote is None and not sizing.plan_limit_reached(s):
             s['session_status']='paused_funds'
             s['strategy_pause_reason']=reason or '剩餘操作金無法繼續下注，計畫停止'
-    if (s.get('strategy')=='逐關分層法' and s.get('twoleg_version')==3
+    if (s.get('strategy')=='逐關分層法' and s.get('twoleg_version') in (3,4)
         and s.get('plan_state',{}).get('exhausted')
         and s.get('session_status')=='active'):
         s['session_status']='paused_strategy'
-        s['strategy_pause_reason']='第4層已掛，分層計畫暫停；可手動進入下一輪'
+        active_last=(s.get('layer_active_count',4) if s.get('twoleg_version')==4 else 4)
+        s['strategy_pause_reason']=f'第{active_last}層已掛，後續沒有啟用的層，計畫暫停；可手動進入下一輪'
     UNDO=before
     LAST_ACTION_ID=action_id
     return evaluate_state()
@@ -2498,8 +2550,14 @@ function fieldsFromLegacyState(state){
   const seqByCode={0:'loss_sequence',99:'custom_win_sequence',20:'attack_sequence',24:'cancel_list'};
   const seq=state[seqByCode[selected?.code]];
   if(Array.isArray(seq)&&seq.length)fields.sequenceInput=seq.join(',');
-  if(selected?.code===66&&state.twoleg_version===3&&Array.isArray(state.layer_stakes))
+  if(selected?.code===66&&state.twoleg_version===4&&Array.isArray(state.layer_stakes)){
     fields.layerGrid=JSON.stringify(state.layer_stakes);
+    fields.layerGridUnit='per_code_v4';
+  }else if(selected?.code===66&&state.twoleg_version===3&&Array.isArray(state.layer_stakes)){
+    // Old loaded archive continues v3 total-amount maths; convert ONLY
+    // the editable next-plan settings at initial form hydration.
+    fields.layerGrid=JSON.stringify(state.layer_stakes);
+  }
   if(selected?.code===1&&state.peak_lock_version===2){
     fields.peakLockPercent=state.peak_lock_percent;
     fields.peakLockCount=state.peak_lock_target;
@@ -2547,13 +2605,14 @@ function showMarketLimitWarning(message){
   el.classList.toggle('hidden',!message);
 }
 function marketSettingsValid(show=true){
+  if(getCode()===66)updateLayerBudgetSummary();
   if(!callPython||visibleLimitMarket!==$('#market').value){
     updateWinStartPreview(null,'計算核心尚未載入');
     return false;
   }
   try{
     if(!$('#config-form').checkValidity()){
-      const invalid=$('#config-form input, #config-form select').find(el=>!el.checkValidity());
+      const invalid=$$('#config-form input, #config-form select').find(el=>!el.checkValidity());
       throw Error(invalid?.validationMessage||'請確認參數輸入正確');
     }
     const result=JSON.parse(callPython('validate',JSON.stringify(readConfig())));
@@ -2600,6 +2659,29 @@ function loadLocalPreferencesAndHistory(){
   const fields=previous?{...previous}:null;
   if(fields&&String(fields.strategy)==='99'&&fields.sequenceInput==='3,1,2,3,2,3,4,1,2')
     fields.sequenceInput='1,1';
+  if(fields&&fields.layerGridUnit!=='per_code_v4'&&fields.layerGrid!==undefined){
+    // Previous releases used TOTAL per-cell figures. Replace only the
+    // previous factory default with the newly requested reference grid.
+    // Preserve custom users' historical effective total exposure by
+    // dividing their old totals by number of codes (rounding down).
+    try{
+      const grid=JSON.parse(fields.layerGrid);
+      const previousDefault=[[12,24,48,96],[36,72,144,288],[60,120,240,480],[120,240,480,960]];
+      if(JSON.stringify(grid)===JSON.stringify(previousDefault)){
+        fields.layerGrid=JSON.stringify(DEFAULT_LAYER_GRID);
+      }else if(Array.isArray(grid)&&grid.length===4&&grid.every(row=>Array.isArray(row))){
+        const count=fields.market==='單球'?Math.max(1,Number(fields.count)||6):1;
+        const mapped=grid.map(row=>row.map(v=>Math.max(0,Math.floor(Number(v)/count)||0)));
+        fields.layerGrid=JSON.stringify(mapped[0]?.[0]>0?mapped:DEFAULT_LAYER_GRID);
+      }else{
+        fields.layerGrid=JSON.stringify(DEFAULT_LAYER_GRID);
+      }
+      fields.layerGridUnit='per_code_v4';
+    }catch{
+      fields.layerGrid=JSON.stringify(DEFAULT_LAYER_GRID);
+      fields.layerGridUnit='per_code_v4';
+    }
+  }
   if(fields){
     if(String(fields.strategy)==='26'){
       if(fields.partsMin===undefined)fields.partsMin=fields.parts??6;
@@ -2710,7 +2792,7 @@ function updateWinStartPreview(result=null,error=''){
   detail.classList.remove('invalid');
 }
 
-const DEFAULT_LAYER_GRID=[[12,24,48,96],[36,72,144,288],[60,120,240,480],[120,240,480,960]];
+const DEFAULT_LAYER_GRID=[[6,12,0,0],[12,36,0,0],[36,180,0,0],[0,0,0,0]];
 function readLayerGrid(){
   try{
     const value=JSON.parse($('#layer-grid-data').value);
@@ -2728,7 +2810,9 @@ function renderLayerGrid(){
     const group=document.createElement('section');group.className='layer-grid-row';
     const header=document.createElement('div');header.className='layer-grid-bar';
     const name=document.createElement('strong');name.textContent='第'+(layer+1)+'層';
-    const count=document.createElement('small');count.textContent=values.length+' 關';
+    const count=document.createElement('small');
+    const countLabel=()=>{const enabled=readLayerGrid()[layer].filter(v=>Number(v)>0).length;return (enabled?enabled+' 關啟用':'未啟用')+'／'+readLayerGrid()[layer].length+' 格';};
+    count.textContent=countLabel();
     const remove=document.createElement('button');
     remove.type='button';remove.textContent='－';remove.disabled=!active||values.length<=4;
     remove.setAttribute('aria-label','刪除第'+(layer+1)+'層最後一關');
@@ -2741,7 +2825,7 @@ function renderLayerGrid(){
     add.setAttribute('aria-label','第'+(layer+1)+'層新增一關');
     add.addEventListener('click',()=>{
       const rows=readLayerGrid();if(rows[layer].length>=10)return;
-      rows[layer].push('');writeLayerGrid(rows);renderLayerGrid();
+      rows[layer].push('');writeLayerGrid(rows);renderLayerGrid();saveSettings();
       root.querySelector('[data-layer="'+layer+'"][data-step="'+(rows[layer].length-1)+'"]')?.focus();
     });
     header.append(name,count,remove,add);
@@ -2750,18 +2834,46 @@ function renderLayerGrid(){
       const cell=document.createElement('label');cell.className='layer-grid-cell';
       const caption=document.createElement('small');caption.textContent='第'+(step+1)+'關';
       const input=document.createElement('input');
-      input.type='number';input.inputMode='numeric';input.min='1';input.max='1000000000';
-      input.step='1';input.required=true;input.value=String(value);
+      input.type='number';input.inputMode='numeric';input.min='0';input.max='1000000000';
+      input.step='1';input.required=false;input.value=String(value);
+      input.classList.toggle('layer-inactive',value===''||Number(value)===0);
       input.disabled=!active;input.dataset.layer=String(layer);input.dataset.step=String(step);
-      input.setAttribute('aria-label','第'+(layer+1)+'層第'+(step+1)+'關總下注金額');
+      input.setAttribute('aria-label','第'+(layer+1)+'層第'+(step+1)+'關每碼下注金額，0或空白停用');
       input.addEventListener('input',()=>{
         const rows=readLayerGrid();
         if(rows[layer]&&step<rows[layer].length){rows[layer][step]=input.value;writeLayerGrid(rows);}
+        input.classList.toggle('layer-inactive',input.value===''||Number(input.value)===0);
+        count.textContent=countLabel();
+        updateLayerBudgetSummary();
       });
       cell.append(caption,input);cells.append(cell);
     });
     group.append(header,cells);root.append(group);
   });
+  updateLayerBudgetSummary();
+}
+function updateLayerBudgetSummary(){
+  const el=$('#layer-budget-summary');
+  if(!el)return;
+  const rows=readLayerGrid();
+  const codeCount=$('#market').value==='單球'?Number($('[name=count]').value):1;
+  const operation=Number($('[name=operation]').value);
+  if(!Number.isInteger(codeCount)||codeCount<1||!Number.isFinite(operation)||operation<=0){
+    el.textContent='請填寫有效操作金及下注碼數';
+    return;
+  }
+  const active=row=>row.filter(x=>Number(x)>0&&Number.isFinite(Number(x))).map(Number);
+  const volumes=rows.map(row=>active(row).reduce((a,b)=>a+b,0)*codeCount);
+  const maxCell=Math.max(0,...rows.flat().filter(x=>Number(x)>0&&Number.isFinite(Number(x))).map(x=>Number(x)*codeCount));
+  el.replaceChildren();
+  const summary=document.createElement('span');
+  summary.textContent='各層所有啟用關卡的投注量合計：'+volumes.map((v,i)=>'第'+(i+1)+'層 '+fmt(v,0)).join(' ／ ')+' 元（非必須預存金額）';
+  el.append(summary);
+  if(maxCell>operation){
+    const warn=document.createElement('span');warn.className='layer-budget-warning';
+    warn.textContent='注意：單關最高總注 '+fmt(maxCell,0)+' 元超過目前操作金 '+fmt(operation,0)+' 元；該關若無足夠可用金將停止，不會自動補注。';
+    el.append(warn);
+  }
 }
 function changeStrategyFields(){
   const code=getCode();
@@ -2806,7 +2918,7 @@ function changeStrategyFields(){
   if(code===17&&Number(max.value)>5)max.value='5';
   if(is26)max.value=$('[name=partsMax]').value;
   const s=strategies.find(x=>x.code===code);
-  $('#strategy-hint').dataset.info=is26?'#26：等份數只是每局的除數，不是關卡上限。固定等份填相同數字；區間每輪隨機抽一次。每局依目前操作金加淨盈虧重新分切至整數，直到不能符合限紅或資金限制才停止。':code===66?'#66：4層，每層4～10關；輸入每格總下注金額，＋新增、－移除最後一關。每次中獎進同層下一關，最末關中回上一層第1關；掛跳下一層第1關，第4層掛暫停。':code===1?'#01：依目前可用操作金÷切分份數÷碼數逐局算起注。每次中獎自動鎖利指定比例，剩餘獲利繼續操作；連續達設定次數完成一週期、掛歸零。不使用最大關卡。':code===14?'#14：第一關按操作金÷份數起注；前段以起注總額＋本輪已獲淨利，衝刺階段僅用本輪獲利的固定或隨機百分比。掛回首關。':code===99?'#99：首關倍率必須為1；每關以固定起注×自訂倍率，中進、掛回首。倍率長度就是勝進關數，不會反推縮小第一關。':s?.description||'此策略依原本 RUBY TG Chip V1.8.18 計算規則運作。';
+  $('#strategy-hint').dataset.info=is26?'#26：等份數只是每局的除數，不是關卡上限。固定等份填相同數字；區間每輪隨機抽一次。每局依目前操作金加淨盈虧重新分切至整數，直到不能符合限紅或資金限制才停止。':code===66?'#66：4層，每層4～10格，每格填「每碼下注金額」，總注＝每碼×碼數。0／空白只能放在各層末尾，末尾整層也能停用。中獎進同層下一啟用關，末關中回上一層；掛跳下一啟用層，沒有下一層就暫停。':code===1?'#01：依目前可用操作金÷切分份數÷碼數逐局算起注。每次中獎自動鎖利指定比例，剩餘獲利繼續操作；連續達設定次數完成一週期、掛歸零。不使用最大關卡。':code===14?'#14：第一關按操作金÷份數起注；前段以起注總額＋本輪已獲淨利，衝刺階段僅用本輪獲利的固定或隨機百分比。掛回首關。':code===99?'#99：首關倍率必須為1；每關以固定起注×自訂倍率，中進、掛回首。倍率長度就是勝進關數，不會反推縮小第一關。':s?.description||'此策略依原本 RUBY TG Chip V1.8.18 計算規則運作。';
   updateWinStartPreview();
   $('#current-summary').textContent=s?.description||'請選擇策略。';$('#summary-info').dataset.info=s?.description||'請選擇策略。';
 }
