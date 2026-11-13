@@ -466,7 +466,7 @@ body[data-font-size="large"]{
     <div class="drawer-scroll"><form id="config-form">
       <label class="field field-full"><span>選擇策略</span><select id="strategy-select" name="strategy"></select></label>
       <label class="field"><span>操作金</span><input name="operation" type="number" min="1" step="1" value="1000" required></label>
-      <label class="field hidden" id="fixed-parts-field"><span>切分份數</span><input name="parts" type="number" min="2" max="50" value="6" required disabled></label>
+      <label class="field hidden" id="fixed-parts-field"><span>切分份數（#04 1～200）</span><input name="parts" type="number" min="2" max="50" value="6" required disabled></label>
       <div class="field" id="range-parts-field"><span>切分等份</span><div class="parts-range-inputs"><input aria-label="最小等份" name="partsMin" type="number" min="2" max="50" step="1" value="6" required><span aria-hidden="true">～</span><input aria-label="最大等份" name="partsMax" type="number" min="2" max="50" step="1" value="6" required></div></div>
       <label class="field"><span>玩法</span><select id="market" name="market"><option value="單球">賽車單球</option><option value="兩面盤">兩面盤</option><option value="百家樂">百家樂</option></select></label>
       <label class="field"><span>下注碼數</span><input name="count" type="number" min="1" max="8" value="6" required></label>
@@ -608,7 +608,7 @@ body[data-font-size="large"]{
     "name": "損益波動調節法",
     "code": 4,
     "kind": "中性",
-    "description": "起始基額＝floor(一份÷碼數÷10)。最近10局母體標準差÷(初始停損÷份數)向上取整，最多加24份；不足3局用0。"
+    "description": "起注每碼＝floor(操作金÷切分份數÷碼數)，#04 可切分1～200份；超過最高限紅時按上限計算。後續依最近10局損益波動調節，未滿3局視為波動0。"
   },
   {
     "id": "shock",
@@ -1197,6 +1197,8 @@ def base_raw(s):
     if s['strategy']=='剩餘局數預算法':
         remain=s['planned_rounds']-(s['wins']+s['losses'])
         return dec(0) if remain<=0 else max(dec(0),u+dec(s['pnl'])-dec(s['round_start_pnl']))/n/remain
+    if s['strategy']=='損益波動調節法' and s.get('volatility_split_v2'):
+        return u/n
     return u/n/10
 
 def refresh_base(s):
@@ -1380,6 +1382,8 @@ def quote(s):
     else:
         per=floor(precise*dec(mult))
         chosen_pct=None
+    if s['strategy']=='損益波動調節法' and s.get('volatility_split_v2') and per>0:
+        per=min(per,int(s.get('table_max_bet',per)))
     total=per*n
     if per<1:
         if layer_v3:
@@ -2055,7 +2059,7 @@ def new_state(config):
         raise ValueError('不支援的玩法')
     if not (1 <= operation <= 1000000000):
         raise ValueError('操作金必須大於零')
-    if not (2 <= parts <= 50 and 1 <= max_steps <= 50 and 1 <= planned <= 100000):
+    if not ((1 <= parts <= 200 if strategy_code==4 else 2 <= parts <= 50) and 1 <= max_steps <= 50 and 1 <= planned <= 100000):
         raise ValueError('切分／關卡／局數超出允許範圍')
     if not (1 <= count <= 8 if market == '單球' else count == 1):
         raise ValueError('單球支援 1～8 碼，兩面盤／百家樂請使用 1 碼')
@@ -2187,6 +2191,8 @@ def new_state(config):
     s['table_min_bet']=min_bet
     s['table_max_bet']=max_bet
     s['table_limit_version']=2
+    if strategy_code==4:
+        s['volatility_split_v2']=True
     sizing.initialize(s)
     return s
 
@@ -3089,6 +3095,8 @@ function changeStrategyFields(){
   $('#fixed-parts-field').classList.toggle('hidden',is26);
   $('#range-parts-field').classList.toggle('hidden',!is26);
   $('[name=parts]').disabled=is26;
+  $('[name=parts]').min=code===4?'1':'2';
+  $('[name=parts]').max=code===4?'200':'50';
   for(const field of $$('[name=partsMin], [name=partsMax]'))field.disabled=!is26;
   const max=$('[name=maxSteps]');
   // User-defined stage cap is meaningful only for these progressions.
@@ -3102,7 +3110,7 @@ function changeStrategyFields(){
   if(code===17&&Number(max.value)>5)max.value='5';
   if(is26)max.value=$('[name=partsMax]').value;
   const s=strategies.find(x=>x.code===code);
-  $('#strategy-hint').dataset.info=is26?'#26：等份數只是每局的除數，不是關卡上限。固定等份填相同數字；區間每輪隨機抽一次。每局依目前操作金加淨盈虧重新分切至整數，直到不能符合限紅或資金限制才停止。':code===66?'#66：4層，每層4～10格，每格填「每碼下注金額」，總注＝每碼×碼數。0／空白只能放在各層末尾，末尾整層也能停用。中獎進同層下一啟用關，末關中回上一層；掛跳下一啟用層，沒有下一層就暫停。':code===1?'#01：依目前可用操作金÷切分份數÷碼數逐局算起注。每次中獎自動鎖利指定比例，剩餘獲利繼續操作；連續達設定次數完成一週期、掛歸零。不使用最大關卡。':code===14?'#14：第一關按操作金÷份數起注；前段以起注總額＋本輪已獲淨利，衝刺階段僅用本輪獲利的固定或隨機百分比。掛回首關。':code===99?'#99：首關倍率必須為1；每關以固定起注×自訂倍率，中進、掛回首。倍率長度就是勝進關數，不會反推縮小第一關。':s?.description||'此策略依原本 RUBY TG Chip V1.8.18 計算規則運作。';
+  $('#strategy-hint').dataset.info=code===4?'#04：起注每碼＝floor(操作金÷切分份數÷碼數)，切分1～200份；超出最高限紅時改用上限，低於最低限紅不補注。結算後照最近10局盈虧波動調節，停利停損依原設定。':is26?'#26：等份數只是每局的除數，不是關卡上限。固定等份填相同數字；區間每輪隨機抽一次。每局依目前操作金加淨盈虧重新分切至整數，直到不能符合限紅或資金限制才停止。':code===66?'#66：4層，每層4～10格，每格填「每碼下注金額」，總注＝每碼×碼數。0／空白只能放在各層末尾，末尾整層也能停用。中獎進同層下一啟用關，末關中回上一層；掛跳下一啟用層，沒有下一層就暫停。':code===1?'#01：依目前可用操作金÷切分份數÷碼數逐局算起注。每次中獎自動鎖利指定比例，剩餘獲利繼續操作；連續達設定次數完成一週期、掛歸零。不使用最大關卡。':code===14?'#14：第一關按操作金÷份數起注；前段以起注總額＋本輪已獲淨利，衝刺階段僅用本輪獲利的固定或隨機百分比。掛回首關。':code===99?'#99：首關倍率必須為1；每關以固定起注×自訂倍率，中進、掛回首。倍率長度就是勝進關數，不會反推縮小第一關。':s?.description||'此策略依原本 RUBY TG Chip V1.8.18 計算規則運作。';
   updateWinStartPreview();
   $('#current-summary').textContent=s?.description||'請選擇策略。';$('#summary-info').dataset.info=s?.description||'請選擇策略。';
 }
