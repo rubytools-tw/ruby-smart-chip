@@ -888,7 +888,7 @@ def common_rules():
             '新增14套照各自規則推進；超過金額上限、剩餘停損額或可用金額就暫停，不自動補本金。'
             '各項限制只控制投入，不代表具有機率優勢。')
 
-def rule_text(name):
+def legacy_rule_text(name):
     d=descriptor(name)
     if d['id']=='giveback':
         return '\n'.join([
@@ -1372,7 +1372,7 @@ def quote(s):
             return None,'下局總注超過剩餘停損額度，不得執行'
         if dec(existing['total']) > dec(available(s)):
             return None,'本局總投入超過可用資金，不得執行'
-        if sid(s)!='equal_reset' and not (s['strategy']=='高點獲利鎖定法' and s.get('peak_lock_version')==2) and not (sid(s)=='twoleg' and s.get('twoleg_version') in (3,4)) and not (sid(s) in ('winner','custom_win') and s.get('win_mode_version')==2) and 'active_operation_budget' in s and dec(existing['total']) > dec(operation_budget(s)):
+        if sid(s)!='equal_reset' and not (s['strategy']=='高點獲利鎖定法' and s.get('peak_lock_version')==2) and not (sid(s)=='twoleg' and s.get('twoleg_version') in (3,4)) and not (sid(s)=='giveback' and s.get('giveback_roll_v2')) and not (sid(s) in ('winner','custom_win') and s.get('win_mode_version')==2) and 'active_operation_budget' in s and dec(existing['total']) > dec(operation_budget(s)):
             return None,'本局總投入超過當前操作預算，不得執行'
         return copy.deepcopy(existing),''
     a=available(s);n=s['number_count'];k=sid(s);p=progression._p(s)
@@ -2184,7 +2184,7 @@ FORMULAS={
 5:'起始基額＝floor(一份÷碼數÷10)。調節倍數＝剩餘停損÷初始停損×基準÷max(基準,近20局最大虧損)，基準＝初始停損÷份數。',
 6:'起始基額＝floor(一份÷(2×份數)÷碼數)。本金池＝max(0,初始停損＋min(損益,0))；獲利池＝max(0,損益－最高正獲利70%)；調節倍數＝(本金池＋2×獲利池)÷初始停損。保留70%保護。',
 7:'起始基額＝floor(一份÷碼數÷10)。調節倍數＝剩餘停損÷初始停損×份數÷(份數＋近10局掛數)；連掛3局冷卻，手動恢復只重置冷卻計數。',
-8:'起始基額＝floor(一份÷碼數÷10)。保留原高點回吐底線；調節預算受目前損益與保護底線的差額限制。',
+8:'新建#08為獲利保底勝進滾利：首局每碼＝floor(操作金÷切分份數÷碼數)；每次中獎依實際淨獲利自動鎖利（預設20%）。首中後下關投注預算為未鎖淨利；後續中獎，滾利池＝上關可滾池＋當局淨利－當局鎖利。掛後回原始起注，不追損；最高勝進關中獎後剩餘可滾獲利全部轉入鎖利並開下一輪。舊#08備份仍維持歷史高點回吐底線。',
 9:'每碼＝floor(max(0,本輪起始一份＋本輪淨盈虧)÷碼數÷(計畫總局數－本次已完成局數))。全計畫局數不因換輪歸零；達計畫局數即硬性停止，恢復不得延長；歷史盈虧不清除。',
 10:'起始基額＝floor(一份÷碼數÷10)。進度、回撤、波動三個調節倍數取最小；高點50%保護，回撤20%暫停。',
 11:'動態固定注：每碼＝floor((當前操作預算＋本次尚未分配的損益)÷分割份數÷碼數÷5)，中掛後重算；鎖利扣操作預算，滾利加當次獲利，均不重複。',
@@ -2202,6 +2202,8 @@ FORMULAS={
 26:'每碼=floor((原操作金＋當前淨盈虧－已鎖利)÷本輪等份÷下注碼數)；每局都依剩餘可用金重算注碼。固定輸入相同等份，區間在每輪開始時均勻隨機抽一個整數；掛沿用本輪等份、中則下輪重新抽。等份數不是關卡上限，無法再分切出符合限紅的整數注碼才停止（仍遵守停損等安全設定）。累計已結算週期淨獲利達起始操作金100%時，已鎖金額不重複計入，超額獲利全鎖，操作預算歸回起始值，開始下一週期。'}
 
 def describe(code):
+    if code==8:
+        return FORMULAS[8]+'\n限紅、可用操作金、停利停損及計畫局數持續生效；本策略不保證中獎或獲利，鎖利只代表計算器內部保留，非平台實際出金。'
     text=FORMULAS[code]
     text+='\n一般策略每關：每碼=floor(未取整基額×當關倍率)；不下注小數，不足1元／碼則暫停。#22回補策略保留ceil例外，仍為整數。下局總注若高於可用金、操作預算或剩餘停損額度，先暫停，不縮注。'
     if 1<=code<=13 or code in (22,23):
@@ -3311,37 +3313,42 @@ function updateDualPreview(){
 function updateGivebackPreview(){
   if(getCode()!==8)return;
   const op=Number($('[name=operation]').value),parts=Number($('[name=parts]').value);
-  const count=$('#market').value==='單球'?Number($('[name=count]').value):1;
+  const market=$('#market').value;
+  const count=market==='單球'?Number($('[name=count]').value):1;
   const pct=Number($('#giveback-lock-pct').value),steps=Number($('#giveback-win-steps').value);
   const root=$('#giveback-stage-preview');root.replaceChildren();
   if(![op,parts,count,pct,steps].every(Number.isFinite)||op<=0||parts<=0||count<=0||pct<0||pct>100||!Number.isInteger(steps)||steps<1||steps>20){
     $('#giveback-first-per').textContent='—';$('#giveback-first-total').textContent='—';$('#giveback-rate').textContent='—';
     $('#giveback-preview-notice').textContent='請檢查設定，勝進關數為1～20、鎖利比例為0～100%。';return;
   }
-  const rate=$('#market').value==='單球'?9.54:1.90;
+  const rates=market==='單球'?[9.54,9.54,9.59,9.54,9.54,9.59,9.54,9.54,9.59,9.54]:[1.90];
   const first=Math.floor(op/parts/count);
-  $('#giveback-rate').textContent=rate.toFixed(2);
+  $('#giveback-rate').textContent=market==='單球'?'9.54／9.59':'1.90';
   $('#giveback-first-per').textContent=fmt(first,0);
   $('#giveback-first-total').textContent=fmt(first*count,0);
-  let pool=0,done=false;
+  let poolCents=0,stopped=false;
   for(let i=0;i<steps;i++){
-    const per=i===0?first:Math.floor(pool/count);
-    if(per<1){done=true;break;}
-    const total=per*count;
-    const gain=Math.round((per*rate-total)*100)/100;
-    const keep=Math.round(Math.max(0,gain)*pct)/100;
-    pool=Math.max(0,Math.round(((i===0?0:pool)+gain-keep)*100)/100);
+    const per=i===0?first:Math.floor(poolCents/100/count);
+    if(per<1){stopped=true;break;}
+    const rate=rates[i%rates.length],total=per*count;
+    const gainCents=Math.round((per*rate-total)*100);
+    if(gainCents<=0){stopped=true;break;}
+    const keepCents=Math.round(gainCents*pct/100);
+    const nextPoolCents=(i===0?0:poolCents)+gainCents-keepCents;
+    const last=i===steps-1||Math.floor(nextPoolCents/100/count)<1;
+    const lockShownCents=keepCents+(last?nextPoolCents:0);
     const row=document.createElement('div');row.className='giveback-stage-row';
     const no=document.createElement('b');no.textContent=String(i+1).padStart(2,'0');
     const bet=document.createElement('span');bet.textContent=fmt(per,0)+'／碼';
-    const stake=document.createElement('small');stake.textContent='總注 '+fmt(total,0);bet.append(stake);
-    const locked=document.createElement('span');locked.textContent='鎖 '+fmt(keep,2);
-    const r=document.createElement('small');r.textContent='下一關池 '+fmt(pool,2);locked.append(r);
+    const stake=document.createElement('small');stake.textContent='總注 '+fmt(total,0)+' · 賠率 '+rate.toFixed(2);bet.append(stake);
+    const locked=document.createElement('span');locked.textContent=(last?'本關鎖利 ':'鎖 ')+fmt(lockShownCents/100,2);
+    const r=document.createElement('small');r.textContent=last?'勝進完成，回原起注':'下關池 '+fmt(nextPoolCents/100,2);locked.append(r);
     row.append(no,bet,locked);root.append(row);
-    if(gain<=0){done=true;break;}
+    poolCents=last?0:nextPoolCents;
+    if(last)break;
   }
-  $('#giveback-preview-notice').textContent=(done?'可滾金額不足時無法產生下一關，會回原起注。':'最高關中後剩餘可滾獲利轉鎖利，並回原起注。')+
-    ' 本表假設每關皆中、賠率 '+rate.toFixed(2)+'；實際以各局淨利、限紅及可用金判定。';
+  $('#giveback-preview-notice').textContent=(stopped?'可滾金額不足或賠率無正淨利時，無法繼續勝進。':'最高關中後剩餘可滾獲利轉鎖利，下一局回起注。')+
+    ' 本表假設每關皆中，按各局賠率試算，實際仍需通過停損、資金與限紅驗證。';
 }
 function persistBalancePreview(){
   try{localStorage.setItem(SETTINGS_KEY,JSON.stringify({version:1,fields:getSavedFields()}));}
