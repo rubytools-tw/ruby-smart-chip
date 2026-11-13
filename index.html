@@ -1186,6 +1186,9 @@ def quote(s):
     else:
         stored=s.get('round_base_precise')
         precise=dec(stored) if stored is not None else dec(b)
+    if k=='custom_win' and s.get('win_mode_version')==2:
+        # Scale the actual integer first stake, not the pre-rounding fraction.
+        precise=dec(floor(base_raw(s)))
     if k=='winner' and s.get('win_mode_version')==2:
         base_per=floor(base_raw(s))
         first_total=base_per*n
@@ -1832,9 +1835,15 @@ def new_state(config):
         # newly created winning plan explicitly opts into independent first bet.
         s['win_mode_version']=2
         if strategy_code==14:
-            start=int(config.get('sprintStart',3))
-            low=int(config.get('sprintMinPct',80))
-            high=int(config.get('sprintMaxPct',80))
+            try:
+                start_raw=config.get('sprintStart',3)
+                low_raw=config.get('sprintMinPct',80)
+                high_raw=config.get('sprintMaxPct',80)
+                if not (float(start_raw).is_integer() and float(low_raw).is_integer() and float(high_raw).is_integer()):
+                    raise ValueError()
+                start,low,high=int(start_raw),int(low_raw),int(high_raw)
+            except (TypeError,ValueError,OverflowError):
+                raise ValueError('#14 起始關卡及獲利比例必須是整數')
             if start not in (3,4) or start>max_steps:
                 raise ValueError('#14 衝刺起始關只能選第3或第4關，且不得超過最大關卡')
             if not (1<=low<=high<=100):
