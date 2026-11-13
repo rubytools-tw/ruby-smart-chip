@@ -1224,7 +1224,11 @@ def quote(s):
             return None,'#66 分層下注位置不正確'
     keys={'custom':'loss_sequence','custom_win':'custom_win_sequence','winner':'win_sequence','tianmen':None,'twoleg':'layer_sequence'}
     if k in keys:
-        if k=='twoleg' and s.get('twoleg_version')==2:
+        if layer_v3:
+            # 4 layers may each contain up to 10 absolute total stakes.
+            # NEVER consult the obsolete 2-entry layer_sequence here.
+            mult=1
+        elif k=='twoleg' and s.get('twoleg_version')==2:
             pairs=s['layer_pairs']
             leg=int(p.get('leg',0))
             if i>=len(pairs) or leg not in (0,1):
