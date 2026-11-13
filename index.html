@@ -338,6 +338,16 @@ body[data-font-size="large"]{
 .win-sprint-fields .field{min-width:0}
 .win-sprint-fields .parts-range-inputs input{width:100%;min-width:0}
 @media(max-width:355px){.win-sprint-fields{grid-template-columns:1fr}}
+
+/* V0.1.8: compact three-row #66 layer editor within existing Neon palette. */
+.twoleg-layers{display:grid;gap:8px;min-width:0}
+.twoleg-heading{display:grid;gap:3px}
+.twoleg-heading>span{font-weight:700}
+.twoleg-heading>small,.twoleg-rule{font-size:11px;line-height:1.4;color:var(--muted)}
+.twoleg-row{display:grid;grid-template-columns:55px minmax(0,1fr) 14px minmax(0,1fr);align-items:center;gap:7px;min-width:0}
+.twoleg-row>span:first-child{font-size:12px;font-weight:700;white-space:nowrap}
+.twoleg-row>span:nth-child(3){font-weight:700;text-align:center;color:var(--muted)}
+.twoleg-row input{width:100%;min-width:0;text-align:center;padding-inline:3px}
 </style>
 </head>
 <body data-theme="neon">
@@ -430,6 +440,13 @@ body[data-font-size="large"]{
         <label class="field special-param hidden" id="probability-field"><span>預估中獎率（%）</span><input name="probability" type="number" min="0.1" max="100" step="any" value="55"></label>
         <label class="field field-full special-param hidden" id="sequence-field"><span id="sequence-label">自訂倍率</span><input name="sequenceInput" type="text" placeholder="1,2,3,5"></label>
         <label class="field field-full special-param hidden" id="sequence-secondary-field"><span id="sequence-secondary-label">退守倍率</span><input name="sequenceSecondary" type="text" placeholder="2,3,5,8,13,20,30"></label>
+        <div class="field-full special-param hidden twoleg-layers" id="twoleg-layers-field">
+          <div class="twoleg-heading"><span>分層倍率</span><small>首注中進同層第2關；第2關中退上一層；任一關掛進下一層</small></div>
+          <div class="twoleg-row"><span>第一層</span><input type="number" name="layer1First" aria-label="第一層第一關倍率" min="0.01" max="100000" step="any" value="1" required disabled><span>／</span><input type="number" name="layer1Second" aria-label="第一層第二關倍率" min="0.01" max="100000" step="any" value="2" required disabled></div>
+          <div class="twoleg-row"><span>第二層</span><input type="number" name="layer2First" aria-label="第二層第一關倍率" min="0.01" max="100000" step="any" value="3" required disabled><span>／</span><input type="number" name="layer2Second" aria-label="第二層第二關倍率" min="0.01" max="100000" step="any" value="9" required disabled></div>
+          <div class="twoleg-row"><span>第三層</span><input type="number" name="layer3First" aria-label="第三層第一關倍率" min="0.01" max="100000" step="any" value="6" required disabled><span>／</span><input type="number" name="layer3Second" aria-label="第三層第二關倍率" min="0.01" max="100000" step="any" value="24" required disabled></div>
+          <small class="twoleg-rule">第一層中獎不再退層；第三層掛則暫停，不自動補注。</small>
+        </div>
       </div></details>
       <div class="form-note info-row"><span>策略使用說明</span><button type="button" id="strategy-hint" class="info-btn" data-info="#26：依切分份數固定等額配置。" aria-label="查看策略規則">ⓘ</button></div><div class="drawer-form-actions"><button type="button" class="button subtle close-drawer">取消修改</button><button id="start-button" type="submit" class="button primary" disabled>確認設定／開始新計畫</button></div>
     </form></div>
