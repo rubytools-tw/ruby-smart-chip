@@ -1005,7 +1005,7 @@ import copy
 import math
 import random
 import statistics
-from decimal import Decimal, ROUND_FLOOR, ROUND_CEILING
+from decimal import Decimal, ROUND_FLOOR, ROUND_CEILING, ROUND_HALF_UP
 import progression
 import strategy26
 
@@ -1333,7 +1333,7 @@ def after_result(s,win,delta):
         # available for the next wager; no separate roll action is needed.
         if win and dec(delta)>0:
             percent=dec(s.get('peak_lock_percent',50))
-            kept=cents(dec(delta)*percent/dec(100))
+            kept=float((dec(delta)*percent/dec(100)).quantize(Decimal('0.01'),rounding=ROUND_HALF_UP))
             kept=min(max(0,kept),max(0,cents(delta)))
             s['locked_profit']=cents(dec(s['locked_profit'])+dec(kept))
             s['peak_lock_streak']=int(s.get('peak_lock_streak',0))+1
