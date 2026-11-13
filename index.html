@@ -2255,9 +2255,12 @@ def settle(outcome, action_id=None):
     elif not strategy26.active(s) and s['pnl']>=s['profit_target']:
         s['session_status']='paused_profit'
         s['strategy_pause_reason']='已達設定停利'
+    layer4=(s.get('strategy')=='逐關分層法' and s.get('twoleg_version')==4)
+    exhausted=bool(s.get('plan_state',{}).get('exhausted'))
     if (strategy26.active(s) or
-        (s['strategy']=='高點獲利鎖定法' and s.get('peak_lock_version')==2)
-        ) and s.get('session_status')=='active':
+        (s['strategy']=='高點獲利鎖定法' and s.get('peak_lock_version')==2) or
+        layer4
+        ) and s.get('session_status')=='active' and not (layer4 and exhausted):
         # After settlement, stop if no next whole-number stake meets funds,
         # configured stop loss and table limits. Never silently auto-top-up.
         next_quote,reason=sizing.quote(s)
