@@ -370,7 +370,7 @@ body[data-font-size="large"]{
 .layer-budget-summary{font-size:11px;color:var(--muted);line-height:1.6;overflow-wrap:anywhere}
 .layer-budget-summary .layer-budget-warning{display:block;color:var(--danger);font-weight:600}
 
-/* V0.1.13: #02 preview only; engine remains unchanged. */
+/* V0.1.14: #02 preview only; engine remains unchanged. */
 .balance-preview{display:grid;gap:10px;min-width:0;padding:11px;border:1px solid var(--stroke);border-radius:12px;background:#201334}
 .balance-preview.hidden{display:none!important}
 .balance-head{display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap}
@@ -403,6 +403,17 @@ body[data-font-size="large"]{
 
 .strategy-quote{border:1px solid var(--stroke);background:#271941;color:#aee8f9;padding:7px 9px;border-radius:8px;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
 .strategy-quote.invalid{color:#ff9cb1}
+
+/* #05/#06 follows existing compact Neon parameter UI */
+#shock-slider,#dual-slider{width:100%;accent-color:var(--accent);margin:4px 0;cursor:pointer}
+#shock-progress,#dual-progress{font-size:11px;color:#b9e4ff;font-weight:700}
+.dual-rule-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.dual-rule-grid>div{display:grid;gap:4px;min-width:0;text-align:center;border:1px solid var(--stroke);background:#2a1943;border-radius:8px;padding:7px 3px}
+.dual-rule-grid small{font-size:10px;color:var(--muted)}.dual-rule-grid strong{color:#b5f3d9;font-size:16px}
+.dual-result{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.dual-result>div{display:grid;gap:4px;border:1px solid var(--stroke);background:#2a1943;border-radius:8px;padding:8px}
+.dual-result>div:last-child{grid-column:1/-1}
+.dual-result small{font-size:11px;color:var(--muted)}.dual-result strong{font-size:19px;overflow-wrap:anywhere;color:#aee8ff}
 </style>
 </head>
 <body data-theme="neon">
@@ -410,7 +421,7 @@ body[data-font-size="large"]{
 <div class="app-shell">
   <div id="drawer-backdrop" class="drawer-backdrop" aria-hidden="true"></div>
   <aside class="sidebar drawer" id="drawer-menu" role="dialog" aria-modal="true" aria-label="主選單" aria-hidden="true">
-    <div class="drawer-head"><div class="brand-mini"><span class="brand-symbol">R</span><div><strong>RUBY Smart Chip</strong><small>霓虹直立版 · V0.1.13</small></div></div><button class="icon-btn close-drawer" aria-label="關閉主選單" type="button">×</button></div>
+    <div class="drawer-head"><div class="brand-mini"><span class="brand-symbol">R</span><div><strong>RUBY Smart Chip</strong><small>霓虹直立版 · V0.1.14</small></div></div><button class="icon-btn close-drawer" aria-label="關閉主選單" type="button">×</button></div>
     <div class="drawer-nav">
       <button type="button" class="nav-item active" data-tab="calculator"><span>▣</span> 籌碼計算機</button>
       <button type="button" class="nav-item" data-tab="strategies"><span>▤</span> 26 套策略中心</button>
@@ -422,7 +433,7 @@ body[data-font-size="large"]{
   <main class="main-view" id="main-content">
     <header class="topbar"><button type="button" class="icon-btn" id="open-menu" aria-label="開啟主選單">☰</button><div class="nav-brand"><strong>RUBY <span>Smart Chip</span></strong><small>兔寶寶籌碼計算機</small></div><button type="button" class="icon-btn" id="open-config" aria-label="開啟計畫參數">⚙</button></header>
     <div class="hero"><div class="hero-overlay"><small>RUBY · NEON PORTRAIT EDITION</small><h1 id="page-title">籌碼計算機</h1><p>策略 × 注碼 × 歷史 · 一頁掌握</p></div></div>
-    <div class="engine-row"><span id="engine-status" class="status-pill loading" role="status">計算核心載入中…</span><span id="session-label" class="soft-tag">未開始</span><button type="button" class="info-btn" data-info="RUBY Smart Chip V0.1.13：資料存於本機瀏覽器，歷史只保留最近 24 小時，設定持續保留。" aria-label="版本說明">ⓘ</button></div>
+    <div class="engine-row"><span id="engine-status" class="status-pill loading" role="status">計算核心載入中…</span><span id="session-label" class="soft-tag">未開始</span><button type="button" class="info-btn" data-info="RUBY Smart Chip V0.1.14：資料存於本機瀏覽器，歷史只保留最近 24 小時，設定持續保留。" aria-label="版本說明">ⓘ</button></div>
     <div id="alert" class="alert hidden" role="alert"></div>
     <section class="view active" id="view-calculator" aria-labelledby="page-title">
       <button type="button" class="current-strategy neon-card" id="open-strategies" aria-label="開啟策略中心"><span class="strategy-accent">當前策略</span><span class="strategy-text"><strong id="strategy-active-name">#26 等分倍盈歸本法</strong><small id="strategy-active-meta">尚未開始 · 點擊選擇策略</small></span><span class="chevron">›</span></button>
@@ -465,7 +476,7 @@ body[data-font-size="large"]{
       </section>
       <section class="summary-panel neon-card"><div class="panel-title"><strong>目前策略摘要</strong><button type="button" class="info-btn" id="summary-info" data-info="選擇策略後顯示規則。" aria-label="查看目前策略摘要">ⓘ</button><button id="read-strategy" type="button" class="text-btn">完整說明 ›</button></div><p id="current-summary" class="sr-only">選擇策略後顯示規則。</p></section>
     </section>
-    <footer class="app-footer">RUBY Smart Chip V0.1.13 · 本機試算 · 非自動下注</footer>
+    <footer class="app-footer">RUBY Smart Chip V0.1.14 · 本機試算 · 非自動下注</footer>
   </main>
 
   <aside id="drawer-config" class="drawer drawer-right" role="dialog" aria-modal="true" aria-label="計畫參數設定" aria-hidden="true"><div class="drawer-head"><div><strong>計畫參數</strong><button type="button" class="info-btn" data-info="輸入後請按確認，進行中的計畫不會被暗中修改。" aria-label="參數套用說明">ⓘ</button></div><button class="icon-btn close-drawer" type="button" aria-label="關閉參數設定">×</button></div>
@@ -550,6 +561,33 @@ body[data-font-size="large"]{
         <p id="vol-math">每碼 × 碼數＝總注</p>
         <p id="vol-warning" role="status">僅供估算，不代表下一局實際報價。</p>
       </section>
+
+      <section id="shock-preview" class="balance-preview field-full hidden" aria-label="#05 虧損壓力試算">
+        <div class="balance-head"><strong>#05 最大虧損壓力</strong><small>依原公式試算</small></div>
+        <p>累積掛越多通常越縮注，獲利回升時可逐步增加。最近20局最大單筆虧損越高，額外縮注越明顯。</p>
+        <label class="field"><span>假設最近20局最大單局虧損</span><input id="shock-worst" name="shockWorst" type="number" min="0" max="1000000000" step="1" value="0" disabled></label>
+        <div class="balance-slider-top"><span>模擬累積淨盈虧</span><strong id="shock-pnl">0 元</strong></div><small id="shock-progress">停利完成 0%</small>
+        <input id="shock-slider" type="range" min="-1000" max="1000" step="1" value="0" aria-label="#05 模擬累積盈虧">
+        <div class="balance-range-labels"><span id="shock-negative">停損100%</span><span>0</span><span id="shock-positive">停利100%</span></div>
+        <div class="balance-quick" role="group" aria-label="#05 快速試算">
+          <button type="button" data-shock="-100">−100%</button><button type="button" data-shock="-50">−50%</button><button type="button" data-shock="-25">−25%</button><button type="button" data-shock="0">0%</button><button type="button" data-shock="25">+25%</button><button type="button" data-shock="50">+50%</button><button type="button" data-shock="100">+100%</button>
+        </div>
+        <div class="balance-result" aria-live="polite"><div><small>預覽每碼</small><b id="shock-per">—</b></div><div><small>預覽總注</small><b id="shock-total">—</b></div></div>
+        <p id="shock-math">每碼 × 碼數＝總注</p><p id="shock-warning" role="status">只做假設試算，不更改真實注碼。</p>
+      </section>
+      <section id="dual-preview" class="balance-preview field-full hidden" aria-label="#06 勝進獲利分配預覽">
+        <div class="balance-head"><strong>#06 勝進／獲利分配</strong><small>新方案B · 僅規格試算</small></div>
+        <p>本輪淨獲利達操作金10%，將可分配獲利70%鎖利、30%滾利；超出10%的實際獲利也一併分配。實際 #06 引擎目前仍使用舊公式。</p>
+        <div class="dual-rule-grid"><div><small>獲利目標</small><strong>10%</strong></div><div><small>鎖利</small><strong>70%</strong></div><div><small>滾利</small><strong>30%</strong></div></div>
+        <div class="balance-slider-top"><span>模擬本輪獲利</span><strong id="dual-gain">0 元</strong></div><small id="dual-progress">目標完成 0%</small>
+        <input id="dual-slider" type="range" min="0" max="2000" step="0.01" value="0" aria-label="#06 模擬本輪獲利">
+        <div class="balance-range-labels"><span>0%</span><span id="dual-goal">達標金額 —</span><span>200%</span></div>
+        <div class="balance-quick" role="group" aria-label="#06 快速試算">
+          <button type="button" data-dual="0">0%</button><button type="button" data-dual="25">25%</button><button type="button" data-dual="50">50%</button><button type="button" data-dual="75">75%</button><button type="button" data-dual="100">100%</button><button type="button" data-dual="125">125%</button><button type="button" data-dual="150">150%</button>
+        </div>
+        <div class="dual-result" aria-live="polite"><div><small>預計鎖利70%</small><strong id="dual-lock">—</strong></div><div><small>預計滾利30%</small><strong id="dual-roll">—</strong></div><div><small>下一輪操作金</small><strong id="dual-next">—</strong></div></div>
+        <p id="dual-warning" role="status">勝進倍率與分配流程尚未接入實際 #06 計算引擎。</p>
+      </section>
       <details class="advanced field-full"><summary>進階設定 <span>停利、停損及策略專屬參數</span></summary><div class="fields">
         <label class="field"><span>停利比例（%）</span><input name="profitPct" type="number" min="1" max="10000" step="any" value="100" required></label>
         <label class="field"><span>停損比例（%）</span><input name="lossPct" type="number" min="1" max="100" step="any" value="100" required></label>
@@ -576,7 +614,7 @@ body[data-font-size="large"]{
   </aside>
   <section class="view drawer drawer-left drawer-wide" id="view-strategies" role="dialog" aria-modal="true" aria-hidden="true" aria-label="策略中心"><div class="drawer-head"><div><strong>26 套策略中心</strong><button type="button" class="info-btn" data-info="可搜尋策略名稱與編號，點擊選用不會立即更改進行中的計畫。" aria-label="策略中心說明">ⓘ</button></div><button class="icon-btn close-drawer" type="button" aria-label="關閉策略中心">×</button></div><div class="drawer-scroll"><div class="search-wrap"><input id="strategy-search" type="search" placeholder="搜尋策略名稱或編號，例如 #26、馬丁"></div><div class="strategy-grid" id="strategy-grid"></div></div></section>
   <section class="view drawer drawer-bottom" id="view-history" role="dialog" aria-modal="true" aria-hidden="true" aria-label="結算紀錄"><div class="drawer-handle" aria-hidden="true"></div><div class="drawer-head"><div><strong>本次與歷史結算</strong><small id="history-count">0 筆</small></div><button class="icon-btn close-drawer" type="button" aria-label="關閉歷史紀錄">×</button></div><div class="drawer-scroll"><div class="history-summary"><div class="mini-panel"><small>累積投注</small><strong id="sum-cost">—</strong></div><div class="mini-panel"><small>累積盈虧</small><strong id="sum-pnl">—</strong></div><div class="mini-panel"><small>已鎖利</small><strong id="sum-locked">—</strong></div></div><div class="panel history-panel"><div class="panel-head"><h3>結算明細</h3><button id="export-csv" type="button" class="button subtle">匯出 CSV</button></div><div class="table-wrap"><table><thead><tr><th>局數</th><th>策略</th><th>中／掛</th><th>每碼</th><th>投注</th><th>本局損益</th></tr></thead><tbody id="history-rows"><tr><td colspan="6" class="empty">目前沒有紀錄</td></tr></tbody></table></div></div></div></section>
-  <section class="view drawer drawer-left drawer-wide" id="view-settings" role="dialog" aria-modal="true" aria-hidden="true" aria-label="網站設定"><div class="drawer-head"><div><strong>系統設定</strong><small>字體及本機資料管理</small></div><button class="icon-btn close-drawer" type="button" aria-label="關閉設定">×</button></div><div class="drawer-scroll"><section class="panel plan-management"><div class="panel-head"><h3>計畫管理</h3></div><div class="secondary-actions more-actions" id="more-actions"><button id="resume-button" type="button" class="button subtle hidden" disabled>下一輪</button><button id="finish-button" type="button" class="button subtle" disabled>結算本次</button></div></section><div class="settings-grid"><section class="panel"><div class="panel-head"><h3>文字大小</h3><button type="button" class="info-btn" data-info="調整網站標題、卡片、按鈕、說明的字體大小；變更後會記住設定。" aria-label="文字大小說明">ⓘ</button></div><div class="font-controls" role="group" aria-label="文字大小"><button type="button" data-font="small">小</button><button type="button" data-font="medium">中</button><button type="button" data-font="large">大</button></div></section><section class="panel"><h3>本機資料備份</h3><button type="button" class="info-btn" data-info="歷史明細只保留最近 24 小時，超過期限會在開啟或操作時移除。策略、操作金及其他設定會保留；重新開啟網頁會從新計畫開始，不自動接續上一個計畫。資料只存於本機瀏覽器，清除瀏覽資料可能遺失。" aria-label="歷史保存說明">ⓘ</button><div class="button-row"><button id="backup-button" type="button" class="button subtle">匯出 JSON</button><button id="restore-button" type="button" class="button subtle">還原 JSON</button><input id="restore-file" type="file" accept=".json,application/json" hidden></div></section><section class="panel"><h3>版本資訊</h3><p>RUBY Smart Chip V0.1.13 Neon Portrait · 26 套策略 Python 引擎沿用原版；只作本機籌碼試算，不會送出訂單或 Telegram 訊息。</p></section></div></div></section>
+  <section class="view drawer drawer-left drawer-wide" id="view-settings" role="dialog" aria-modal="true" aria-hidden="true" aria-label="網站設定"><div class="drawer-head"><div><strong>系統設定</strong><small>字體及本機資料管理</small></div><button class="icon-btn close-drawer" type="button" aria-label="關閉設定">×</button></div><div class="drawer-scroll"><section class="panel plan-management"><div class="panel-head"><h3>計畫管理</h3></div><div class="secondary-actions more-actions" id="more-actions"><button id="resume-button" type="button" class="button subtle hidden" disabled>下一輪</button><button id="finish-button" type="button" class="button subtle" disabled>結算本次</button></div></section><div class="settings-grid"><section class="panel"><div class="panel-head"><h3>文字大小</h3><button type="button" class="info-btn" data-info="調整網站標題、卡片、按鈕、說明的字體大小；變更後會記住設定。" aria-label="文字大小說明">ⓘ</button></div><div class="font-controls" role="group" aria-label="文字大小"><button type="button" data-font="small">小</button><button type="button" data-font="medium">中</button><button type="button" data-font="large">大</button></div></section><section class="panel"><h3>本機資料備份</h3><button type="button" class="info-btn" data-info="歷史明細只保留最近 24 小時，超過期限會在開啟或操作時移除。策略、操作金及其他設定會保留；重新開啟網頁會從新計畫開始，不自動接續上一個計畫。資料只存於本機瀏覽器，清除瀏覽資料可能遺失。" aria-label="歷史保存說明">ⓘ</button><div class="button-row"><button id="backup-button" type="button" class="button subtle">匯出 JSON</button><button id="restore-button" type="button" class="button subtle">還原 JSON</button><input id="restore-file" type="file" accept=".json,application/json" hidden></div></section><section class="panel"><h3>版本資訊</h3><p>RUBY Smart Chip V0.1.14 Neon Portrait · 26 套策略 Python 引擎沿用原版；只作本機籌碼試算，不會送出訂單或 Telegram 訊息。</p></section></div></div></section>
 </div>
 <div class="info-backdrop hidden" id="info-backdrop"><div class="info-modal" role="dialog" aria-modal="true" aria-label="功能說明"><div class="panel-title"><strong>ⓘ 操作說明</strong><button type="button" id="info-close" class="icon-btn" aria-label="關閉說明">×</button></div><p id="info-text"></p></div></div>
 <nav class="mobile-nav" aria-label="底部分頁"><button type="button" class="active" data-tab="calculator">▣<span>計算</span></button><button type="button" data-tab="strategies">▤<span>策略</span></button><button type="button" data-tab="history">◷<span>紀錄</span></button><button type="button" data-tab="settings">⚙<span>設定</span></button></nav>
@@ -644,7 +682,7 @@ body[data-font-size="large"]{
     "name": "本金獲利雙池法",
     "code": 6,
     "kind": "中性",
-    "description": "起始基額＝floor(一份÷(2×份數)÷碼數)。本金池＝max(0,初始停損＋min(損益,0))；獲利池＝max(0,損益－最高正獲利70%)；調節倍數＝(本金池＋2×獲利池)÷初始停損。保留70%保護。"
+    "description": "目前實際引擎仍按原本金獲利雙池公式運作。已確認下一版B方案為勝進、獲利達10%後70%鎖利／30%滾利；目前參數頁提供試算，尚未正式套用。"
   },
   {
     "id": "cooldown",
@@ -3028,6 +3066,67 @@ function updateVolatilityPreview(){
   if(sigma===0)warnings.push('波動值為0，不代表真實最近10局');
   $('#vol-warning').textContent=(warnings.length?'注意：'+warnings.join('、')+'。':'')+'僅為假設試算，非下局報價。';
 }
+
+function shockEstimate(op,parts,count,limit,pnl,worst){
+  const unit=Math.max(.01,limit/parts);
+  const factor=Math.max(0,limit+pnl)/limit*unit/Math.max(unit,worst);
+  const per=Math.floor(op/parts/count/10*factor);
+  return {per,total:per*count,factor,unit};
+}
+function updateShockPreview(){
+  if(getCode()!==5)return;
+  const g=goalPreviewTargets(),p=configuredGoalSlider('#shock-slider',-g.loss,g.profit,'shock');
+  const codes=$('#market').value==='單球'?Math.max(1,Number($('[name=count]').value)||1):1;
+  const parts=Math.max(1,Number($('[name=parts]').value)||1);
+  const worst=Number($('#shock-worst').value);
+  const min=Math.max(1,Number($('[name=minBet]').value)||1),max=Math.max(min,Number($('[name=maxBet]').value)||min);
+  $('#shock-negative').textContent='−'+balanceFmt(g.loss)+'（停損100%）';
+  $('#shock-positive').textContent='+'+balanceFmt(g.profit)+'（停利100%）';
+  $('#shock-pnl').textContent=(p>0?'+':p<0?'−':'')+balanceFmt(Math.abs(p))+' 元';
+  $('#shock-pnl').className=p>0?'profit':p<0?'loss':'';
+  $('#shock-progress').textContent=pnlGoalProgress(p,g);
+  if(!Number.isInteger(worst)||worst<0){
+    $('#shock-per').textContent='—';$('#shock-total').textContent='—';
+    $('#shock-warning').textContent='請輸入有效的非負整數最大單局虧損';return;
+  }
+  const q=shockEstimate(g.op,parts,codes,g.loss,p,worst);
+  const checked=$('#market').value==='單球'?q.per:q.total;
+  const valid=q.per>=1&&checked>=min&&checked<=max&&q.total<=Math.max(0,g.op+p)&&p>-g.loss&&p<g.profit;
+  $('#shock-per').textContent=valid?balanceFmt(q.per)+' 元':'無法起注';
+  $('#shock-total').textContent=valid?balanceFmt(q.total)+' 元':'—';
+  $('#shock-math').textContent='基準每碼 '+(g.op/parts/codes/10).toFixed(2)+' × 壓力係數 '+q.factor.toFixed(3)+' → '+q.per+' 元／碼';
+  const warning=[];
+  if(checked<min||checked>max)warning.push('超出限紅');
+  if(q.total>Math.max(0,g.op+p))warning.push('資金不足');
+  if(p<=-g.loss)warning.push('達停損');
+  if(p>=g.profit)warning.push('達停利');
+  $('#shock-warning').textContent=(warning.length?'注意：'+warning.join('、')+'。':'')+'假設最大虧損 '+balanceFmt(Math.max(q.unit,worst))+' 元；不會修改實際結算。';
+}
+function dualEstimate(op,profit){
+  const target=Math.round(op*10)/100;
+  const hit=profit+1e-8>=target;
+  const lock=hit?Math.round(profit*70)/100:0;
+  const roll=hit?Math.round((profit-lock)*100)/100:0;
+  return {target,hit,lock,roll,next:Math.round((op+roll)*100)/100};
+}
+function updateDualPreview(){
+  if(getCode()!==6)return;
+  const op=Math.max(1,Number($('[name=operation]').value)||1);
+  const target=Math.round(op*10)/100;
+  const slider=$('#dual-slider'),max=Math.max(.01,Math.round(target*200)/100);
+  slider.min='0';slider.max=String(max);slider.step='0.01';
+  const profit=Math.max(0,Math.min(max,Math.round((Number(slider.value)||0)*100)/100));
+  slider.value=String(profit);
+  const r=dualEstimate(op,profit),rate=r.target>0?profit/r.target*100:0;
+  $('#dual-gain').textContent='+'+money(profit)+' 元';
+  $('#dual-progress').textContent='目標完成 '+rate.toFixed(1)+'%';
+  $('#dual-goal').textContent='達標 '+money(r.target)+' 元';
+  $('#dual-lock').textContent=money(r.lock)+' 元';
+  $('#dual-roll').textContent=money(r.roll)+' 元';
+  $('#dual-next').textContent=money(r.next)+' 元';
+  for(const b of $$('[data-dual]'))b.classList.toggle('active',Math.abs(rate-Number(b.dataset.dual))<.1);
+  $('#dual-warning').textContent=r.hit?'已達10%：這是新方案B的分配試算，實際引擎尚未自動鎖利／滾利。':'未達10%，暫不分配；實際 #06 仍使用舊引擎。';
+}
 function persistBalancePreview(){
   try{localStorage.setItem(SETTINGS_KEY,JSON.stringify({version:1,fields:getSavedFields()}));}
   catch{toast('預覽設定儲存失敗');}
@@ -3037,6 +3136,8 @@ function updateWinStartPreview(result=null,error=''){
   updateBalancePreview();
   updateHighPreview();
   updateVolatilityPreview();
+  updateShockPreview();
+  updateDualPreview();
   const value=$('#win-preview-total'),detail=$('#win-preview-detail');
   if(error){
     value.value='無法起注';
@@ -3149,6 +3250,9 @@ function changeStrategyFields(){
   $('#high-preview').classList.toggle('hidden',code!==3);
   $('#vol-preview').classList.toggle('hidden',code!==4);
   $('#vol-sigma').disabled=code!==4;
+  $('#shock-preview').classList.toggle('hidden',code!==5);
+  $('#shock-worst').disabled=code!==5;
+  $('#dual-preview').classList.toggle('hidden',code!==6);
   for(const input of $$('#high-preview input[name]'))input.disabled=code!==3;
   const fieldMap={0:['loss_sequence','自訂關卡倍率','1,2'],99:['custom_win_sequence','勝進倍率','1,1'],20:['attack_sequence','攻擊倍率','1,1.6,2,2.6,3.2,4,5,6'],24:['cancel_list','清單數值','1,1']};
   for(const id of ['fraction-field','kelly-field','probability-field','sequence-field','sequence-secondary-field','twoleg-layers-field','peak-lock-fields'])$('#'+id).classList.add('hidden');
@@ -3471,6 +3575,8 @@ function bindEvents(){
   });
 
   $('#config-form').addEventListener('input',e=>{
+    if(e.target.closest('#shock-preview')){updateShockPreview();if(e.target.name)persistBalancePreview();return;}
+    if(e.target.closest('#dual-preview')){updateDualPreview();return;}
     if(e.target.closest('#vol-preview')){updateVolatilityPreview();if(e.target.name)persistBalancePreview();return;}
     if(e.target.closest('#high-preview')){
       if(e.target.id==='high-base')$('[name=highBaseMode]').value='manual';
@@ -3483,6 +3589,8 @@ function bindEvents(){
     saveSettings();
   });
   $('#config-form').addEventListener('change',e=>{
+    if(e.target.closest('#shock-preview')){updateShockPreview();if(e.target.name)persistBalancePreview();return;}
+    if(e.target.closest('#dual-preview')){updateDualPreview();return;}
     if(e.target.closest('#vol-preview')){updateVolatilityPreview();if(e.target.name)persistBalancePreview();return;}
     if(e.target.closest('#high-preview')){updateHighPreview();if(e.target.name)persistBalancePreview();return;}
     if(e.target.closest('#balance-preview')){updateBalancePreview();if(e.target.name)persistBalancePreview();return;}
@@ -3496,6 +3604,10 @@ function bindEvents(){
   $('#high-auto').addEventListener('click',()=>{$('[name=highBaseMode]').value='auto';updateHighPreview();persistBalancePreview();});
   $('#vol-slider').addEventListener('input',updateVolatilityPreview);
   for(const b of $$('[data-vol]'))b.addEventListener('click',()=>{$('#vol-slider').value=b.dataset.vol;updateVolatilityPreview();});
+  $('#shock-slider').addEventListener('input',updateShockPreview);
+  for(const b of $$('[data-shock]'))b.addEventListener('click',()=>{$('#shock-slider').value=b.dataset.shock;updateShockPreview();});
+  $('#dual-slider').addEventListener('input',updateDualPreview);
+  for(const b of $$('[data-dual]'))b.addEventListener('click',()=>{$('#dual-slider').value=(Number(b.dataset.dual)/100*dualEstimate(Math.max(1,Number($('[name=operation]').value)||1),0).target).toFixed(2);updateDualPreview();});
   document.addEventListener('visibilitychange',()=>{
     if(!document.hidden&&snapshot){persist();render();}
   });
