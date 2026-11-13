@@ -1018,6 +1018,8 @@ def initialize(s):
       dynamic_anchor_unit=None,dynamic_anchor_pnl=0.,round_win_streak=0,protected_unallocated=0.)
     if progression.is_new(s):progression.init(s)
     if strategy26.active(s):strategy26.initialize(s)
+    if sid(s)=='winner' and s.get('win_mode_version')==2:
+        s['win_round_start_locked']=s['locked_profit']
     refresh_base(s)
 
 def base_raw(s):
@@ -1196,11 +1198,13 @@ def quote(s):
             per=base_per
             chosen_pct=None
         elif i+1<int(s.get('win_sprint_start',3)):
-            accumulated=dec(s['pnl'])-dec(s['round_start_pnl'])
+            accumulated=(dec(s['pnl'])-dec(s['round_start_pnl'])
+                        -max(dec(0),dec(s['locked_profit'])-dec(s.get('win_round_start_locked',s['locked_profit']))))
             per=floor((dec(first_total)+accumulated)/dec(n))
             chosen_pct=None
         else:
-            accumulated=max(dec(0),dec(s['pnl'])-dec(s['round_start_pnl']))
+            accumulated=max(dec(0),(dec(s['pnl'])-dec(s['round_start_pnl'])
+                        -max(dec(0),dec(s['locked_profit'])-dec(s.get('win_round_start_locked',s['locked_profit'])))))
             chosen_pct=s.get('win_sprint_selected_pct')
             if chosen_pct is None:
                 # Old/missing state: deterministic lower bound, never resample
@@ -1378,6 +1382,7 @@ def next_round(s,refresh=True):
     s.update(round_win_streak=0,round_id=s['round_id']+1,round_start_pnl=s['pnl'],round_start_count=s['wins']+s['losses'],round_offer=False,round_offer_advanced=False,open_quote=None,round_notice='')
     if sid(s)=='winner' and s.get('win_mode_version')==2:
         s['win_sprint_selected_pct']=None
+        s['win_round_start_locked']=s['locked_profit']
     if progression.is_new(s):progression.init(s)
     if refresh:refresh_base(s)
 
