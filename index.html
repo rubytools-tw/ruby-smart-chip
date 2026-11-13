@@ -465,7 +465,7 @@ body[data-font-size="large"]{
         <div class="field-full special-param hidden layer-grid-panel" id="twoleg-layers-field">
           <div class="layer-grid-heading"><strong>#66 分層下注金額</strong><small>4 層 × 預設每層 4 關；每層可使用＋增加到 10 關。輸入每關「總下注金額」，非倍率。</small></div>
           <div id="layer-grid-editor" class="layer-grid-editor"></div>
-          <input type="hidden" name="layerGrid" id="layer-grid-data" value="[[10,20,40,80],[30,60,120,240],[50,100,200,400],[100,200,400,800]]" disabled>
+          <input type="hidden" name="layerGrid" id="layer-grid-data" value="[[12,24,48,96],[36,72,144,288],[60,120,240,480],[120,240,480,960]]" disabled>
           <small class="twoleg-rule">第 1～倒數第 2 關中獎→同層下一關；最後一關中獎→上一層第一關；任何一關掛→下一層第一關；第四層掛則暫停。</small>
         </div>
       </div></details>
@@ -1981,8 +1981,8 @@ def new_state(config):
     if prob not in (None,''):
         s['kelly_probability']=float(prob)
     if strategy_code==66:
-        raw_grid=config.get('layerStakes',[[10,20,40,80],[30,60,120,240],
-                                           [50,100,200,400],[100,200,400,800]])
+        raw_grid=config.get('layerStakes',[[12,24,48,96],[36,72,144,288],
+                                           [60,120,240,480],[120,240,480,960]])
         if not isinstance(raw_grid,list) or len(raw_grid)!=4:
             raise ValueError('#66 必須設定4層，每層4～10個總注金額')
         grid=[]
@@ -2710,7 +2710,7 @@ function updateWinStartPreview(result=null,error=''){
   detail.classList.remove('invalid');
 }
 
-const DEFAULT_LAYER_GRID=[[10,20,40,80],[30,60,120,240],[50,100,200,400],[100,200,400,800]];
+const DEFAULT_LAYER_GRID=[[12,24,48,96],[36,72,144,288],[60,120,240,480],[120,240,480,960]];
 function readLayerGrid(){
   try{
     const value=JSON.parse($('#layer-grid-data').value);
