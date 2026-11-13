@@ -1813,6 +1813,30 @@ def new_state(config):
             if not isinstance(seq,list) or not seq or len(seq)>100 or any(not 0<x<=100000 for x in seq):
                 raise ValueError('倍率序列格式錯誤')
             s[key] = seq
+    if strategy_code in (14,99):
+        # Keep legacy loaded sessions on the historical formula, but every
+        # newly created winning plan explicitly opts into independent first bet.
+        s['win_mode_version']=2
+        if strategy_code==14:
+            start=int(config.get('sprintStart',3))
+            low=int(config.get('sprintMinPct',80))
+            high=int(config.get('sprintMaxPct',80))
+            if start not in (3,4) or start>max_steps:
+                raise ValueError('#14 衝刺起始關只能選第3或第4關，且不得超過最大關卡')
+            if not (1<=low<=high<=100):
+                raise ValueError('#14 獲利衝刺比例請設定 1～100% 的有效區間')
+            s['win_sprint_start']=start
+            s['win_sprint_min_pct']=low
+            s['win_sprint_max_pct']=high
+            s['win_sprint_selected_pct']=None
+        else:
+            seq=s.get('custom_win_sequence') or [1,1]
+            if not 1<=len(seq)<=50:
+                raise ValueError('#99 勝進倍率最多可設定50關')
+            if seq[0]!=1:
+                raise ValueError('#99 首關倍率必須為1，才能維持操作金÷分配份數的預估起注')
+            s['custom_win_sequence']=seq
+            s['max_steps']=len(seq)
     default_min,default_max=TABLE_LIMITS[market]
     min_bet=cash(config.get('minBet',default_min))
     max_bet=cash(config.get('maxBet',default_max))
