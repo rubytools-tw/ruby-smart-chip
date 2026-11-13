@@ -1295,6 +1295,10 @@ def quote(s):
         chosen_pct=None
     total=per*n
     if per<1:
+        if layer_v3:
+            return None,'#66 本格總下注金額不足分配成整數每碼注額，請提高此格金額'
+        if peak_v2:
+            return None,'#01 當前可用金無法分切出整數起注，計畫停止'
         if k=='equal_reset':
             return None,'本輪等份無法再分切出最低整數注碼，計畫停止；請重新調整操作金或切分等份'
         return None,'調節後不足1元／碼，進入基額0觀察流程'
@@ -2140,8 +2144,8 @@ def evaluate_state():
            'allocatable':sizing.unallocated(s),
            'pendingRoll':s.get('auto_roll_pending',0),
            'canLock':s.get('strategy')!='高點獲利鎖定法',
-           'canRoll':bool(s.get('compound_enabled',True)) and not
-                      (s['strategy']=='高點獲利鎖定法' and s.get('peak_lock_version')==2)}
+           'canRoll':(bool(s.get('compound_enabled',True)) and
+                      not (s['strategy']=='高點獲利鎖定法' and s.get('peak_lock_version')==2))}
     return out
 
 
@@ -2206,9 +2210,8 @@ def settle(outcome, action_id=None):
     if (strategy26.active(s) or
         (s['strategy']=='高點獲利鎖定法' and s.get('peak_lock_version')==2)
         ) and s.get('session_status')=='active':
-        # A completed result may leave less than one valid, whole-number stake
-        # (or below the selected market minimum). Stop at that point, not when
-        # the randomly selected number of parts has been used.
+        # After settlement, stop if no next whole-number stake meets funds,
+        # configured stop loss and table limits. Never silently auto-top-up.
         next_quote,reason=sizing.quote(s)
         next_quote,reason=enforce_table_limits(s,next_quote,reason)
         if next_quote is None and not sizing.plan_limit_reached(s):
