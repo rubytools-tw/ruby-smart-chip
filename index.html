@@ -1050,6 +1050,8 @@ def base_raw(s):
     n=dec(s['number_count']);f=dec(s['risk_parts']);k=sid(s)
     if k=='equal_reset':
         return dec(strategy26.per_code_base(s,available(s),operation_budget(s)))
+    if s['strategy']=='高點獲利鎖定法' and s.get('peak_lock_version')==2:
+        return max(dec(0),dec(available(s)))/f/n
     if k in ('winner','custom_win') and s.get('win_mode_version')==2:
         # The first stake depends only on original capital, split count and codes;
         # a long winning sequence must NOT dilute the first entry.
@@ -1061,6 +1063,10 @@ def base_raw(s):
     if k=='dalembert':return u/n/sum(range(1,s['max_steps']+1))
     if k=='fibonacci':return u/n/sum(fibs(s['max_steps']))
     if k=='twoleg':
+        if s.get('twoleg_version')==3:
+            # User enters exact total stakes for every cell; no derived
+            # multiplier budget is allowed to alter those values.
+            return dec(s['operation_base'])/dec(s['risk_parts'])/n
         if s.get('twoleg_version')==2:
             # Reserve one share for the complete set of paired stages; do
             # not silently increase the first stake when multipliers grow.
@@ -1162,7 +1168,7 @@ def quote(s):
             return None,'下局總注超過剩餘停損額度，不得執行'
         if dec(existing['total']) > dec(available(s)):
             return None,'本局總投入超過可用資金，不得執行'
-        if sid(s)!='equal_reset' and not (sid(s) in ('winner','custom_win') and s.get('win_mode_version')==2) and 'active_operation_budget' in s and dec(existing['total']) > dec(operation_budget(s)):
+        if sid(s)!='equal_reset' and not (s['strategy']=='高點獲利鎖定法' and s.get('peak_lock_version')==2) and not (sid(s)=='twoleg' and s.get('twoleg_version')==3) and not (sid(s) in ('winner','custom_win') and s.get('win_mode_version')==2) and 'active_operation_budget' in s and dec(existing['total']) > dec(operation_budget(s)):
             return None,'本局總投入超過當前操作預算，不得執行'
         return copy.deepcopy(existing),''
     a=available(s);n=s['number_count'];k=sid(s);p=progression._p(s)
@@ -1178,7 +1184,9 @@ def quote(s):
     completed=s['wins']+s['losses']
     # Equal-split must re-evaluate the base from the current PnL for EVERY
     # quote. Other strategies keep their previously committed round base.
-    raw=base_raw(s) if k in ('fixed','kelly','recovery','equal_reset') or s['strategy']=='剩餘局數預算法' else None
+    peak_v2=s['strategy']=='高點獲利鎖定法' and s.get('peak_lock_version')==2
+    layer_v3=k=='twoleg' and s.get('twoleg_version')==3
+    raw=base_raw(s) if k in ('fixed','kelly','recovery','equal_reset') or peak_v2 or s['strategy']=='剩餘局數預算法' else None
     b=(int(raw.to_integral_value(rounding=ROUND_CEILING if k=='recovery' else ROUND_FLOOR)) if raw is not None else s.get('round_base'))
     if k=='recovery' and dec(progression.conservative_rate(s))<=dec(n):return None,'賠率減碼數小於或等於0，禁止計算下注額'
     if k=='kelly':
@@ -1186,6 +1194,11 @@ def quote(s):
         if raw<=0:return None,'凱利比例≤0，本次不進場'
     if b is None:return None,'基額無法計算，請重新設定參數或變更策略'
     i=p['step'];mult=1
+    if layer_v3:
+        grid=s.get('layer_stakes') or []
+        leg=int(p.get('leg',0))
+        if i<0 or i>=len(grid) or leg<0 or leg>=len(grid[i]):
+            return None,'#66 分層下注位置不正確'
     keys={'custom':'loss_sequence','custom_win':'custom_win_sequence','winner':'win_sequence','tianmen':None,'twoleg':'layer_sequence'}
     if k in keys:
         if k=='twoleg' and s.get('twoleg_version')==2:
@@ -1210,11 +1223,11 @@ def quote(s):
         mult=branch[i]
     elif k=='labouchere':
         seq=p.get('list',s['cancel_list']);mult=seq[0]+seq[-1] if len(seq)>1 else seq[0]
-    elif not k:mult=adjustment(s)[0]
+    elif not k and not peak_v2:mult=adjustment(s)[0]
     # Keep per-stage precision and truncate only the *final per-code stake*.
     # Recovery intentionally retains its original ceil formula to target a
     # chosen recovery amount; it still outputs an integer stake.
-    if k in ('fixed','kelly','equal_reset') or s['strategy']=='剩餘局數預算法':
+    if k in ('fixed','kelly','equal_reset') or peak_v2 or s['strategy']=='剩餘局數預算法':
         precise=raw
     else:
         stored=s.get('round_base_precise')
@@ -1243,6 +1256,10 @@ def quote(s):
                 chosen_pct=int(s.get('win_sprint_min_pct',80))
                 s['win_sprint_selected_pct']=chosen_pct
             per=floor(accumulated*dec(chosen_pct)/dec(100)/dec(n))
+    elif layer_v3:
+        requested=dec(s['layer_stakes'][i][p['leg']])
+        per=floor(requested/dec(n))
+        chosen_pct=None
     elif k=='recovery':
         per=int(precise.to_integral_value(rounding=ROUND_CEILING))
         chosen_pct=None
@@ -1257,7 +1274,7 @@ def quote(s):
     if total > max(dec(0), dec(s['loss_limit']) + dec(s['pnl'])):
         return None,'下局總注超過剩餘停損額度，不得執行'
     if total>a+1e-8:return None,'本局總投入超過可用資金，不得執行'
-    if k!='equal_reset' and not (k in ('winner','custom_win') and s.get('win_mode_version')==2) and 'active_operation_budget' in s and total>operation_budget(s)+1e-8:
+    if k!='equal_reset' and not peak_v2 and not layer_v3 and not (k in ('winner','custom_win') and s.get('win_mode_version')==2) and 'active_operation_budget' in s and total>operation_budget(s)+1e-8:
         return None,'本局總投入超過當前操作預算，不得執行'
     # Legacy fixed caps are explicit opt-in, never determine the base of 20/24.
     if s.get('extra_caps_enabled') and k not in ('attack','labouchere') and (per>s['stake_cap'] or total>s['total_cap']):
@@ -1279,6 +1296,36 @@ def evaluate(s):
 def after_result(s,win,delta):
     p=copy.deepcopy(progression._p(s));before=copy.deepcopy(p);k=sid(s);i=p['step'];boundary=False
     s['round_win_streak']=s.get('round_win_streak',0)+1 if win else 0
+    if s['strategy']=='高點獲利鎖定法' and s.get('peak_lock_version')==2:
+        # Lock a selected fraction of THIS wager's positive net profit.
+        # The remainder stays in the live bankroll and is automatically
+        # available for the next wager; no separate roll action is needed.
+        if win and dec(delta)>0:
+            percent=dec(s.get('peak_lock_percent',50))
+            kept=cents(dec(delta)*percent/dec(100))
+            kept=min(max(0,kept),max(0,cents(delta)))
+            s['locked_profit']=cents(dec(s['locked_profit'])+dec(kept))
+            s['peak_lock_streak']=int(s.get('peak_lock_streak',0))+1
+            s['peak_lock_total']=int(s.get('peak_lock_total',0))+1
+            target=max(1,int(s.get('peak_lock_target',5)))
+            if s['peak_lock_streak']>=target:
+                s['peak_lock_cycles']=int(s.get('peak_lock_cycles',0))+1
+                s['peak_lock_streak']=0
+                s['round_complete_count']+=1
+                s['round_id']+=1
+                s['round_notice']=f'本局自動鎖利 {kept:g}；連續{target}次鎖利達成，開始下個週期'
+            else:
+                s['round_notice']=f'本局自動鎖利 {kept:g}（連續{s["peak_lock_streak"]}/{target}次）'
+        else:
+            s['peak_lock_streak']=0
+            s['round_notice']='本局未產生可鎖定獲利；連續鎖定次數已歸零'
+        s['allocation_mark']=s['pnl']
+        s['auto_roll_pending']=0.
+        s['round_offer']=False
+        s['round_offer_advanced']=False
+        set_operation_budget(s,available(s))
+        refresh_base(s)
+        return
     if k=='equal_reset':
         s['cycle_notice']=''  # A completed cycle notice is shown for one result only.
         # The split count is ONLY a divisor; it is NOT a stage ceiling.
@@ -1311,6 +1358,17 @@ def after_result(s,win,delta):
         move=not win if k=='custom' else win
         j=i+1 if move else 0
         p['step']=j%len(sequence(s,key));boundary=p['step']==0
+    elif k=='twoleg' and s.get('twoleg_version')==3:
+        grid=s['layer_stakes']
+        if win and int(p.get('leg',0))+1<len(grid[i]):
+            p['leg']=int(p.get('leg',0))+1
+        elif win:
+            p.update(step=max(0,i-1),leg=0,exhausted=False)
+            boundary=i==0
+        else:
+            j=i+1
+            p.update(step=min(j,len(grid)-1),leg=0,exhausted=j>=len(grid))
+        s['plan_state']=p
     elif k=='twoleg' and s.get('twoleg_version')==2:
         layers=len(s['layer_pairs'])
         if win and int(p.get('leg',0))==0:
