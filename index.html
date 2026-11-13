@@ -404,21 +404,21 @@ body[data-font-size="large"]{
     <div class="drawer-scroll"><form id="config-form">
       <label class="field field-full"><span>選擇策略</span><select id="strategy-select" name="strategy"></select></label>
       <label class="field"><span>操作金</span><input name="operation" type="number" min="1" step="1" value="1000" required></label>
+      <label class="field hidden" id="fixed-parts-field"><span>切分份數</span><input name="parts" type="number" min="2" max="50" value="6" required disabled></label>
+      <div class="field" id="range-parts-field"><span>切分等份</span><div class="parts-range-inputs"><input aria-label="最小等份" name="partsMin" type="number" min="2" max="50" step="1" value="6" required><span aria-hidden="true">～</span><input aria-label="最大等份" name="partsMax" type="number" min="2" max="50" step="1" value="6" required></div></div>
       <label class="field"><span>玩法</span><select id="market" name="market"><option value="單球">賽車單球</option><option value="兩面盤">兩面盤</option><option value="百家樂">百家樂</option></select></label>
       <label class="field"><span>下注碼數</span><input name="count" type="number" min="1" max="8" value="6" required></label>
       <div id="market-limits-fields" class="field-full market-limits"><label class="field"><span>最低下注（限紅）</span><input name="minBet" type="number" min="1" max="1000000000" step="1" value="1" required></label><label class="field"><span>最高下注（限紅）</span><input name="maxBet" type="number" min="1" max="1000000000" step="1" value="20000" required></label><p id="market-limit-warning" class="limit-warning hidden" role="alert"></p></div>
-       <input type="hidden" name="limitSingleMin" value="1"><input type="hidden" name="limitSingleMax" value="20000">
-       <input type="hidden" name="limitDoubleMin" value="1"><input type="hidden" name="limitDoubleMax" value="10000">
-       <input type="hidden" name="limitBaccaratMin" value="100"><input type="hidden" name="limitBaccaratMax" value="10000">
-       <label class="field hidden" id="fixed-parts-field"><span>切分份數</span><input name="parts" type="number" min="2" max="50" value="6" required disabled></label>
-       <div class="field" id="range-parts-field"><span>切分等份</span><div class="parts-range-inputs"><input aria-label="最小等份" name="partsMin" type="number" min="2" max="50" step="1" value="6" required><span aria-hidden="true">～</span><input aria-label="最大等份" name="partsMax" type="number" min="2" max="50" step="1" value="6" required></div></div>
-      <div id="win-start-preview" class="field field-full hidden win-start-preview"><label for="win-preview-total">預估起注（第一關總額）</label><input id="win-preview-total" type="text" value="—" readonly tabindex="-1"><small id="win-preview-detail">每碼 × 碼數 = 本局總注</small></div>
+      <input type="hidden" name="limitSingleMin" value="1"><input type="hidden" name="limitSingleMax" value="20000">
+      <input type="hidden" name="limitDoubleMin" value="1"><input type="hidden" name="limitDoubleMax" value="10000">
+      <input type="hidden" name="limitBaccaratMin" value="100"><input type="hidden" name="limitBaccaratMax" value="10000">
+      <label class="field"><span>計畫總局數</span><input name="planned" type="number" min="1" max="100000" value="35" required></label>
+      <label class="field" id="max-steps-field"><span>最大關卡</span><input name="maxSteps" type="number" min="1" max="50" value="6" required></label>
       <div id="win-sprint-fields" class="field-full hidden win-sprint-fields">
         <label class="field"><span>開始獲利衝刺</span><select name="sprintStart"><option value="3">第 3 關</option><option value="4">第 4 關</option></select></label>
         <div class="field"><span>獲利衝刺比例（%）</span><div class="parts-range-inputs"><input type="number" name="sprintMinPct" aria-label="衝刺最小百分比" min="1" max="100" step="1" value="80"><span aria-hidden="true">～</span><input type="number" name="sprintMaxPct" aria-label="衝刺最大百分比" min="1" max="100" step="1" value="80"></div></div>
       </div>
-      <label class="field" id="max-steps-field"><span>最大關卡</span><input name="maxSteps" type="number" min="1" max="50" value="6" required></label>
-      <label class="field"><span>計畫總局數</span><input name="planned" type="number" min="1" max="100000" value="35" required></label>
+      <div id="win-start-preview" class="field field-full win-start-preview" aria-live="polite"><label for="win-preview-total">預估起注（第一局總下注金額）</label><input id="win-preview-total" type="text" value="計算核心載入中" readonly tabindex="-1"><small id="win-preview-detail">每碼注額 × 下注碼數 = 第一局總下注金額</small></div>
       <details class="advanced field-full"><summary>進階設定 <span>停利、停損及策略專屬參數</span></summary><div class="fields">
         <label class="field"><span>停利比例（%）</span><input name="profitPct" type="number" min="1" max="10000" step="any" value="100" required></label>
         <label class="field"><span>停損比例（%）</span><input name="lossPct" type="number" min="1" max="100" step="any" value="100" required></label>
