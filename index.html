@@ -947,6 +947,8 @@ def position(s):
     p=_p(s);sid=BY_NAME[s['strategy']]['id']
     if sid=='attack':return {'trigger':'測試','attack':'攻擊','retreat':'退守'}[p['mode']]+f" {p['step']+1}關"
     if sid=='twoleg':return f"第{p['step']+1}層／第{p['leg']+1}關"
+    if s.get('strategy')=='高點獲利鎖定法' and s.get('peak_lock_version')==2:
+        return f"連續鎖利 {s.get('peak_lock_streak',0)}/{s.get('peak_lock_target',5)} · 已完成{s.get('peak_lock_cycles',0)}週期"
     if sid=='recovery':return f"待回補 {p['debt']:g}"
     if sid=='labouchere':return '清單 '+ '/'.join(f'{x:g}' for x in p.get('list',s['cancel_list']))[:65]
     if sid=='equal_reset':return f'第{p["step"]+1}關 · 本輪{s["risk_parts"]}等份'
@@ -1496,6 +1498,8 @@ def choose(s,action,percent=None):
         return False,'無效選項'
     if s.get('session_status')=='settled':return False,'本次計畫已結算'
     is_peak=s['strategy']=='高點獲利鎖定法'
+    if is_peak and s.get('peak_lock_version')==2:
+        return False,'#01 已啟用每局自動鎖利與滾利，不需手動分配'
     gain=unallocated(s)
     pending=cents(s.get('auto_roll_pending',0)) if is_peak else 0.
     if action=='lock' and (is_peak or gain<=0):return False,'此策略目前無可鎖定獲利'
@@ -1944,23 +1948,40 @@ def new_state(config):
     if prob not in (None,''):
         s['kelly_probability']=float(prob)
     if strategy_code==66:
-        raw_pairs=config.get('layerPairs',[[1,2],[3,9],[6,24]])
-        if not isinstance(raw_pairs,list) or len(raw_pairs)!=3:
-            raise ValueError('#66 請設定第一至第三層，每層兩個倍率')
-        pairs=[]
-        for idx,raw_pair in enumerate(raw_pairs,1):
-            if not isinstance(raw_pair,list) or len(raw_pair)!=2:
-                raise ValueError(f'#66 第{idx}層需要兩個倍率')
-            try:
-                first,second=map(float,raw_pair)
-            except (TypeError,ValueError,OverflowError):
-                raise ValueError(f'#66 第{idx}層倍率格式錯誤')
-            if not (0<first<=100000 and 0<second<=100000):
-                raise ValueError(f'#66 第{idx}層倍率需為大於0且不超過100000的數字')
-            pairs.append([first,second])
-        s['layer_pairs']=pairs
-        s['twoleg_version']=2
-        s['max_steps']=len(pairs)
+        raw_grid=config.get('layerStakes',[[10,20,40,80],[30,60,120,240],
+                                           [50,100,200,400],[100,200,400,800]])
+        if not isinstance(raw_grid,list) or len(raw_grid)!=4:
+            raise ValueError('#66 必須設定4層，每層4～10個總注金額')
+        grid=[]
+        for layer,row in enumerate(raw_grid,1):
+            if not isinstance(row,list) or not 4<=len(row)<=10:
+                raise ValueError(f'#66 第{layer}層必須設定4～10關')
+            numbers=[]
+            for step,value in enumerate(row,1):
+                try:
+                    amount=Decimal(str(value))
+                except (TypeError,ValueError,ArithmeticError):
+                    raise ValueError(f'#66 第{layer}層第{step}關請輸入有效總注金額')
+                if not amount.is_finite() or amount!=amount.to_integral_value() or not 1<=amount<=1000000000:
+                    raise ValueError(f'#66 第{layer}層第{step}關總注必須是1～10億的整數')
+                numbers.append(int(amount))
+            grid.append(numbers)
+        s['layer_stakes']=grid
+        s['twoleg_version']=3
+        s['max_steps']=len(grid)
+    if strategy_code==1:
+        try:
+            pct_raw=Decimal(str(config.get('peakLockPercent',50)))
+            target_raw=Decimal(str(config.get('peakLockCount',5)))
+        except (TypeError,ValueError,ArithmeticError):
+            raise ValueError('#01 鎖利比例及連續次數格式錯誤')
+        if not (pct_raw.is_finite() and 1<=pct_raw<=100):
+            raise ValueError('#01 鎖利比例請填1～100%')
+        if not (target_raw.is_finite() and target_raw==target_raw.to_integral_value() and 1<=target_raw<=100):
+            raise ValueError('#01 連續鎖定次數必須是1～100的整數')
+        s.update(peak_lock_version=2,peak_lock_percent=float(pct_raw),
+                 peak_lock_target=int(target_raw),
+                 peak_lock_streak=0,peak_lock_cycles=0,peak_lock_total=0)
     for key in ('loss_sequence','win_sequence','custom_win_sequence','layer_sequence','attack_sequence','retreat_sequence','cancel_list'):
         if key in config:
             seq=config[key]
@@ -2090,7 +2111,8 @@ def evaluate_state():
            'allocatable':sizing.unallocated(s),
            'pendingRoll':s.get('auto_roll_pending',0),
            'canLock':s.get('strategy')!='高點獲利鎖定法',
-           'canRoll':bool(s.get('compound_enabled',True))}
+           'canRoll':bool(s.get('compound_enabled',True)) and not
+                      (s['strategy']=='高點獲利鎖定法' and s.get('peak_lock_version')==2)}
     return out
 
 
@@ -2152,7 +2174,9 @@ def settle(outcome, action_id=None):
     elif not strategy26.active(s) and s['pnl']>=s['profit_target']:
         s['session_status']='paused_profit'
         s['strategy_pause_reason']='已達設定停利'
-    if strategy26.active(s) and s.get('session_status')=='active':
+    if (strategy26.active(s) or
+        (s['strategy']=='高點獲利鎖定法' and s.get('peak_lock_version')==2)
+        ) and s.get('session_status')=='active':
         # A completed result may leave less than one valid, whole-number stake
         # (or below the selected market minimum). Stop at that point, not when
         # the randomly selected number of parts has been used.
@@ -2160,7 +2184,12 @@ def settle(outcome, action_id=None):
         next_quote,reason=enforce_table_limits(s,next_quote,reason)
         if next_quote is None and not sizing.plan_limit_reached(s):
             s['session_status']='paused_funds'
-            s['strategy_pause_reason']=reason or '本輪剩餘操作金無法繼續分切，計畫停止'
+            s['strategy_pause_reason']=reason or '剩餘操作金無法繼續下注，計畫停止'
+    if (s.get('strategy')=='逐關分層法' and s.get('twoleg_version')==3
+        and s.get('plan_state',{}).get('exhausted')
+        and s.get('session_status')=='active'):
+        s['session_status']='paused_strategy'
+        s['strategy_pause_reason']='第4層已掛，分層計畫暫停；可手動進入下一輪'
     UNDO=before
     LAST_ACTION_ID=action_id
     return evaluate_state()
