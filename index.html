@@ -1319,6 +1319,34 @@ def refresh_base(s):
     s['round_base']=None if raw is None else int(raw.to_integral_value(rounding=ROUND_CEILING if sid(s)=='recovery' else ROUND_FLOOR))
     s['base_stake']=s['round_base'] or 0
 
+
+def consensus_factor_details(s):
+    """The same A/B/C risk factors used for real next-quote pricing."""
+    L=float(s['loss_limit'])
+    P=float(s['pnl'])
+    f=int(s['risk_parts'])
+    peak=max(0.,float(s.get('peak_pnl',0)))
+    origin=float(s['operation_base'])
+    h=max(0.,L+P)
+    # An initial losing run is NOT a profit high-water drawdown.
+    high_drop=max(0.,peak-P) if peak>0 else 0.
+    progress=min(1.,max(0.,P)/max(.01,float(s['profit_target'])))
+    steps=floor(high_drop/max(.01,origin*.05))
+    recent=[r['delta'] for r in s.get('ledger',[])[-10:]]
+    sigma=statistics.pstdev(recent) if len(recent)>=3 else 0.
+    unit=max(.01,L/f)
+    factors=[h/L*f/(f+floor(progress*12)),
+             h/L*f/(f+4*steps),
+             h/L*f/(f+min(24,math.ceil(sigma/unit)))]
+    raw=s.get('round_base_precise')
+    base=(dec(raw) if raw is not None else base_raw(s))
+    candidates=[max(0,floor(base*dec(r))) for r in factors]
+    limit=cents(dec(s['operation_base'])*dec(s.get('consensus_drawdown_pct',20))/dec(100))
+    return dict(factors=factors,perCode=candidates,appliedPer=min(candidates),
+                peak=peak,drawdown=cents(high_drop),drawdownLimit=limit,
+                peakProtectionActive=peak>0,basePer=floor(base),
+                protectionPercent=float(s.get('consensus_lock_pct',50)),
+                initialLossLimit=cents(L),cumulativePnL=cents(P))
 def adjustment(s):
     """Normalize old budgets against their initial, uncapped budget.
     Explicit mapping, NOT a multiplier extracted from a silently capped stake.
@@ -1342,7 +1370,7 @@ def adjustment(s):
     if name=='連掛冷卻檢核法':return h/L*f/(f+sum(r['delta']<0 for r in s.get('ledger',[])[-10:])) ,''
     if name=='獲利回吐底線法':
         return min(h,max(0,P-s['locked_profit']))/L if s.get('giveback_active') else h/L,''
-    if name=='多因子防守共識法':return min(factors),''
+    if name=='多因子防守共識法':return min(consensus_factor_details(s)['factors']),''
     return 1,''
 
 def plan_round_cap(s):
@@ -1374,6 +1402,13 @@ def quote(s):
     # state must never offer the (N+1)th wager after N accepted results.
     if plan_limit_reached(s):
         return None,plan_limit_message(s)
+    if s['strategy']=='多因子防守共識法':
+        peak=float(s.get('peak_pnl',0))
+        if peak>0:
+            decline=max(0.,peak-float(s['pnl']))
+            limit=float(s['operation_base'])*float(s.get('consensus_drawdown_pct',20))/100
+            if decline+1e-8>=limit:
+                return None,f'#10 高點回撤 {cents(decline):g} 元達設定門檻 {cents(limit):g} 元，已暫停；盈虧與鎖利保留'
     if s.get('open_quote'):
         existing=s['open_quote']
         if dec(existing['total']) > max(dec(0),dec(s['loss_limit'])+dec(s['pnl'])):
@@ -1391,7 +1426,7 @@ def quote(s):
     if p.get('exhausted') and k!='equal_reset':
         return None,'本輪末階已用完；保留原版末階暫停，請恢復或結束'
     d=max(0,s.get('peak_pnl',0)-s['pnl'])
-    if s['strategy'] in ('高點回撤階梯法','多因子防守共識法') and d+1e-8>=s['operation_base']*.2:return None,'回撤已達操作金20%'
+    if s['strategy']=='高點回撤階梯法' and d+1e-8>=s['operation_base']*.2:return None,'回撤已達操作金20%'
     if s['strategy']=='連掛冷卻檢核法' and s.get('cooldown_losses',0)>=3:return None,'連掛3局冷卻'
     completed=s['wins']+s['losses']
     # Equal-split must re-evaluate the base from the current PnL for EVERY
@@ -1764,7 +1799,9 @@ def after_result(s,win,delta):
     old_protection=s['locked_profit']
     # Retain original 06/08/10 protections. 01 now locks only on round completion.
     if s['strategy']=='本金獲利雙池法' and not s.get('dual_v2'):s['locked_profit']=max(s['locked_profit'],max(0,s['pnl'])*.7)
-    if s['strategy']=='多因子防守共識法':s['locked_profit']=max(s['locked_profit'],max(0,s['pnl'])*.5)
+    if s['strategy']=='多因子防守共識法':
+        rate=dec(s.get('consensus_lock_pct',50))/dec(100)
+        s['locked_profit']=max(s['locked_profit'],cents(max(dec(0),dec(s['pnl']))*rate))
     if s['strategy']=='獲利回吐底線法' and not s.get('giveback_roll_v2') and s['peak_pnl']>=s['loss_limit']*.2:
         s['giveback_active']=True
         s['locked_profit']=max(s['locked_profit'],s['peak_pnl']-max(s['loss_limit']*.2,s['peak_pnl']*.25))
@@ -2368,6 +2405,18 @@ def new_state(config):
         s['max_steps']=len(grid)
     if strategy_code==9:
         s['rounds_cycle_v2']=True
+    if strategy_code==10:
+        try:
+            decline=Decimal(str(config.get('consensusDrawdownPercent',20)))
+            protect=Decimal(str(config.get('consensusLockPercent',50)))
+        except (TypeError,ValueError,ArithmeticError):
+            raise ValueError('#10 比例格式無效')
+        if not decline.is_finite() or not 1<=decline<=100:
+            raise ValueError('#10 高點回撤停止比例必須介於1～100%')
+        if not protect.is_finite() or not 0<=protect<=100:
+            raise ValueError('#10 正獲利保留比例必須介於0～100%')
+        s.update(consensus_v2=True,consensus_drawdown_pct=float(decline),
+                 consensus_lock_pct=float(protect))
     if strategy_code==8:
         try:
             lock_pct=Decimal(str(config.get('givebackLockPercent',20)))
@@ -2537,6 +2586,7 @@ def evaluate_state():
            'code':strategy_engine.BY_NAME[s['strategy']]['code'],
            'canResume':bool(s.get('plan_state',{}).get('exhausted') or s.get('plan_state',{}).get('done')),
            'cycleProgress':strategy26.cycle_progress(s) if strategy26.active(s) else None,
+           'consensusBreakdown':(sizing.consensus_factor_details(s) if s['strategy']=='多因子防守共識法' else None),
            'allocatable':sizing.unallocated(s),
            'pendingRoll':s.get('auto_roll_pending',0),
            'canLock':s.get('strategy')!='高點獲利鎖定法' and not (s.get('strategy')=='本金獲利雙池法' and s.get('dual_v2')) and not (s.get('strategy')=='獲利回吐底線法' and s.get('giveback_roll_v2')),
@@ -2611,6 +2661,7 @@ def settle(outcome, action_id=None):
         (s['strategy']=='高點獲利鎖定法' and s.get('peak_lock_version')==2) or
         (s['strategy']=='獲利回吐底線法' and s.get('giveback_roll_v2')) or
         (s['strategy']=='剩餘局數預算法' and s.get('rounds_cycle_v2')) or
+        s['strategy']=='多因子防守共識法' or
         layer4
         ) and s.get('session_status')=='active' and not (layer4 and exhausted):
         # After settlement, stop if no next whole-number stake meets funds,
@@ -2618,7 +2669,8 @@ def settle(outcome, action_id=None):
         next_quote,reason=sizing.quote(s)
         next_quote,reason=enforce_table_limits(s,next_quote,reason)
         if next_quote is None and not sizing.plan_limit_reached(s):
-            s['session_status']='paused_funds'
+            due_to_high_point=(s['strategy']=='多因子防守共識法' and (reason or '').startswith('#10 高點回撤'))
+            s['session_status']='paused_drawdown' if due_to_high_point else 'paused_funds'
             s['strategy_pause_reason']=reason or '剩餘操作金無法繼續下注，計畫停止'
     if (s.get('strategy')=='逐關分層法' and s.get('twoleg_version') in (3,4)
         and s.get('plan_state',{}).get('exhausted')
