@@ -487,7 +487,7 @@ body[data-font-size="large"]{
           <span>A 獲利進度 <b id="consensus-a">—</b></span>
           <span>B 高點回撤 <b id="consensus-b">—</b></span>
           <span>C 近期波動 <b id="consensus-c">—</b></span>
-          <span>採用 <b id="consensus-final">—</b></span>
+          <span>實際下一注 <b id="consensus-final">—</b></span>
         </div>
         <small id="consensus-status">尚未開始計算</small>
       </div>
@@ -3788,11 +3788,11 @@ function render(){
   $('#consensus-live').classList.toggle('hidden',!risk);
   if(risk){
     for(const [i,id] of ['consensus-a','consensus-b','consensus-c'].entries())$('#'+id).textContent=fmt(risk.perCode[i],0)+' 元';
-    $('#consensus-final').textContent=fmt(risk.appliedPer,0)+' 元';
+    $('#consensus-final').textContent=q?fmt(q.per,0)+' 元':'暫停／不可下注';
     $('#consensus-status').textContent=(risk.peakProtectionActive?
       '曾有正獲利高點 '+money(risk.peak)+'；當前回撤 '+money(risk.drawdown)+'／門檻 '+money(risk.drawdownLimit)+' 元。':
-      '尚無正獲利高點：不啟動20%回撤停機。')+
-      ' 整體停損額度 '+money(risk.initialLossLimit)+' 元；累積鎖利 '+money(s.locked_profit||0)+' 元。';
+      '尚無正獲利高點：不啟用高點回撤停機。')+
+      ' 停損上限 '+money(risk.initialLossLimit)+' 元（剩餘額度 '+money(Math.max(0,Number(risk.initialLossLimit)+Number(s.pnl||0)))+'）；累積鎖利 '+money(s.locked_profit||0)+' 元。';
   }
   $('#round-count').textContent=is66?`${batch.completed} 局`:`${batch.count} / ${batch.size} · #${batch.index}`;
   $('#strategy-round-metric').style.display=is66?'':'none';
