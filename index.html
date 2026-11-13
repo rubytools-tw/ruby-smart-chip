@@ -326,6 +326,15 @@ body[data-font-size="large"]{
 .parts-range-inputs input{min-width:0;width:100%;text-align:center;padding-inline:3px}
 .parts-range-inputs>span{white-space:nowrap;color:var(--muted);font-weight:700}
 #range-parts-field{min-width:0}
+
+/* V0.1.6: winning strategy inputs only; original colors and buttons retained. */
+.win-start-preview{min-width:0}
+.win-start-preview input{width:100%;font-weight:700;font-size:var(--ruby-fs-value,16px);color:inherit}
+.win-start-preview small{font-size:var(--ruby-fs-note,12px);color:var(--muted);line-height:1.35}
+.win-sprint-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.win-sprint-fields .field{min-width:0}
+.win-sprint-fields .parts-range-inputs input{width:100%;min-width:0}
+@media(max-width:355px){.win-sprint-fields{grid-template-columns:1fr}}
 </style>
 </head>
 <body data-theme="neon">
@@ -403,6 +412,11 @@ body[data-font-size="large"]{
        <input type="hidden" name="limitBaccaratMin" value="100"><input type="hidden" name="limitBaccaratMax" value="10000">
        <label class="field hidden" id="fixed-parts-field"><span>切分份數</span><input name="parts" type="number" min="2" max="50" value="6" required disabled></label>
        <div class="field" id="range-parts-field"><span>切分等份</span><div class="parts-range-inputs"><input aria-label="最小等份" name="partsMin" type="number" min="2" max="50" step="1" value="6" required><span aria-hidden="true">～</span><input aria-label="最大等份" name="partsMax" type="number" min="2" max="50" step="1" value="6" required></div></div>
+      <div id="win-start-preview" class="field field-full hidden win-start-preview"><label for="win-preview-total">預估起注（第一關總額）</label><input id="win-preview-total" type="text" value="—" readonly tabindex="-1"><small id="win-preview-detail">每碼 × 碼數 = 本局總注</small></div>
+      <div id="win-sprint-fields" class="field-full hidden win-sprint-fields">
+        <label class="field"><span>開始獲利衝刺</span><select name="sprintStart"><option value="3">第 3 關</option><option value="4">第 4 關</option></select></label>
+        <div class="field"><span>獲利衝刺比例（%）</span><div class="parts-range-inputs"><input type="number" name="sprintMinPct" aria-label="衝刺最小百分比" min="1" max="100" step="1" value="80"><span aria-hidden="true">～</span><input type="number" name="sprintMaxPct" aria-label="衝刺最大百分比" min="1" max="100" step="1" value="80"></div></div>
+      </div>
       <label class="field" id="max-steps-field"><span>最大關卡</span><input name="maxSteps" type="number" min="1" max="50" value="6" required></label>
       <label class="field"><span>計畫總局數</span><input name="planned" type="number" min="1" max="100000" value="35" required></label>
       <details class="advanced field-full"><summary>進階設定 <span>停利、停損及策略專屬參數</span></summary><div class="fields">
@@ -2248,7 +2262,7 @@ function fieldsFromLegacyState(state){
     fraction:state.stake_fraction,kellyFraction:state.kelly_fraction,
     probability:state.kelly_probability
   };
-  const seqByCode={0:'loss_sequence',99:'custom_win_sequence',66:'layer_sequence',14:'win_sequence',20:'attack_sequence',24:'cancel_list'};
+  const seqByCode={0:'loss_sequence',99:'custom_win_sequence',66:'layer_sequence',20:'attack_sequence',24:'cancel_list'};
   const seq=state[seqByCode[selected?.code]];
   if(Array.isArray(seq)&&seq.length)fields.sequenceInput=seq.join(',');
   if(selected?.code===20&&Array.isArray(state.retreat_sequence))fields.sequenceSecondary=state.retreat_sequence.join(',');
@@ -2336,6 +2350,8 @@ function loadLocalPreferencesAndHistory(){
   const recent=readStorageJson(RECENT_HISTORY_KEY);
   const previous=prefs?.version===1?prefs.fields:fieldsFromLegacyState(legacy?.state);
   const fields=previous?{...previous}:null;
+  if(fields&&String(fields.strategy)==='99'&&fields.sequenceInput==='3,1,2,3,2,3,4,1,2')
+    fields.sequenceInput='1,1';
   if(fields){
     if(String(fields.strategy)==='26'){
       if(fields.partsMin===undefined)fields.partsMin=fields.parts??6;
@@ -2422,9 +2438,21 @@ async function action(command,payload={},success){
   finally{busy=false;render();}
 }
 function getCode(){return Number($('#strategy-select').value||26);}
+function updateWinStartPreview(){
+  const el=$('#win-start-preview');
+  if(!el||el.classList.contains('hidden'))return;
+  const operation=Number($('[name=operation]').value);
+  const parts=Number($('[name=parts]').value);
+  const count=$('#market').value==='單球'?Number($('[name=count]').value):1;
+  const valid=Number.isFinite(operation)&&operation>0&&Number.isInteger(parts)&&parts>=2&&parts<=50&&Number.isInteger(count)&&count>=1&&count<=8;
+  const per=valid?Math.floor(operation/parts/count):0;
+  const total=per*count;
+  $('#win-preview-total').value=valid?fmt(total,0):'—';
+  $('#win-preview-detail').textContent=valid?`${fmt(per,0)}／碼 × ${count} 碼＝${fmt(total,0)} 總注（分配額 ${fmt(operation/parts,2)}）`:'請填入有效操作金、份數與碼數';
+}
 function changeStrategyFields(){
   const code=getCode();
-  const fieldMap={0:['loss_sequence','自訂關卡倍率','1,2'],99:['custom_win_sequence','勝進倍率','3,1,2,3,2,3,4,1,2'],66:['layer_sequence','分層倍率','1,1'],14:['win_sequence','勝進倍率','1,1'],20:['attack_sequence','攻擊倍率','1,1.6,2,2.6,3.2,4,5,6'],24:['cancel_list','清單數值','1,1']};
+  const fieldMap={0:['loss_sequence','自訂關卡倍率','1,2'],99:['custom_win_sequence','勝進倍率','1,1'],66:['layer_sequence','分層倍率','1,1'],20:['attack_sequence','攻擊倍率','1,1.6,2,2.6,3.2,4,5,6'],24:['cancel_list','清單數值','1,1']};
   for(const id of ['fraction-field','kelly-field','probability-field','sequence-field','sequence-secondary-field'])$('#'+id).classList.add('hidden');
   if(code===12)$('#fraction-field').classList.remove('hidden');
   if(code===23){$('#kelly-field').classList.remove('hidden');$('#probability-field').classList.remove('hidden');}
@@ -2441,15 +2469,20 @@ function changeStrategyFields(){
     for(const input of field.querySelectorAll('input,select,textarea'))input.disabled=hidden;
   }
   const is26=code===26;
+  const isWin=code===14||code===99;
+  $('#win-start-preview').classList.toggle('hidden',!isWin);
+  $('#win-sprint-fields').classList.toggle('hidden',code!==14);
+  for(const input of $$('#win-sprint-fields input, #win-sprint-fields select'))input.disabled=code!==14;
   $('#fixed-parts-field').classList.toggle('hidden',is26);
   $('#range-parts-field').classList.toggle('hidden',!is26);
   $('[name=parts]').disabled=is26;
   for(const field of $$('[name=partsMin], [name=partsMax]'))field.disabled=!is26;
   const max=$('[name=maxSteps]');
-  $('#max-steps-field').classList.toggle('hidden',is26);
-  if(is26){max.value=$('[name=partsMax]').value;max.disabled=true;}else{max.disabled=false;}
+  $('#max-steps-field').classList.toggle('hidden',is26||code===99);
+  if(is26){max.value=$('[name=partsMax]').value;max.disabled=true;}else{max.disabled=code===99;}
   const s=strategies.find(x=>x.code===code);
-  $('#strategy-hint').dataset.info=is26?'#26：等份數只是每局的除數，不是關卡上限。固定等份填相同數字；區間每輪隨機抽一次。每局依目前操作金加淨盈虧重新分切至整數，直到不能符合限紅或資金限制才停止。':s?.description||'此策略依原本 RUBY TG Chip V1.8.18 計算規則運作。';
+  $('#strategy-hint').dataset.info=is26?'#26：等份數只是每局的除數，不是關卡上限。固定等份填相同數字；區間每輪隨機抽一次。每局依目前操作金加淨盈虧重新分切至整數，直到不能符合限紅或資金限制才停止。':code===14?'#14：第一關按操作金÷份數起注；前段以起注總額＋本輪已獲淨利，衝刺階段僅用本輪獲利的固定或隨機百分比。掛回首關。':code===99?'#99：首關倍率必須為1；每關以固定起注×自訂倍率，中進、掛回首。倍率長度就是勝進關數，不會反推縮小第一關。':s?.description||'此策略依原本 RUBY TG Chip V1.8.18 計算規則運作。';
+  updateWinStartPreview();
   $('#current-summary').textContent=s?.description||'請選擇策略。';$('#summary-info').dataset.info=s?.description||'請選擇策略。';
 }
 function parseSeq(value){
@@ -2466,8 +2499,14 @@ function readConfig(){
     profitPct:Number(f.get('profitPct')),lossPct:Number(f.get('lossPct')),
     fraction:Number(f.get('fraction')||20),kellyFraction:Number(f.get('kellyFraction')||25)};
   if(config.strategy===26){config.parts=config.partsMin;config.maxSteps=config.partsMax;}
-  const codes={0:'loss_sequence',99:'custom_win_sequence',66:'layer_sequence',14:'win_sequence',20:'attack_sequence',24:'cancel_list'};
+  const codes={0:'loss_sequence',99:'custom_win_sequence',66:'layer_sequence',20:'attack_sequence',24:'cancel_list'};
   if(codes[config.strategy])config[codes[config.strategy]]=parseSeq(f.get('sequenceInput')||'');
+  if(config.strategy===99)config.maxSteps=config.custom_win_sequence.length;
+  if(config.strategy===14){
+    config.sprintStart=Number($('[name=sprintStart]').value);
+    config.sprintMinPct=Number($('[name=sprintMinPct]').value);
+    config.sprintMaxPct=Number($('[name=sprintMaxPct]').value);
+  }
   if(config.strategy===20)config.retreat_sequence=parseSeq(f.get('sequenceSecondary')||'');
   if(config.strategy===23)config.probability=Number(f.get('probability'));
   return config;
@@ -2632,6 +2671,8 @@ function bindEvents(){
   historyHandle.addEventListener('touchstart',e=>{drawerTouchY=e.changedTouches[0]?.clientY??null;},{passive:true});
   historyHandle.addEventListener('touchend',e=>{if(drawerTouchY!==null&&e.changedTouches[0]?.clientY-drawerTouchY>70)closeDrawers();drawerTouchY=null;},{passive:true});
   $('#strategy-select').addEventListener('change',changeStrategyFields);
+  $('#config-form').addEventListener('input',updateWinStartPreview);
+  $('#config-form').addEventListener('change',updateWinStartPreview);
   $('#market').addEventListener('change',e=>{
     $('[name=count]').value=e.target.value==='單球'?6:1;
     updateMarketLimitFields();
