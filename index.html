@@ -2810,7 +2810,9 @@ function renderLayerGrid(){
     const group=document.createElement('section');group.className='layer-grid-row';
     const header=document.createElement('div');header.className='layer-grid-bar';
     const name=document.createElement('strong');name.textContent='第'+(layer+1)+'層';
-    const count=document.createElement('small');count.textContent=values.length+' 關';
+    const count=document.createElement('small');
+    const countLabel=()=>{const enabled=readLayerGrid()[layer].filter(v=>Number(v)>0).length;return (enabled?enabled+' 關啟用':'未啟用')+'／'+readLayerGrid()[layer].length+' 格';};
+    count.textContent=countLabel();
     const remove=document.createElement('button');
     remove.type='button';remove.textContent='－';remove.disabled=!active||values.length<=4;
     remove.setAttribute('aria-label','刪除第'+(layer+1)+'層最後一關');
@@ -2841,6 +2843,7 @@ function renderLayerGrid(){
         const rows=readLayerGrid();
         if(rows[layer]&&step<rows[layer].length){rows[layer][step]=input.value;writeLayerGrid(rows);}
         input.classList.toggle('layer-inactive',input.value===''||Number(input.value)===0);
+        count.textContent=countLabel();
         updateLayerBudgetSummary();
       });
       cell.append(caption,input);cells.append(cell);
