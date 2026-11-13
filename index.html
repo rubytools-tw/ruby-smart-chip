@@ -2543,8 +2543,14 @@ function fieldsFromLegacyState(state){
   const seqByCode={0:'loss_sequence',99:'custom_win_sequence',20:'attack_sequence',24:'cancel_list'};
   const seq=state[seqByCode[selected?.code]];
   if(Array.isArray(seq)&&seq.length)fields.sequenceInput=seq.join(',');
-  if(selected?.code===66&&state.twoleg_version===3&&Array.isArray(state.layer_stakes))
+  if(selected?.code===66&&state.twoleg_version===4&&Array.isArray(state.layer_stakes)){
     fields.layerGrid=JSON.stringify(state.layer_stakes);
+    fields.layerGridUnit='per_code_v4';
+  }else if(selected?.code===66&&state.twoleg_version===3&&Array.isArray(state.layer_stakes)){
+    // Old loaded archive continues v3 total-amount maths; convert ONLY
+    // the editable next-plan settings at initial form hydration.
+    fields.layerGrid=JSON.stringify(state.layer_stakes);
+  }
   if(selected?.code===1&&state.peak_lock_version===2){
     fields.peakLockPercent=state.peak_lock_percent;
     fields.peakLockCount=state.peak_lock_target;
@@ -2592,13 +2598,14 @@ function showMarketLimitWarning(message){
   el.classList.toggle('hidden',!message);
 }
 function marketSettingsValid(show=true){
+  if(getCode()===66)updateLayerBudgetSummary();
   if(!callPython||visibleLimitMarket!==$('#market').value){
     updateWinStartPreview(null,'計算核心尚未載入');
     return false;
   }
   try{
     if(!$('#config-form').checkValidity()){
-      const invalid=$('#config-form input, #config-form select').find(el=>!el.checkValidity());
+      const invalid=$$('#config-form input, #config-form select').find(el=>!el.checkValidity());
       throw Error(invalid?.validationMessage||'請確認參數輸入正確');
     }
     const result=JSON.parse(callPython('validate',JSON.stringify(readConfig())));
@@ -2645,6 +2652,29 @@ function loadLocalPreferencesAndHistory(){
   const fields=previous?{...previous}:null;
   if(fields&&String(fields.strategy)==='99'&&fields.sequenceInput==='3,1,2,3,2,3,4,1,2')
     fields.sequenceInput='1,1';
+  if(fields&&fields.layerGridUnit!=='per_code_v4'&&fields.layerGrid!==undefined){
+    // Previous releases used TOTAL per-cell figures. Replace only the
+    // previous factory default with the newly requested reference grid.
+    // Preserve custom users' historical effective total exposure by
+    // dividing their old totals by number of codes (rounding down).
+    try{
+      const grid=JSON.parse(fields.layerGrid);
+      const previousDefault=[[12,24,48,96],[36,72,144,288],[60,120,240,480],[120,240,480,960]];
+      if(JSON.stringify(grid)===JSON.stringify(previousDefault)){
+        fields.layerGrid=JSON.stringify(DEFAULT_LAYER_GRID);
+      }else if(Array.isArray(grid)&&grid.length===4&&grid.every(row=>Array.isArray(row))){
+        const count=fields.market==='單球'?Math.max(1,Number(fields.count)||6):1;
+        const mapped=grid.map(row=>row.map(v=>Math.max(0,Math.floor(Number(v)/count)||0)));
+        fields.layerGrid=JSON.stringify(mapped[0]?.[0]>0?mapped:DEFAULT_LAYER_GRID);
+      }else{
+        fields.layerGrid=JSON.stringify(DEFAULT_LAYER_GRID);
+      }
+      fields.layerGridUnit='per_code_v4';
+    }catch{
+      fields.layerGrid=JSON.stringify(DEFAULT_LAYER_GRID);
+      fields.layerGridUnit='per_code_v4';
+    }
+  }
   if(fields){
     if(String(fields.strategy)==='26'){
       if(fields.partsMin===undefined)fields.partsMin=fields.parts??6;
