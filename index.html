@@ -2908,7 +2908,7 @@ function updateHighPreview(){
   $('#high-positive').textContent='+'+balanceFmt(range);
   $('#high-pnl').textContent=(pnl<0?'−':pnl>0?'+':'')+balanceFmt(Math.abs(pnl))+' 元';
   $('#high-pnl').className=pnl<0?'loss':pnl>0?'profit':'';
-  for(const b of $('[data-high]'))b.classList.toggle('active',Number(b.dataset.balance)===pnl);
+  for(const b of $$('[data-high]'))b.classList.toggle('active',Number(b.dataset.high)===pnl);
   if($('[name=highBaseMode]').value==='auto'){
     const parts=Math.max(1,Number($('[name=parts]').value)||1);
     const fallback=Math.floor(op/parts/codes/10);
@@ -3332,7 +3332,7 @@ function bindEvents(){
   for(const b of $$('[data-balance]'))b.addEventListener('click',()=>{$('#balance-slider').value=b.dataset.balance;updateBalancePreview();});
   $('#balance-auto').addEventListener('click',()=>{$('[name=balanceBaseMode]').value='auto';updateBalancePreview();persistBalancePreview();});
   $('#high-slider').addEventListener('input',updateHighPreview);
-  for(const b of $('[data-high]'))b.addEventListener('click',()=>{$('#high-slider').value=b.dataset.high;updateHighPreview();});
+  for(const b of $$('[data-high]'))b.addEventListener('click',()=>{$('#high-slider').value=b.dataset.high;updateHighPreview();});
   $('#high-auto').addEventListener('click',()=>{$('[name=highBaseMode]').value='auto';updateHighPreview();persistBalancePreview();});
   document.addEventListener('visibilitychange',()=>{
     if(!document.hidden&&snapshot){persist();render();}
