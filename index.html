@@ -1683,12 +1683,18 @@ def details(s):
             result['warning'] = (f'攻擊序列{len(s.get("attack_sequence", []))}筆、退守序列{len(s.get("retreat_sequence", []))}筆；'
                                  f'設定{maximum}關必須各有至少{maximum-1}筆（另含測試1關）。不足者會在序列末階暫停。')
     elif sid == 'twoleg':
-        layers = len(s.get('layer_sequence', []))
-        effective = min(maximum, layers)
-        result['effective'] = effective
-        result['line'] = f'設定最大{maximum}層｜實際{effective}層（每層最多2關）'
-        if layers < maximum:
-            result['warning'] = f'分層序列只有{layers}層，並非{maximum}層；未自動補倍率，末層掛後暫停。'
+        if s.get('twoleg_version')==2:
+            pairs=s.get('layer_pairs',[])
+            result['effective']=len(pairs)
+            result['line']=(f'#66 逐關分層：共{len(pairs)}層／每層2關｜'
+                            '第一關中進同層第二關；第二關中回上一層；掛進下一層，末層掛暫停')
+        else:
+            layers = len(s.get('layer_sequence', []))
+            effective = min(maximum, layers)
+            result['effective'] = effective
+            result['line'] = f'設定最大{maximum}層｜實際{effective}層（每層最多2關）'
+            if layers < maximum:
+                result['warning'] = f'分層序列只有{layers}層，並非{maximum}層；未自動補倍率，末層掛後暫停。'
     elif sid == 'tianmen':
         effective = min(maximum, 5)
         result['effective'] = effective
@@ -1862,6 +1868,24 @@ def new_state(config):
     prob=config.get('probability')
     if prob not in (None,''):
         s['kelly_probability']=float(prob)
+    if strategy_code==66:
+        raw_pairs=config.get('layerPairs',[[1,2],[3,9],[6,24]])
+        if not isinstance(raw_pairs,list) or len(raw_pairs)!=3:
+            raise ValueError('#66 請設定第一至第三層，每層兩個倍率')
+        pairs=[]
+        for idx,raw_pair in enumerate(raw_pairs,1):
+            if not isinstance(raw_pair,list) or len(raw_pair)!=2:
+                raise ValueError(f'#66 第{idx}層需要兩個倍率')
+            try:
+                first,second=map(float,raw_pair)
+            except (TypeError,ValueError,OverflowError):
+                raise ValueError(f'#66 第{idx}層倍率格式錯誤')
+            if not (0<first<=100000 and 0<second<=100000):
+                raise ValueError(f'#66 第{idx}層倍率需為大於0且不超過100000的數字')
+            pairs.append([first,second])
+        s['layer_pairs']=pairs
+        s['twoleg_version']=2
+        s['max_steps']=len(pairs)
     for key in ('loss_sequence','win_sequence','custom_win_sequence','layer_sequence','attack_sequence','retreat_sequence','cancel_list'):
         if key in config:
             seq=config[key]
@@ -2129,6 +2153,11 @@ def web_call(action, payload_json='{}'):
             out=evaluate_state()
         elif action=='load':
             s=p.get('state')
+            if isinstance(s,dict) and s.get('strategy')=='兩關分層法':
+                # Keep old backups: the new strategy name maps to the same
+                # internal id; absence of twoleg_version retains the old math.
+                s=copy.deepcopy(s)
+                s['strategy']='逐關分層法'
             if s is not None and (not isinstance(s,dict) or s.get('strategy') not in strategy_engine.BY_NAME):
                 raise ValueError('這不是可辨識的 RUBY Smart Chip 資料')
             STATE=s
@@ -2156,6 +2185,9 @@ def web_call(action, payload_json='{}'):
                         STATE['plan_state']['exhausted']=False
                 STATE['round_offer']=False
             UNDO=p.get('undo') if isinstance(p.get('undo'),dict) else None
+            if UNDO is not None and UNDO.get('strategy')=='兩關分層法':
+                UNDO=copy.deepcopy(UNDO)
+                UNDO['strategy']='逐關分層法'
             LAST_ACTION_ID=None
             out=evaluate_state()
         elif action=='settle':out=settle(p.get('outcome'),p.get('actionId'))
