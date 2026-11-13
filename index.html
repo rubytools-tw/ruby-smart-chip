@@ -399,6 +399,7 @@ body[data-font-size="large"]{
 #high-current{font-size:11px;color:var(--muted);line-height:1.4}
 #balance-progress,#high-progress,#vol-progress{display:block;font-size:11px;color:#b9e4ff;font-weight:700}
 .balance-quick button:disabled{opacity:.42;cursor:not-allowed}
+#vol-slider{width:100%;accent-color:var(--accent);margin:4px 0;cursor:pointer}
 </style>
 </head>
 <body data-theme="neon">
@@ -529,6 +530,22 @@ body[data-font-size="large"]{
         <div class="balance-result" aria-live="polite"><div><small>預覽每碼</small><b id="high-per">—</b></div><div><small>預覽總注</small><b id="high-total">—</b></div></div>
         <p id="high-math">每碼 × 碼數 = 總注</p>
         <p id="high-warning" role="status"></p>
+      </section>
+
+      <section id="vol-preview" class="balance-preview field-full hidden" aria-label="#04 損益波動調節預覽">
+        <div class="balance-head"><strong>#04 損益波動注碼預覽</strong><small>僅試算 · 不改下注</small></div>
+        <p>依目前切分計算起注，再假設不同累積盈虧與近期波動。實際報價取決於最近10局的結算結果。</p>
+        <label class="field"><span>假設最近10局損益波動 σ（元）</span><input id="vol-sigma" name="volSigma" type="number" min="0" max="1000000000" step="1" value="0" disabled></label>
+        <div class="balance-slider-top"><span>假設累積淨盈虧</span><strong id="vol-pnl">0 元</strong></div>
+        <small id="vol-progress">停利完成 0%</small>
+        <input id="vol-slider" type="range" min="-1000" max="1000" step="1" value="0" aria-label="假設累積淨盈虧">
+        <div class="balance-range-labels"><span id="vol-negative">−1,000（停損100%）</span><span>0</span><span id="vol-positive">+1,000（停利100%）</span></div>
+        <div class="balance-quick" role="group" aria-label="假設獲利完成度">
+          <button type="button" data-vol="-100">−100%</button><button type="button" data-vol="-50">−50%</button><button type="button" data-vol="-25">−25%</button><button type="button" data-vol="0">0%</button><button type="button" data-vol="25">+25%</button><button type="button" data-vol="50">+50%</button><button type="button" data-vol="100">+100%</button>
+        </div>
+        <div class="balance-result" aria-live="polite"><div><small>預覽每碼</small><b id="vol-per">—</b></div><div><small>預覽總注</small><b id="vol-total">—</b></div></div>
+        <p id="vol-math">每碼 × 碼數＝總注</p>
+        <p id="vol-warning" role="status">僅供估算，不代表下一局實際報價。</p>
       </section>
       <details class="advanced field-full"><summary>進階設定 <span>停利、停損及策略專屬參數</span></summary><div class="fields">
         <label class="field"><span>停利比例（%）</span><input name="profitPct" type="number" min="1" max="10000" step="any" value="100" required></label>
@@ -2974,6 +2991,40 @@ function updateHighPreview(){
   if(pnl>0)warnings.push('突破高點後實際高點會重新更新');
   $('#high-warning').textContent=warnings.length?'注意：'+warnings.join('、'):'僅供估算，不代表 #03 實際下一局報價。';
 }
+
+function updateVolatilityPreview(){
+  if(getCode()!==4)return;
+  const targets=goalPreviewTargets();
+  const pnl=configuredGoalSlider('#vol-slider',-targets.loss,targets.profit,'vol');
+  const codes=$('#market').value==='單球'?Math.max(1,Number($('[name=count]').value)||1):1;
+  const parts=Math.max(1,Number($('[name=parts]').value)||1);
+  const sigma=Math.max(0,Number($('#vol-sigma').value)||0);
+  const minBet=Math.max(1,Number($('[name=minBet]').value)||1);
+  const maxBet=Math.max(minBet,Number($('[name=maxBet]').value)||minBet);
+  $('#vol-negative').textContent='−'+balanceFmt(targets.loss)+'（停損100%）';
+  $('#vol-positive').textContent='+'+balanceFmt(targets.profit)+'（停利100%）';
+  $('#vol-pnl').textContent=(pnl>0?'+':pnl<0?'−':'')+balanceFmt(Math.abs(pnl))+' 元';
+  $('#vol-pnl').className=pnl>0?'profit':pnl<0?'loss':'';
+  $('#vol-progress').textContent=pnlGoalProgress(pnl,targets);
+  const riskUnit=targets.loss/parts;
+  const waveSteps=Math.min(24,Math.ceil(sigma/Math.max(.01,riskUnit)));
+  const factor=Math.max(0,(targets.loss+pnl)/targets.loss)*parts/(parts+waveSteps);
+  const base=targets.op/parts/codes;
+  const rawPer=Math.floor(base*factor);
+  const per=Math.min(rawPer,maxBet);
+  const total=per*codes;
+  $('#vol-per').textContent=per>=minBet?balanceFmt(per)+' 元':'無法起注';
+  $('#vol-total').textContent=per>=minBet?balanceFmt(total)+' 元':'—';
+  $('#vol-math').textContent='未取整基準 '+base.toFixed(2)+' 元 × 調節係數 '+factor.toFixed(3)+' → '+Math.max(0,per)+' 元／碼';
+  const warnings=[];
+  if(rawPer>maxBet)warnings.push('已限制在最高限紅');
+  if(per<minBet)warnings.push('低於最低限紅，不強制補注');
+  if(pnl<=-targets.loss)warnings.push('已達停損，實際計畫停止');
+  if(pnl>=targets.profit)warnings.push('已達停利，實際計畫停止');
+  if(total>Math.max(0,targets.op+pnl))warnings.push('總注超出假設可用金');
+  if(sigma===0)warnings.push('波動值為0，不代表真實最近10局');
+  $('#vol-warning').textContent=(warnings.length?'注意：'+warnings.join('、')+'。':'')+'僅為假設試算，非下局報價。';
+}
 function persistBalancePreview(){
   try{localStorage.setItem(SETTINGS_KEY,JSON.stringify({version:1,fields:getSavedFields()}));}
   catch{toast('預覽設定儲存失敗');}
@@ -2982,6 +3033,7 @@ function updateWinStartPreview(result=null,error=''){
   balanceQuotePer=!error&&Number.isFinite(result?.firstQuote?.per)?Number(result.firstQuote.per):null;
   updateBalancePreview();
   updateHighPreview();
+  updateVolatilityPreview();
   const value=$('#win-preview-total'),detail=$('#win-preview-detail');
   if(error){
     value.value='無法起注';
@@ -3092,6 +3144,8 @@ function changeStrategyFields(){
   const code=getCode();
   $('#balance-preview').classList.toggle('hidden',code!==2);
   $('#high-preview').classList.toggle('hidden',code!==3);
+  $('#vol-preview').classList.toggle('hidden',code!==4);
+  $('#vol-sigma').disabled=code!==4;
   for(const input of $$('#high-preview input[name]'))input.disabled=code!==3;
   const fieldMap={0:['loss_sequence','自訂關卡倍率','1,2'],99:['custom_win_sequence','勝進倍率','1,1'],20:['attack_sequence','攻擊倍率','1,1.6,2,2.6,3.2,4,5,6'],24:['cancel_list','清單數值','1,1']};
   for(const id of ['fraction-field','kelly-field','probability-field','sequence-field','sequence-secondary-field','twoleg-layers-field','peak-lock-fields'])$('#'+id).classList.add('hidden');
@@ -3347,6 +3401,7 @@ function bindEvents(){
   });
 
   $('#config-form').addEventListener('input',e=>{
+    if(e.target.closest('#vol-preview')){updateVolatilityPreview();if(e.target.name)persistBalancePreview();return;}
     if(e.target.closest('#high-preview')){
       if(e.target.id==='high-base')$('[name=highBaseMode]').value='manual';
       updateHighPreview();if(e.target.name)persistBalancePreview();return;
@@ -3358,6 +3413,7 @@ function bindEvents(){
     saveSettings();
   });
   $('#config-form').addEventListener('change',e=>{
+    if(e.target.closest('#vol-preview')){updateVolatilityPreview();if(e.target.name)persistBalancePreview();return;}
     if(e.target.closest('#high-preview')){updateHighPreview();if(e.target.name)persistBalancePreview();return;}
     if(e.target.closest('#balance-preview')){updateBalancePreview();if(e.target.name)persistBalancePreview();return;}
     saveSettings();
@@ -3368,6 +3424,8 @@ function bindEvents(){
   $('#high-slider').addEventListener('input',updateHighPreview);
   for(const b of $$('[data-high]'))b.addEventListener('click',()=>{$('#high-slider').value=b.dataset.high;updateHighPreview();});
   $('#high-auto').addEventListener('click',()=>{$('[name=highBaseMode]').value='auto';updateHighPreview();persistBalancePreview();});
+  $('#vol-slider').addEventListener('input',updateVolatilityPreview);
+  for(const b of $('[data-vol]'))b.addEventListener('click',()=>{$('#vol-slider').value=b.dataset.vol;updateVolatilityPreview();});
   document.addEventListener('visibilitychange',()=>{
     if(!document.hidden&&snapshot){persist();render();}
   });
