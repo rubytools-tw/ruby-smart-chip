@@ -1086,9 +1086,9 @@ def base_raw(s):
     if k=='dalembert':return u/n/sum(range(1,s['max_steps']+1))
     if k=='fibonacci':return u/n/sum(fibs(s['max_steps']))
     if k=='twoleg':
-        if s.get('twoleg_version')==3:
-            # User enters exact total stakes for every cell; no derived
-            # multiplier budget is allowed to alter those values.
+        if s.get('twoleg_version') in (3,4):
+            # v3 stores absolute total amounts; v4 stores per-code amounts.
+            # Both bypass legacy multiplier-sum sizing.
             return dec(s['operation_base'])/dec(s['risk_parts'])/n
         if s.get('twoleg_version')==2:
             # Reserve one share for the complete set of paired stages; do
@@ -1191,7 +1191,7 @@ def quote(s):
             return None,'下局總注超過剩餘停損額度，不得執行'
         if dec(existing['total']) > dec(available(s)):
             return None,'本局總投入超過可用資金，不得執行'
-        if sid(s)!='equal_reset' and not (s['strategy']=='高點獲利鎖定法' and s.get('peak_lock_version')==2) and not (sid(s)=='twoleg' and s.get('twoleg_version')==3) and not (sid(s) in ('winner','custom_win') and s.get('win_mode_version')==2) and 'active_operation_budget' in s and dec(existing['total']) > dec(operation_budget(s)):
+        if sid(s)!='equal_reset' and not (s['strategy']=='高點獲利鎖定法' and s.get('peak_lock_version')==2) and not (sid(s)=='twoleg' and s.get('twoleg_version') in (3,4)) and not (sid(s) in ('winner','custom_win') and s.get('win_mode_version')==2) and 'active_operation_budget' in s and dec(existing['total']) > dec(operation_budget(s)):
             return None,'本局總投入超過當前操作預算，不得執行'
         return copy.deepcopy(existing),''
     a=available(s);n=s['number_count'];k=sid(s);p=progression._p(s)
@@ -1209,6 +1209,7 @@ def quote(s):
     # quote. Other strategies keep their previously committed round base.
     peak_v2=s['strategy']=='高點獲利鎖定法' and s.get('peak_lock_version')==2
     layer_v3=k=='twoleg' and s.get('twoleg_version')==3
+    layer_v4=k=='twoleg' and s.get('twoleg_version')==4
     raw=base_raw(s) if k in ('fixed','kelly','recovery','equal_reset') or peak_v2 or s['strategy']=='剩餘局數預算法' else None
     b=(int(raw.to_integral_value(rounding=ROUND_CEILING if k=='recovery' else ROUND_FLOOR)) if raw is not None else s.get('round_base'))
     if k=='recovery' and dec(progression.conservative_rate(s))<=dec(n):return None,'賠率減碼數小於或等於0，禁止計算下注額'
@@ -1217,16 +1218,18 @@ def quote(s):
         if raw<=0:return None,'凱利比例≤0，本次不進場'
     if b is None:return None,'基額無法計算，請重新設定參數或變更策略'
     i=p['step'];mult=1
-    if layer_v3:
+    if layer_v3 or layer_v4:
         grid=s.get('layer_stakes') or []
         leg=int(p.get('leg',0))
         if i<0 or i>=len(grid) or leg<0 or leg>=len(grid[i]):
             return None,'#66 分層下注位置不正確'
+        if layer_v4 and (i>=s['layer_active_count'] or
+                         leg>=s['layer_active_counts'][i] or grid[i][leg]<=0):
+            return None,'#66 此格尚未啟用（0／空白）；不能產生0元下注'
     keys={'custom':'loss_sequence','custom_win':'custom_win_sequence','winner':'win_sequence','tianmen':None,'twoleg':'layer_sequence'}
     if k in keys:
-        if layer_v3:
-            # 4 layers may each contain up to 10 absolute total stakes.
-            # NEVER consult the obsolete 2-entry layer_sequence here.
+        if layer_v3 or layer_v4:
+            # Do not use obsolete two-stage multiplier sequence.
             mult=1
         elif k=='twoleg' and s.get('twoleg_version')==2:
             pairs=s['layer_pairs']
@@ -1283,6 +1286,10 @@ def quote(s):
                 chosen_pct=int(s.get('win_sprint_min_pct',80))
                 s['win_sprint_selected_pct']=chosen_pct
             per=floor(accumulated*dec(chosen_pct)/dec(100)/dec(n))
+    elif layer_v4:
+        # The user specifies integer PER-CODE amount, not total.
+        per=int(s['layer_stakes'][i][p['leg']])
+        chosen_pct=None
     elif layer_v3:
         requested=dec(s['layer_stakes'][i][p['leg']])
         per=floor(requested/dec(n))
@@ -1305,7 +1312,7 @@ def quote(s):
     if total > max(dec(0), dec(s['loss_limit']) + dec(s['pnl'])):
         return None,'下局總注超過剩餘停損額度，不得執行'
     if total>a+1e-8:return None,'本局總投入超過可用資金，不得執行'
-    if k!='equal_reset' and not peak_v2 and not layer_v3 and not (k in ('winner','custom_win') and s.get('win_mode_version')==2) and 'active_operation_budget' in s and total>operation_budget(s)+1e-8:
+    if k!='equal_reset' and not peak_v2 and not layer_v3 and not layer_v4 and not (k in ('winner','custom_win') and s.get('win_mode_version')==2) and 'active_operation_budget' in s and total>operation_budget(s)+1e-8:
         return None,'本局總投入超過當前操作預算，不得執行'
     # Legacy fixed caps are explicit opt-in, never determine the base of 20/24.
     if s.get('extra_caps_enabled') and k not in ('attack','labouchere') and (per>s['stake_cap'] or total>s['total_cap']):
@@ -1389,6 +1396,20 @@ def after_result(s,win,delta):
         move=not win if k=='custom' else win
         j=i+1 if move else 0
         p['step']=j%len(sequence(s,key));boundary=p['step']==0
+    elif k=='twoleg' and s.get('twoleg_version')==4:
+        active_layers=int(s['layer_active_count'])
+        active_steps=int(s['layer_active_counts'][i])
+        leg=int(p.get('leg',0))
+        if win and leg+1<active_steps:
+            p['leg']=leg+1
+        elif win:
+            p.update(step=max(0,i-1),leg=0,exhausted=False)
+            boundary=i==0
+        else:
+            next_layer=i+1
+            p.update(step=min(next_layer,active_layers-1),leg=0,
+                     exhausted=next_layer>=active_layers)
+        s['plan_state']=p
     elif k=='twoleg' and s.get('twoleg_version')==3:
         grid=s['layer_stakes']
         if win and int(p.get('leg',0))+1<len(grid[i]):
