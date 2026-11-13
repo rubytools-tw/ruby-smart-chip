@@ -1894,14 +1894,19 @@ def enforce_table_limits(s,q,reason=''):
         return None,f'{market}限紅：{unit} {amount:g} 超過最高下注 {maximum:g}；請重新編排操作金、切分及策略參數'
     return q,reason
 
-def validate_initial_quotes(s):
-    """Reject settings when *any* possible #26 split cannot place its first bet."""
+def validate_initial_quotes(s, include_range=False):
+    """Check every possible #26 split and return REAL first-wager quote(s).
+
+    The preview uses the same quote/limit engine as Start and Settle.
+    A range preview must not flicker because a random initial split was sampled.
+    """
     if strategy26.active(s):
         low=int(s.get('split_min',s['risk_parts']))
         high=int(s.get('split_max',s['risk_parts']))
         candidates=range(low,high+1)
     else:
         candidates=[int(s['risk_parts'])]
+    checked=[]
     for parts in candidates:
         probe=copy.deepcopy(s)
         if strategy26.active(probe):
@@ -1914,8 +1919,20 @@ def validate_initial_quotes(s):
         if q is None:
             prefix=f'切分 {parts} 等份：' if strategy26.active(s) else ''
             raise ValueError(prefix+(reason or '無法產生符合限紅的下一局注碼，請重新編排參數'))
+        checked.append((parts,q))
     q,reason=sizing.quote(s)
-    return enforce_table_limits(s,q,reason)[0]
+    q,reason=enforce_table_limits(s,q,reason)
+    if q is None:
+        raise ValueError(reason or '無法產生符合限紅的第一局注碼')
+    if include_range:
+        return q,dict(minTotal=min(v['total'] for _,v in checked),
+                      maxTotal=max(v['total'] for _,v in checked),
+                      minPer=min(v['per'] for _,v in checked),
+                      maxPer=max(v['per'] for _,v in checked),
+                      count=int(q['count']),
+                      splitMin=min(part for part,_ in checked),
+                      splitMax=max(part for part,_ in checked))
+    return q
 
 def evaluate_state():
     if STATE is None:
@@ -2067,8 +2084,8 @@ def web_call(action, payload_json='{}'):
         p=json.loads(payload_json or '{}')
         if action=='validate':
             sample=new_state(p)
-            q=validate_initial_quotes(sample)
-            out={'valid':True,'firstQuote':q}
+            q,quote_range=validate_initial_quotes(sample,include_range=True)
+            out={'valid':True,'firstQuote':q,'firstQuoteRange':quote_range}
             return json.dumps({'ok':True,'result':out},ensure_ascii=False,allow_nan=False)
         if action=='start':
             candidate=new_state(p)
