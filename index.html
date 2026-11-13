@@ -2839,7 +2839,7 @@ function updateBalancePreview(){
   $('#balance-positive').textContent='+'+balanceFmt(range);
   $('#balance-pnl').textContent=(pnl<0?'−':pnl>0?'+':'')+balanceFmt(Math.abs(pnl))+' 元';
   $('#balance-pnl').className=pnl<0?'loss':pnl>0?'profit':'';
-  for(const b of $('[data-balance]'))b.classList.toggle('active',Number(b.dataset.balance)===pnl);
+  for(const b of $$('[data-balance]'))b.classList.toggle('active',Number(b.dataset.balance)===pnl);
   if($('[name=balanceBaseMode]').value==='auto'){
     const parts=Math.max(1,Number($('[name=parts]').value)||1);
     const fallback=Math.floor(op/parts/codes/10);
@@ -3245,7 +3245,7 @@ function bindEvents(){
     saveSettings();
   });
   $('#balance-slider').addEventListener('input',updateBalancePreview);
-  for(const b of $('[data-balance]'))b.addEventListener('click',()=>{$('#balance-slider').value=b.dataset.balance;updateBalancePreview();});
+  for(const b of $$('[data-balance]'))b.addEventListener('click',()=>{$('#balance-slider').value=b.dataset.balance;updateBalancePreview();});
   $('#balance-auto').addEventListener('click',()=>{$('[name=balanceBaseMode]').value='auto';updateBalancePreview();persistBalancePreview();});
   document.addEventListener('visibilitychange',()=>{
     if(!document.hidden&&snapshot){persist();render();}
