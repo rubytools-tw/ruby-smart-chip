@@ -366,6 +366,9 @@ body[data-font-size="large"]{
 .layer-grid-cell small{font-size:10px;line-height:1.2;color:var(--muted)}
 .layer-grid-cell input{width:100%;min-width:0;text-align:center;padding:6px 2px;font-size:13px;appearance:textfield}
 .layer-grid-cell input::-webkit-inner-spin-button,.layer-grid-cell input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.layer-grid-cell input.layer-inactive{opacity:.57}
+.layer-budget-summary{font-size:11px;color:var(--muted);line-height:1.6;overflow-wrap:anywhere}
+.layer-budget-summary .layer-budget-warning{display:block;color:var(--danger);font-weight:600}
 </style>
 </head>
 <body data-theme="neon">
@@ -463,10 +466,12 @@ body[data-font-size="large"]{
         <label class="field field-full special-param hidden" id="sequence-field"><span id="sequence-label">自訂倍率</span><input name="sequenceInput" type="text" placeholder="1,2,3,5"></label>
         <label class="field field-full special-param hidden" id="sequence-secondary-field"><span id="sequence-secondary-label">退守倍率</span><input name="sequenceSecondary" type="text" placeholder="2,3,5,8,13,20,30"></label>
         <div class="field-full special-param hidden layer-grid-panel" id="twoleg-layers-field">
-          <div class="layer-grid-heading"><strong>#66 分層下注金額</strong><small>4 層 × 預設每層 4 關；每層可使用＋增加到 10 關。輸入每關「總下注金額」，非倍率。</small></div>
+          <div class="layer-grid-heading"><strong>#66 每碼配注金額</strong><small>4 層 × 預設每層 4 格，各層可按＋增加到 10 格。輸入的是「每碼金額」，實際總注＝每碼 × 下注碼數。0／空白代表停用尾端關卡。</small></div>
           <div id="layer-grid-editor" class="layer-grid-editor"></div>
-          <input type="hidden" name="layerGrid" id="layer-grid-data" value="[[12,24,48,96],[36,72,144,288],[60,120,240,480],[120,240,480,960]]" disabled>
-          <small class="twoleg-rule">第 1～倒數第 2 關中獎→同層下一關；最後一關中獎→上一層第一關；任何一關掛→下一層第一關；第四層掛則暫停。</small>
+          <input type="hidden" name="layerGrid" id="layer-grid-data" value="[[6,12,0,0],[12,36,0,0],[36,180,0,0],[0,0,0,0]]" disabled>
+          <input type="hidden" name="layerGridUnit" value="per_code_v4" disabled>
+          <div id="layer-budget-summary" class="layer-budget-summary" aria-live="polite"></div>
+          <small class="twoleg-rule">連中進下一個有金額的關卡，最後啟用關中回上一層第一關；任一關掛往下一個啟用層，沒有下一層就暫停。未使用格請填0或留空。</small>
         </div>
       </div></details>
       <div class="form-note info-row"><span>策略使用說明</span><button type="button" id="strategy-hint" class="info-btn" data-info="#26：依切分份數固定等額配置。" aria-label="查看策略規則">ⓘ</button></div><div class="drawer-form-actions"><button type="button" class="button subtle close-drawer">取消修改</button><button id="start-button" type="submit" class="button primary" disabled>確認設定／開始新計畫</button></div>
@@ -2750,7 +2755,7 @@ function updateWinStartPreview(result=null,error=''){
   detail.classList.remove('invalid');
 }
 
-const DEFAULT_LAYER_GRID=[[12,24,48,96],[36,72,144,288],[60,120,240,480],[120,240,480,960]];
+const DEFAULT_LAYER_GRID=[[6,12,0,0],[12,36,0,0],[36,180,0,0],[0,0,0,0]];
 function readLayerGrid(){
   try{
     const value=JSON.parse($('#layer-grid-data').value);
@@ -2781,7 +2786,7 @@ function renderLayerGrid(){
     add.setAttribute('aria-label','第'+(layer+1)+'層新增一關');
     add.addEventListener('click',()=>{
       const rows=readLayerGrid();if(rows[layer].length>=10)return;
-      rows[layer].push('');writeLayerGrid(rows);renderLayerGrid();
+      rows[layer].push('');writeLayerGrid(rows);renderLayerGrid();saveSettings();
       root.querySelector('[data-layer="'+layer+'"][data-step="'+(rows[layer].length-1)+'"]')?.focus();
     });
     header.append(name,count,remove,add);
@@ -2790,18 +2795,45 @@ function renderLayerGrid(){
       const cell=document.createElement('label');cell.className='layer-grid-cell';
       const caption=document.createElement('small');caption.textContent='第'+(step+1)+'關';
       const input=document.createElement('input');
-      input.type='number';input.inputMode='numeric';input.min='1';input.max='1000000000';
-      input.step='1';input.required=true;input.value=String(value);
+      input.type='number';input.inputMode='numeric';input.min='0';input.max='1000000000';
+      input.step='1';input.required=false;input.value=String(value);
+      input.classList.toggle('layer-inactive',value===''||Number(value)===0);
       input.disabled=!active;input.dataset.layer=String(layer);input.dataset.step=String(step);
-      input.setAttribute('aria-label','第'+(layer+1)+'層第'+(step+1)+'關總下注金額');
+      input.setAttribute('aria-label','第'+(layer+1)+'層第'+(step+1)+'關每碼下注金額，0或空白停用');
       input.addEventListener('input',()=>{
         const rows=readLayerGrid();
         if(rows[layer]&&step<rows[layer].length){rows[layer][step]=input.value;writeLayerGrid(rows);}
+        input.classList.toggle('layer-inactive',input.value===''||Number(input.value)===0);
+        updateLayerBudgetSummary();
       });
       cell.append(caption,input);cells.append(cell);
     });
     group.append(header,cells);root.append(group);
   });
+  updateLayerBudgetSummary();
+}
+function updateLayerBudgetSummary(){
+  const el=$('#layer-budget-summary');
+  if(!el)return;
+  const rows=readLayerGrid();
+  const codeCount=$('#market').value==='單球'?Number($('[name=count]').value):1;
+  const operation=Number($('[name=operation]').value);
+  if(!Number.isInteger(codeCount)||codeCount<1||!Number.isFinite(operation)||operation<=0){
+    el.textContent='請填寫有效操作金及下注碼數';
+    return;
+  }
+  const active=row=>row.filter(x=>Number(x)>0&&Number.isFinite(Number(x))).map(Number);
+  const volumes=rows.map(row=>active(row).reduce((a,b)=>a+b,0)*codeCount);
+  const maxCell=Math.max(0,...rows.flat().filter(x=>Number(x)>0&&Number.isFinite(Number(x))).map(x=>Number(x)*codeCount));
+  el.replaceChildren();
+  const summary=document.createElement('span');
+  summary.textContent='各層所有啟用關卡的投注量合計：'+volumes.map((v,i)=>'第'+(i+1)+'層 '+fmt(v,0)).join(' ／ ')+' 元（非必須預存金額）';
+  el.append(summary);
+  if(maxCell>operation){
+    const warn=document.createElement('span');warn.className='layer-budget-warning';
+    warn.textContent='注意：單關最高總注 '+fmt(maxCell,0)+' 元超過目前操作金 '+fmt(operation,0)+' 元；該關若無足夠可用金將停止，不會自動補注。';
+    el.append(warn);
+  }
 }
 function changeStrategyFields(){
   const code=getCode();
