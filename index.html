@@ -797,7 +797,7 @@ for _d in CATALOG:
 import copy
 import math
 
-_ROWS=[('fixed', '動態固定注', '中性', '每碼維持基本注，中掛都不推進。'), ('fraction', '固定比例法', '中性', '每局總注＝可用操作金×投入比例，平均分給各碼。'), ('budget', '預算分配法', '中性', '每局總注＝min(可用操作金,剩餘停損額)÷預算份數。'), ('winner', '有限連贏法', '勝進', '先依本金等份起注，前段用本輪累積淨獲利加碼，後段以獲利的固定或隨機百分比衝刺；掛回首關。'), ('custom', '自訂關卡配注法', '負追', '掛往配注序列下一關，中回第一關；末階掛後循環回首關（仍受停損與局數限制）。'), ('martingale', '標準馬丁法', '負追', '掛後每碼加倍，中回基本注；最多使用最大關卡數。'), ('tianmen', '天門打法', '負追', '使用你確認的1／3／7／15／31倍版本，掛進、中回首關。'), ('dalembert', '達朗貝爾法', '負追', '掛增加一個基本單位，中減一個單位，最低一單位。'), ('fibonacci', '費波納契法', '負追', '1／1／2／3／5…；掛前進一關，中退兩關，最低首關。'), ('attack', '攻擊／退守切換法', '雙向', '測試注中轉攻擊、掛轉退守；攻擊中進掛回測試；退守掛進中退。'), ('twoleg', '兩關分層法', '雙向', '每層先一注，中再下兩倍；兩關都中回第一層，任一關掛換下一層。'), ('recovery', '目標回補法', '負追', '每碼＝向上取整((未回補虧損＋回補目標)÷(含本金賠率－碼數))。'), ('kelly', '凱利公式', '中性', '每期先回報本期預估中獎率；f=(b×p－(1－p))÷b，b=賠率÷碼數－1；f≤0不下注。'), ('labouchere', '清單消去法', '負追', '下注清單首尾和；中刪首尾，掛把本局單位加到末尾；單項只取該項。'), ('equal_reset','等分倍盈歸本法','等分','(原操作金＋當前淨盈虧－鎖利)／下注碼數／本輪等份；每局重新分切，輪內等份不變、中後下一輪重新抽，直到金額不足才停止，週期淨獲利達起始操作金100%即歸本鎖利。')]
+_ROWS=[('fixed', '動態固定注', '中性', '每碼維持基本注，中掛都不推進。'), ('fraction', '固定比例法', '中性', '每局總注＝可用操作金×投入比例，平均分給各碼。'), ('budget', '預算分配法', '中性', '每局總注＝min(可用操作金,剩餘停損額)÷預算份數。'), ('winner', '有限連贏法', '勝進', '先依本金等份起注，前段用本輪累積淨獲利加碼，後段以獲利的固定或隨機百分比衝刺；掛回首關。'), ('custom', '自訂關卡配注法', '負追', '掛往配注序列下一關，中回第一關；末階掛後循環回首關（仍受停損與局數限制）。'), ('martingale', '標準馬丁法', '負追', '掛後每碼加倍，中回基本注；最多使用最大關卡數。'), ('tianmen', '天門打法', '負追', '使用你確認的1／3／7／15／31倍版本，掛進、中回首關。'), ('dalembert', '達朗貝爾法', '負追', '掛增加一個基本單位，中減一個單位，最低一單位。'), ('fibonacci', '費波納契法', '負追', '1／1／2／3／5…；掛前進一關，中退兩關，最低首關。'), ('attack', '攻擊／退守切換法', '雙向', '測試注中轉攻擊、掛轉退守；攻擊中進掛回測試；退守掛進中退。'), ('twoleg', '逐關分層法', '雙向', '每層可自訂兩關倍率：首關中進同層第二關、第二關中退上一層、任一關掛進下一層；末層掛暫停。'), ('recovery', '目標回補法', '負追', '每碼＝向上取整((未回補虧損＋回補目標)÷(含本金賠率－碼數))。'), ('kelly', '凱利公式', '中性', '每期先回報本期預估中獎率；f=(b×p－(1－p))÷b，b=賠率÷碼數－1；f≤0不下注。'), ('labouchere', '清單消去法', '負追', '下注清單首尾和；中刪首尾，掛把本局單位加到末尾；單項只取該項。'), ('equal_reset','等分倍盈歸本法','等分','(原操作金＋當前淨盈虧－鎖利)／下注碼數／本輪等份；每局重新分切，輪內等份不變、中後下一輪重新抽，直到金額不足才停止，週期淨獲利達起始操作金100%即歸本鎖利。')]
 CATALOG=[dict(id=r[0],name=r[1],kind=r[2],principle=r[3],formula=r[3],
              trigger='有限關卡、金額上限或計畫局數到達即暫停；只有有效中掛才更新策略。',
              limit='籌碼變化不會提高命中機率，亦不保證回本。',group='new') for r in _ROWS]
@@ -1043,7 +1043,12 @@ def base_raw(s):
     if k=='tianmen':return u/n/sum([1,3,7,15,31][:s['max_steps']])
     if k=='dalembert':return u/n/sum(range(1,s['max_steps']+1))
     if k=='fibonacci':return u/n/sum(fibs(s['max_steps']))
-    if k=='twoleg':return u/n/(3*sum(map(dec,sequence(s,'layer_sequence'))))
+    if k=='twoleg':
+        if s.get('twoleg_version')==2:
+            # Reserve one share for the complete set of paired stages; do
+            # not silently increase the first stake when multipliers grow.
+            return u/n/sum((sum(map(dec,pair)) for pair in s['layer_pairs']),dec(0))
+        return u/n/(3*sum(map(dec,sequence(s,'layer_sequence'))))
     if k=='attack':return u/(sum(map(dec,sequence(s,'attack_sequence')))+sum(map(dec,sequence(s,'retreat_sequence'))))*(n/f)
     if k=='labouchere':return u/sum(map(dec,s['cancel_list']))/n
     if k=='fixed':
@@ -1166,7 +1171,13 @@ def quote(s):
     i=p['step'];mult=1
     keys={'custom':'loss_sequence','custom_win':'custom_win_sequence','winner':'win_sequence','tianmen':None,'twoleg':'layer_sequence'}
     if k in keys:
-        if k=='winner' and s.get('win_mode_version')==2:
+        if k=='twoleg' and s.get('twoleg_version')==2:
+            pairs=s['layer_pairs']
+            leg=int(p.get('leg',0))
+            if i>=len(pairs) or leg not in (0,1):
+                return None,'分層關卡超出範圍'
+            mult=pairs[i][leg]
+        elif k=='winner' and s.get('win_mode_version')==2:
             if i>=int(s['max_steps']):return None,'已達勝進關卡上限'
             mult=1
         else:
@@ -1283,6 +1294,21 @@ def after_result(s,win,delta):
         move=not win if k=='custom' else win
         j=i+1 if move else 0
         p['step']=j%len(sequence(s,key));boundary=p['step']==0
+    elif k=='twoleg' and s.get('twoleg_version')==2:
+        layers=len(s['layer_pairs'])
+        if win and int(p.get('leg',0))==0:
+            # First win -> second bet in this layer.
+            p['leg']=1
+        elif win:
+            # Second win -> step back one layer, clamped at the first layer.
+            p.update(step=max(0,i-1),leg=0,exhausted=False)
+            boundary=i==0
+        else:
+            # Any loss -> next layer, never auto-place after the last layer.
+            next_layer=i+1
+            p.update(step=min(next_layer,layers-1),leg=0,
+                     exhausted=next_layer>=layers)
+        s['plan_state']=p
     elif k=='labouchere':
         seq=p.get('list',copy.deepcopy(s['cancel_list']))
         if win:seq=seq[1:-1] if len(seq)>1 else []
