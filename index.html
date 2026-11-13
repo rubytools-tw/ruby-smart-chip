@@ -397,6 +397,8 @@ body[data-font-size="large"]{
 @media(max-width:355px){.balance-preview{padding:8px}.balance-quick button{font-size:9px}}
 #high-slider{width:100%;accent-color:var(--accent);margin:4px 0;cursor:pointer}
 #high-current{font-size:11px;color:var(--muted);line-height:1.4}
+#balance-progress,#high-progress,#vol-progress{display:block;font-size:11px;color:#b9e4ff;font-weight:700}
+.balance-quick button:disabled{opacity:.42;cursor:not-allowed}
 </style>
 </head>
 <body data-theme="neon">
@@ -494,7 +496,7 @@ body[data-font-size="large"]{
           <input type="hidden" name="balanceBaseMode" value="auto">
           <button type="button" class="balance-auto" id="balance-auto">基準跟隨預估起注</button>
         </div>
-        <div class="balance-slider-top"><span>模擬累積淨盈虧</span><strong id="balance-pnl">0 元</strong></div>
+        <div class="balance-slider-top"><span>模擬累積淨盈虧</span><strong id="balance-pnl">0 元</strong></div><small id="balance-progress">停利完成 0%</small>
         <input id="balance-slider" type="range" min="-5000" max="5000" step="100" value="0" aria-label="模擬累積淨盈虧">
         <div class="balance-range-labels"><span id="balance-negative">−5,000</span><span>0 平衡中心</span><span id="balance-positive">+5,000</span></div>
         <div class="balance-quick" role="group" aria-label="快速盈虧預覽">
@@ -517,7 +519,7 @@ body[data-font-size="large"]{
           <input type="hidden" name="highBaseMode" value="auto">
           <button type="button" class="balance-auto" id="high-auto">基準跟隨預估起注</button>
         </div>
-        <div class="balance-slider-top"><span>相對參考高點變動</span><strong id="high-pnl">0 元</strong></div>
+        <div class="balance-slider-top"><span>相對參考高點變動</span><strong id="high-pnl">0 元</strong></div><small id="high-progress">停利完成 0%</small>
         <input id="high-slider" type="range" min="-5000" max="5000" step="100" value="0" aria-label="模擬累積淨盈虧">
         <div class="balance-range-labels"><span id="high-negative">−5,000</span><span>0 參考高點</span><span id="high-positive">+5,000</span></div>
         <div class="balance-quick" role="group" aria-label="快速盈虧預覽">
@@ -2857,18 +2859,44 @@ function getCode(){return Number($('#strategy-select').value||26);}
 
 let balanceQuotePer=null;
 const balanceFmt=n=>Math.round(n).toLocaleString('zh-TW');
+
+function goalPreviewTargets(){
+  const op=Math.max(1,Number($('[name=operation]').value)||1);
+  const profitPct=Math.max(0,Number($('[name=profitPct]').value)||100);
+  const lossPct=Math.max(0,Number($('[name=lossPct]').value)||100);
+  return {op,profit:Math.max(1,Math.round(op*profitPct/100)),loss:Math.max(1,Math.round(op*lossPct/100))};
+}
+function configuredGoalSlider(selector,min,max,dataName){
+  const slider=$(selector);
+  const lower=Math.min(0,Math.round(min)),upper=Math.max(0,Math.round(max));
+  slider.min=String(lower);slider.max=String(upper);slider.step='1';
+  const current=Math.max(lower,Math.min(upper,Math.round(Number(slider.value)||0)));
+  slider.value=String(current);
+  const ratios=[-1,-.5,-.25,0,.25,.5,1];
+  for(const [idx,btn] of $('[data-'+dataName+']').entries()){
+    const p=ratios[idx]??0;
+    const amount=Math.round(p<0?-Math.abs(lower)*Math.abs(p):upper*p);
+    btn.dataset[dataName]=String(amount);
+    btn.textContent=(p>0?'+':'')+Math.round(p*100)+'%';
+    btn.disabled=idx===0?lower===0:idx===6?upper===0:false;
+    btn.classList.toggle('active',Number(amount)===current);
+  }
+  return current;
+}
+function pnlGoalProgress(pnl,targets){
+  if(pnl<0)return '停損已用 '+Math.min(100,Math.abs(pnl)/targets.loss*100).toFixed(1)+'%';
+  return '停利完成 '+Math.min(100,pnl/targets.profit*100).toFixed(1)+'%';
+}
 function updateBalancePreview(){
   if(getCode()!==2)return;
   const op=Number($('[name=operation]').value)||0;
   const market=$('#market').value;
   const codes=market==='單球'?Math.max(1,Math.floor(Number($('[name=count]').value)||1)):1;
-  const slider=$('#balance-slider');
-  const range=Math.max(500,Math.min(20000,Math.ceil(op*.2/100)*100));
-  slider.min=String(-range);slider.max=String(range);slider.step='100';
-  const pnl=Math.max(-range,Math.min(range,Math.round((Number(slider.value)||0)/100)*100));
-  slider.value=String(pnl);
-  $('#balance-negative').textContent='−'+balanceFmt(range);
-  $('#balance-positive').textContent='+'+balanceFmt(range);
+  const goals=goalPreviewTargets();
+  const pnl=configuredGoalSlider('#balance-slider',-goals.loss,goals.profit,'balance');
+  $('#balance-negative').textContent='−'+balanceFmt(goals.loss)+'（停損100%）';
+  $('#balance-positive').textContent='+'+balanceFmt(goals.profit)+'（停利100%）';
+  $('#balance-progress').textContent=pnlGoalProgress(pnl,goals);
   $('#balance-pnl').textContent=(pnl<0?'−':pnl>0?'+':'')+balanceFmt(Math.abs(pnl))+' 元';
   $('#balance-pnl').className=pnl<0?'loss':pnl>0?'profit':'';
   for(const b of $$('[data-balance]'))b.classList.toggle('active',Number(b.dataset.balance)===pnl);
@@ -2905,13 +2933,11 @@ function updateHighPreview(){
   const peak=Number($('#high-peak').value);
   const market=$('#market').value;
   const codes=market==='單球'?Math.max(1,Math.floor(Number($('[name=count]').value)||1)):1;
-  const slider=$('#high-slider');
-  const range=Math.max(500,Math.min(20000,Math.ceil(op*.2/100)*100));
-  slider.min=String(-range);slider.max=String(range);slider.step='100';
-  const pnl=Math.max(-range,Math.min(range,Math.round((Number(slider.value)||0)/100)*100));
-  slider.value=String(pnl);
-  $('#high-negative').textContent='−'+balanceFmt(range);
-  $('#high-positive').textContent='+'+balanceFmt(range);
+  const goals=goalPreviewTargets();
+  const pnl=configuredGoalSlider('#high-slider',-goals.loss-peak,goals.profit-peak,'high');
+  $('#high-negative').textContent='−'+balanceFmt(goals.loss)+'（停損100%）';
+  $('#high-positive').textContent='+'+balanceFmt(goals.profit)+'（停利100%）';
+  $('#high-progress').textContent=pnlGoalProgress(peak+pnl,goals);
   $('#high-pnl').textContent=(pnl<0?'−':pnl>0?'+':'')+balanceFmt(Math.abs(pnl))+' 元';
   $('#high-pnl').className=pnl<0?'loss':pnl>0?'profit':'';
   for(const b of $$('[data-high]'))b.classList.toggle('active',Number(b.dataset.high)===pnl);
