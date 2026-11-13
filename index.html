@@ -2339,15 +2339,24 @@ function showMarketLimitWarning(message){
   el.classList.toggle('hidden',!message);
 }
 function marketSettingsValid(show=true){
-  if(!callPython||visibleLimitMarket!==$('#market').value)return false;
+  if(!callPython||visibleLimitMarket!==$('#market').value){
+    updateWinStartPreview(null,'計算核心尚未載入');
+    return false;
+  }
   try{
-    if(!$('#config-form').checkValidity())throw Error('請確認等份區間與限紅輸入有效，最低不得超過最高');
+    if(!$('#config-form').checkValidity()){
+      const invalid=$('#config-form input, #config-form select').find(el=>!el.checkValidity());
+      throw Error(invalid?.validationMessage||'請確認參數輸入正確');
+    }
     const result=JSON.parse(callPython('validate',JSON.stringify(readConfig())));
-    if(!result.ok)throw Error(result.error||'目前參數無法產生符合限紅的第一局注碼');
-    if(show)showMarketLimitWarning('');
+    if(!result.ok)throw Error(result.error||'目前參數無法產生有效的第一局注碼');
+    updateWinStartPreview(result.result);
+    showMarketLimitWarning('');
     return true;
   }catch(err){
-    if(show)showMarketLimitWarning((err.message||String(err))+'。此設定不會儲存，請重新編排。');
+    const message=err.message||String(err);
+    updateWinStartPreview(null,message);
+    showMarketLimitWarning(/限紅|最低下注|最高下注/.test(message)?message:'');
     return false;
   }
 }
@@ -2469,17 +2478,28 @@ async function action(command,payload={},success){
   finally{busy=false;render();}
 }
 function getCode(){return Number($('#strategy-select').value||26);}
-function updateWinStartPreview(){
-  const el=$('#win-start-preview');
-  if(!el||el.classList.contains('hidden'))return;
-  const operation=Number($('[name=operation]').value);
-  const parts=Number($('[name=parts]').value);
-  const count=$('#market').value==='單球'?Number($('[name=count]').value):1;
-  const valid=Number.isFinite(operation)&&operation>0&&Number.isInteger(parts)&&parts>=2&&parts<=50&&Number.isInteger(count)&&count>=1&&count<=8;
-  const per=valid?Math.floor(operation/parts/count):0;
-  const total=per*count;
-  $('#win-preview-total').value=valid?fmt(total,0):'—';
-  $('#win-preview-detail').textContent=valid?`${fmt(per,0)}／碼 × ${count} 碼＝${fmt(total,0)} 總注（分配額 ${fmt(operation/parts,2)}）`:'請填入有效操作金、份數與碼數';
+function updateWinStartPreview(result=null,error=''){
+  const value=$('#win-preview-total'),detail=$('#win-preview-detail');
+  if(error){
+    value.value='無法起注';
+    detail.textContent=error;
+    detail.classList.add('invalid');
+    return;
+  }
+  const q=result?.firstQuote,range=result?.firstQuoteRange;
+  if(!q||!range){
+    value.value=callPython?'等待有效參數':'計算核心載入中';
+    detail.textContent=callPython?'完成設定後自動計算':'請稍候，正在載入試算核心';
+    detail.classList.remove('invalid');
+    return;
+  }
+  const variable=range.minTotal!==range.maxTotal||range.minPer!==range.maxPer;
+  const total=variable?fmt(range.minTotal,0)+' ～ '+fmt(range.maxTotal,0):fmt(q.total,0);
+  const per=variable?fmt(range.minPer,0)+' ～ '+fmt(range.maxPer,0):fmt(q.per,0);
+  value.value=total;
+  detail.textContent='每碼 '+per+' 元 × '+q.count+' 碼＝首局總注 '+total+' 元'+
+    (range.splitMin!==range.splitMax?'（隨機 '+range.splitMin+'～'+range.splitMax+' 等份，顯示可行範圍）':'');
+  detail.classList.remove('invalid');
 }
 function changeStrategyFields(){
   const code=getCode();
