@@ -395,6 +395,8 @@ body[data-font-size="large"]{
 .balance-result div:first-child b{color:#85e6ff}.balance-result div:last-child b{color:#ff9ce3}
 #balance-warning{color:#ff9db0}
 @media(max-width:355px){.balance-preview{padding:8px}.balance-quick button{font-size:9px}}
+#high-slider{width:100%;accent-color:var(--accent);margin:4px 0;cursor:pointer}
+#high-current{font-size:11px;color:var(--muted);line-height:1.4}
 </style>
 </head>
 <body data-theme="neon">
@@ -501,6 +503,30 @@ body[data-font-size="large"]{
         <div class="balance-result" aria-live="polite"><div><small>預覽每碼</small><b id="balance-per">—</b></div><div><small>預覽總注</small><b id="balance-total">—</b></div></div>
         <p id="balance-math">每碼 × 碼數 = 總注</p>
         <p id="balance-warning" role="status"></p>
+      </section>
+      <section id="high-preview" class="balance-preview field-full hidden" aria-label="高點天平對稱注碼預覽">
+        <div class="balance-head"><strong>天秤對稱注碼預覽</strong><small>僅試算 · 不改下注</small></div>
+        <p>以參考最高盈虧為中心，向左代表回撤、向右代表突破高點。這是獨立試算，不改原 #03 配注與回撤20%暫停規則。</p>
+        <div class="balance-inputs">
+          <label class="field"><span>參考最高盈虧（元）</span><input id="high-peak" name="highPeak" type="number" min="0" max="1000000000" step="1" value="0"></label>
+          <label class="field"><span>高點基準每碼</span><input id="high-base" name="highBase" type="number" min="1" max="1000000000" step="1" value="100"></label>
+          <label class="field"><span>盈虧每變動</span><input id="high-unit" name="highUnit" type="number" min="1" max="1000000000" step="1" value="100"></label>
+          <label class="field"><span>每碼增減</span><input id="high-delta" name="highDelta" type="number" min="0" max="1000000000" step="1" value="10"></label>
+          <label class="field"><span>最低每碼</span><input id="high-floor" name="highFloor" type="number" min="1" max="1000000000" step="1" value="1"></label>
+          <label class="field"><span>最高每碼</span><input id="high-ceiling" name="highCeiling" type="number" min="1" max="1000000000" step="1" value="20000"></label>
+          <input type="hidden" name="highBaseMode" value="auto">
+          <button type="button" class="balance-auto" id="high-auto">基準跟隨預估起注</button>
+        </div>
+        <div class="balance-slider-top"><span>相對參考高點變動</span><strong id="high-pnl">0 元</strong></div>
+        <input id="high-slider" type="range" min="-5000" max="5000" step="100" value="0" aria-label="模擬累積淨盈虧">
+        <div class="balance-range-labels"><span id="high-negative">−5,000</span><span>0 參考高點</span><span id="high-positive">+5,000</span></div>
+        <div class="balance-quick" role="group" aria-label="快速盈虧預覽">
+          <button type="button" data-high="-500">−500</button><button type="button" data-high="-300">−300</button><button type="button" data-high="-100">−100</button><button type="button" data-high="0">0</button><button type="button" data-high="100">+100</button><button type="button" data-high="300">+300</button><button type="button" data-high="500">+500</button>
+        </div>
+        <p id="high-current">參考高點 0 元 · 模擬盈虧 0 元</p>
+        <div class="balance-result" aria-live="polite"><div><small>預覽每碼</small><b id="high-per">—</b></div><div><small>預覽總注</small><b id="high-total">—</b></div></div>
+        <p id="high-math">每碼 × 碼數 = 總注</p>
+        <p id="high-warning" role="status"></p>
       </section>
       <details class="advanced field-full"><summary>進階設定 <span>停利、停損及策略專屬參數</span></summary><div class="fields">
         <label class="field"><span>停利比例（%）</span><input name="profitPct" type="number" min="1" max="10000" step="any" value="100" required></label>
@@ -2867,6 +2893,55 @@ function updateBalancePreview(){
   if(total>Math.max(0,op+pnl))warnings.push('超出假設可用資金');
   $('#balance-warning').textContent=warnings.length?'注意：'+warnings.join('、'):'僅供估算，不代表 #02 實際下一局報價。';
 }
+function updateHighPreview(){
+  if(getCode()!==3)return;
+  const op=Number($('[name=operation]').value)||0;
+  const peak=Number($('#high-peak').value);
+  const market=$('#market').value;
+  const codes=market==='單球'?Math.max(1,Math.floor(Number($('[name=count]').value)||1)):1;
+  const slider=$('#high-slider');
+  const range=Math.max(500,Math.min(20000,Math.ceil(op*.2/100)*100));
+  slider.min=String(-range);slider.max=String(range);slider.step='100';
+  const pnl=Math.max(-range,Math.min(range,Math.round((Number(slider.value)||0)/100)*100));
+  slider.value=String(pnl);
+  $('#high-negative').textContent='−'+balanceFmt(range);
+  $('#high-positive').textContent='+'+balanceFmt(range);
+  $('#high-pnl').textContent=(pnl<0?'−':pnl>0?'+':'')+balanceFmt(Math.abs(pnl))+' 元';
+  $('#high-pnl').className=pnl<0?'loss':pnl>0?'profit':'';
+  for(const b of $('[data-high]'))b.classList.toggle('active',Number(b.dataset.balance)===pnl);
+  if($('[name=highBaseMode]').value==='auto'){
+    const parts=Math.max(1,Number($('[name=parts]').value)||1);
+    const fallback=Math.floor(op/parts/codes/10);
+    $('#high-base').value=String(Math.max(1,Math.floor(Number.isFinite(balanceQuotePer)?balanceQuotePer:fallback)));
+  }
+  const base=Number($('#high-base').value),unit=Number($('#high-unit').value);
+  const delta=Number($('#high-delta').value),low=Number($('#high-floor').value),high=Number($('#high-ceiling').value);
+  if(![peak,base,unit,delta,low,high].every(v=>Number.isInteger(v)&&v>=0)||peak<0||base<1||unit<1||low<1||high<low){
+    $('#high-per').textContent='—';$('#high-total').textContent='—';
+    $('#high-math').textContent='請輸入有效整數參數';
+    $('#high-current').textContent='參考高點與注碼參數需要有效值';
+    $('#high-warning').textContent='請確認盈虧單位大於0、最低每碼不超過最高每碼。';return;
+  }
+  const hypothetical=peak+pnl;
+  const signed=n=>(n>0?'+':n<0?'−':'')+balanceFmt(Math.abs(n));
+  $('#high-current').textContent='參考高點 '+signed(peak)+' 元 · 模擬盈虧 '+signed(hypothetical)+' 元';
+  const raw=base+Math.trunc(pnl/unit*delta);
+  const per=Math.min(high,Math.max(low,raw));
+  const total=per*codes;
+  $('#high-per').textContent=balanceFmt(per)+' 元';
+  $('#high-total').textContent=balanceFmt(total)+' 元';
+  $('#high-math').textContent=balanceFmt(per)+' × '+codes+' 碼＝'+balanceFmt(total)+' 元';
+  const minLimit=Number($('[name=minBet]').value)||1;
+  const maxLimit=Number($('[name=maxBet]').value)||Infinity;
+  const warnings=[];
+  if(raw!==per)warnings.push('已觸及注碼上下限');
+  if(market==='單球'&&(per<minLimit||per>maxLimit))warnings.push('超出單球每碼限紅');
+  if(market!=='單球'&&(total<minLimit||total>maxLimit))warnings.push('超出單注限紅');
+  if(total>Math.max(0,op+hypothetical))warnings.push('超出假設可用資金');
+  if(pnl<0&&-pnl>=op*.2&&op>0)warnings.push('已達原 #03 回撤20%暫停門檻');
+  if(pnl>0)warnings.push('突破高點後實際高點會重新更新');
+  $('#high-warning').textContent=warnings.length?'注意：'+warnings.join('、'):'僅供估算，不代表 #03 實際下一局報價。';
+}
 function persistBalancePreview(){
   try{localStorage.setItem(SETTINGS_KEY,JSON.stringify({version:1,fields:getSavedFields()}));}
   catch{toast('預覽設定儲存失敗');}
@@ -2874,6 +2949,7 @@ function persistBalancePreview(){
 function updateWinStartPreview(result=null,error=''){
   balanceQuotePer=!error&&Number.isFinite(result?.firstQuote?.per)?Number(result.firstQuote.per):null;
   updateBalancePreview();
+  updateHighPreview();
   const value=$('#win-preview-total'),detail=$('#win-preview-detail');
   if(error){
     value.value='無法起注';
@@ -2983,6 +3059,8 @@ function updateLayerBudgetSummary(){
 function changeStrategyFields(){
   const code=getCode();
   $('#balance-preview').classList.toggle('hidden',code!==2);
+  $('#high-preview').classList.toggle('hidden',code!==3);
+  for(const input of $('#high-preview input[name]'))input.disabled=code!==3;
   const fieldMap={0:['loss_sequence','自訂關卡倍率','1,2'],99:['custom_win_sequence','勝進倍率','1,1'],20:['attack_sequence','攻擊倍率','1,1.6,2,2.6,3.2,4,5,6'],24:['cancel_list','清單數值','1,1']};
   for(const id of ['fraction-field','kelly-field','probability-field','sequence-field','sequence-secondary-field','twoleg-layers-field','peak-lock-fields'])$('#'+id).classList.add('hidden');
   if(code===66)$('#twoleg-layers-field').classList.remove('hidden');
@@ -3064,7 +3142,7 @@ function readConfig(){
   if(config.strategy===23)config.probability=Number(f.get('probability'));
   return config;
 }
-function displayStrategyName(name){return name==='停利進度收斂法'?'天秤對稱法':name;}
+function displayStrategyName(name){return name==='停利進度收斂法'?'天秤對稱法':name==='高點回撤階梯法'?'高點天平對稱法':name;}
 function displayStrategyLibrary(query=''){
   const holder=$('#strategy-grid');holder.textContent='';
   const q=query.trim().toLocaleLowerCase();
@@ -3235,6 +3313,10 @@ function bindEvents(){
   });
 
   $('#config-form').addEventListener('input',e=>{
+    if(e.target.closest('#high-preview')){
+      if(e.target.id==='high-base')$('[name=highBaseMode]').value='manual';
+      updateHighPreview();if(e.target.name)persistBalancePreview();return;
+    }
     if(e.target.closest('#balance-preview')){
       if(e.target.id==='balance-base')$('[name=balanceBaseMode]').value='manual';
       updateBalancePreview();if(e.target.name)persistBalancePreview();return;
@@ -3242,12 +3324,16 @@ function bindEvents(){
     saveSettings();
   });
   $('#config-form').addEventListener('change',e=>{
+    if(e.target.closest('#high-preview')){updateHighPreview();if(e.target.name)persistBalancePreview();return;}
     if(e.target.closest('#balance-preview')){updateBalancePreview();if(e.target.name)persistBalancePreview();return;}
     saveSettings();
   });
   $('#balance-slider').addEventListener('input',updateBalancePreview);
   for(const b of $$('[data-balance]'))b.addEventListener('click',()=>{$('#balance-slider').value=b.dataset.balance;updateBalancePreview();});
   $('#balance-auto').addEventListener('click',()=>{$('[name=balanceBaseMode]').value='auto';updateBalancePreview();persistBalancePreview();});
+  $('#high-slider').addEventListener('input',updateHighPreview);
+  for(const b of $('[data-high]'))b.addEventListener('click',()=>{$('#high-slider').value=b.dataset.high;updateHighPreview();});
+  $('#high-auto').addEventListener('click',()=>{$('[name=highBaseMode]').value='auto';updateHighPreview();persistBalancePreview();});
   document.addEventListener('visibilitychange',()=>{
     if(!document.hidden&&snapshot){persist();render();}
   });
