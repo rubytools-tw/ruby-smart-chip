@@ -348,6 +348,24 @@ body[data-font-size="large"]{
 .twoleg-row>span:first-child{font-size:12px;font-weight:700;white-space:nowrap}
 .twoleg-row>span:nth-child(3){font-weight:700;text-align:center;color:var(--muted)}
 .twoleg-row input{width:100%;min-width:0;text-align:center;padding-inline:3px}
+
+/* V0.1.9: compact editable 4-layer stake grid and #01 lock settings. */
+.peak-lock-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;min-width:0}
+.peak-lock-grid .field{min-width:0}
+.layer-grid-panel{display:grid;gap:10px;min-width:0}
+.layer-grid-heading{display:grid;gap:3px}
+.layer-grid-heading small,.layer-grid-panel .twoleg-rule{font-size:11px;line-height:1.4;color:var(--muted)}
+.layer-grid-editor{display:grid;gap:10px;min-width:0}
+.layer-grid-row{border:1px solid var(--stroke);border-radius:12px;padding:9px;min-width:0;display:grid;gap:8px}
+.layer-grid-bar{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.layer-grid-bar strong{margin-right:auto;font-size:12px}
+.layer-grid-bar small{color:var(--muted);font-size:10px}
+.layer-grid-bar button{border:1px solid var(--stroke);border-radius:8px;background:var(--panel-hi);color:var(--text);padding:4px 8px;font-size:12px;font-weight:700}
+.layer-grid-cells{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;min-width:0}
+.layer-grid-cell{display:grid;gap:3px;min-width:0}
+.layer-grid-cell small{font-size:10px;line-height:1.2;color:var(--muted)}
+.layer-grid-cell input{width:100%;min-width:0;text-align:center;padding:6px 2px;font-size:13px;appearance:textfield}
+.layer-grid-cell input::-webkit-inner-spin-button,.layer-grid-cell input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 </style>
 </head>
 <body data-theme="neon">
@@ -438,14 +456,17 @@ body[data-font-size="large"]{
         <label class="field special-param hidden" id="fraction-field"><span>投入比例（%）</span><input name="fraction" type="number" min="0.1" max="100" step="any" value="20"></label>
         <label class="field special-param hidden" id="kelly-field"><span>凱利採用比例（%）</span><input name="kellyFraction" type="number" min="1" max="100" value="25"></label>
         <label class="field special-param hidden" id="probability-field"><span>預估中獎率（%）</span><input name="probability" type="number" min="0.1" max="100" step="any" value="55"></label>
+        <div id="peak-lock-fields" class="field-full special-param hidden peak-lock-grid">
+          <label class="field"><span>獲利鎖定（%）</span><input name="peakLockPercent" type="number" min="1" max="100" step="any" value="50" disabled></label>
+          <label class="field"><span>連續鎖定次數</span><input name="peakLockCount" type="number" min="1" max="100" step="1" value="5" disabled></label>
+        </div>
         <label class="field field-full special-param hidden" id="sequence-field"><span id="sequence-label">自訂倍率</span><input name="sequenceInput" type="text" placeholder="1,2,3,5"></label>
         <label class="field field-full special-param hidden" id="sequence-secondary-field"><span id="sequence-secondary-label">退守倍率</span><input name="sequenceSecondary" type="text" placeholder="2,3,5,8,13,20,30"></label>
-        <div class="field-full special-param hidden twoleg-layers" id="twoleg-layers-field">
-          <div class="twoleg-heading"><span>分層倍率</span><small>首注中進同層第2關；第2關中退上一層；任一關掛進下一層</small></div>
-          <div class="twoleg-row"><span>第一層</span><input type="number" name="layer1First" aria-label="第一層第一關倍率" min="0.01" max="100000" step="any" value="1" required disabled><span>／</span><input type="number" name="layer1Second" aria-label="第一層第二關倍率" min="0.01" max="100000" step="any" value="2" required disabled></div>
-          <div class="twoleg-row"><span>第二層</span><input type="number" name="layer2First" aria-label="第二層第一關倍率" min="0.01" max="100000" step="any" value="3" required disabled><span>／</span><input type="number" name="layer2Second" aria-label="第二層第二關倍率" min="0.01" max="100000" step="any" value="9" required disabled></div>
-          <div class="twoleg-row"><span>第三層</span><input type="number" name="layer3First" aria-label="第三層第一關倍率" min="0.01" max="100000" step="any" value="6" required disabled><span>／</span><input type="number" name="layer3Second" aria-label="第三層第二關倍率" min="0.01" max="100000" step="any" value="24" required disabled></div>
-          <small class="twoleg-rule">第一層中獎不再退層；第三層掛則暫停，不自動補注。</small>
+        <div class="field-full special-param hidden layer-grid-panel" id="twoleg-layers-field">
+          <div class="layer-grid-heading"><strong>#66 分層下注金額</strong><small>4 層 × 預設每層 4 關；每層可使用＋增加到 10 關。輸入每關「總下注金額」，非倍率。</small></div>
+          <div id="layer-grid-editor" class="layer-grid-editor"></div>
+          <input type="hidden" name="layerGrid" id="layer-grid-data" value="[[10,20,40,80],[30,60,120,240],[50,100,200,400],[100,200,400,800]]" disabled>
+          <small class="twoleg-rule">第 1～倒數第 2 關中獎→同層下一關；最後一關中獎→上一層第一關；任何一關掛→下一層第一關；第四層掛則暫停。</small>
         </div>
       </div></details>
       <div class="form-note info-row"><span>策略使用說明</span><button type="button" id="strategy-hint" class="info-btn" data-info="#26：依切分份數固定等額配置。" aria-label="查看策略規則">ⓘ</button></div><div class="drawer-form-actions"><button type="button" class="button subtle close-drawer">取消修改</button><button id="start-button" type="submit" class="button primary" disabled>確認設定／開始新計畫</button></div>
