@@ -318,7 +318,7 @@ body[data-font-size="large"]{
 .limit-warning{grid-column:1/-1;margin:0;font-size:var(--ruby-fs-label,13px);color:var(--danger);line-height:1.45}
 @media(max-width:355px){.ring-title-actions{gap:4px}.ring-title-actions .small-action{padding:5px 4px}.ring-panel.compact .ring-body{grid-template-columns:minmax(0,35%) minmax(0,1fr);column-gap:3px}}
 
-/* V0.1.6: only parameter field geometry; original Neon palette and typography retained. */
+/* V0.1.7: only parameter field geometry; original Neon palette and typography retained. */
 .market-limits{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .market-limits .field{min-width:0}
 .market-limits .limit-warning{grid-column:1/-1}
@@ -327,10 +327,13 @@ body[data-font-size="large"]{
 .parts-range-inputs>span{white-space:nowrap;color:var(--muted);font-weight:700}
 #range-parts-field{min-width:0}
 
-/* V0.1.6: winning strategy inputs only; original colors and buttons retained. */
+/* V0.1.7: winning strategy inputs only; original colors and buttons retained. */
 .win-start-preview{min-width:0}
 .win-start-preview input{width:100%;font-weight:700;font-size:var(--ruby-fs-value,16px);color:inherit}
 .win-start-preview small{font-size:var(--ruby-fs-note,12px);color:var(--muted);line-height:1.35}
+.win-start-preview small{display:block;white-space:normal;overflow-wrap:anywhere}
+.win-start-preview small.invalid{color:#ff94ad}
+.win-start-preview input{overflow:hidden;text-overflow:ellipsis}
 .win-sprint-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .win-sprint-fields .field{min-width:0}
 .win-sprint-fields .parts-range-inputs input{width:100%;min-width:0}
@@ -342,7 +345,7 @@ body[data-font-size="large"]{
 <div class="app-shell">
   <div id="drawer-backdrop" class="drawer-backdrop" aria-hidden="true"></div>
   <aside class="sidebar drawer" id="drawer-menu" role="dialog" aria-modal="true" aria-label="主選單" aria-hidden="true">
-    <div class="drawer-head"><div class="brand-mini"><span class="brand-symbol">R</span><div><strong>RUBY Smart Chip</strong><small>霓虹直立版 · V0.1.6</small></div></div><button class="icon-btn close-drawer" aria-label="關閉主選單" type="button">×</button></div>
+    <div class="drawer-head"><div class="brand-mini"><span class="brand-symbol">R</span><div><strong>RUBY Smart Chip</strong><small>霓虹直立版 · V0.1.7</small></div></div><button class="icon-btn close-drawer" aria-label="關閉主選單" type="button">×</button></div>
     <div class="drawer-nav">
       <button type="button" class="nav-item active" data-tab="calculator"><span>▣</span> 籌碼計算機</button>
       <button type="button" class="nav-item" data-tab="strategies"><span>▤</span> 26 套策略中心</button>
@@ -354,7 +357,7 @@ body[data-font-size="large"]{
   <main class="main-view" id="main-content">
     <header class="topbar"><button type="button" class="icon-btn" id="open-menu" aria-label="開啟主選單">☰</button><div class="nav-brand"><strong>RUBY <span>Smart Chip</span></strong><small>兔寶寶籌碼計算機</small></div><button type="button" class="icon-btn" id="open-config" aria-label="開啟計畫參數">⚙</button></header>
     <div class="hero"><div class="hero-overlay"><small>RUBY · NEON PORTRAIT EDITION</small><h1 id="page-title">籌碼計算機</h1><p>策略 × 注碼 × 歷史 · 一頁掌握</p></div></div>
-    <div class="engine-row"><span id="engine-status" class="status-pill loading" role="status">計算核心載入中…</span><span id="session-label" class="soft-tag">未開始</span><button type="button" class="info-btn" data-info="RUBY Smart Chip V0.1.6：資料存於本機瀏覽器，歷史只保留最近 24 小時，設定持續保留。" aria-label="版本說明">ⓘ</button></div>
+    <div class="engine-row"><span id="engine-status" class="status-pill loading" role="status">計算核心載入中…</span><span id="session-label" class="soft-tag">未開始</span><button type="button" class="info-btn" data-info="RUBY Smart Chip V0.1.7：資料存於本機瀏覽器，歷史只保留最近 24 小時，設定持續保留。" aria-label="版本說明">ⓘ</button></div>
     <div id="alert" class="alert hidden" role="alert"></div>
     <section class="view active" id="view-calculator" aria-labelledby="page-title">
       <button type="button" class="current-strategy neon-card" id="open-strategies" aria-label="開啟策略中心"><span class="strategy-accent">當前策略</span><span class="strategy-text"><strong id="strategy-active-name">#26 等分倍盈歸本法</strong><small id="strategy-active-meta">尚未開始 · 點擊選擇策略</small></span><span class="chevron">›</span></button>
@@ -397,28 +400,28 @@ body[data-font-size="large"]{
       </section>
       <section class="summary-panel neon-card"><div class="panel-title"><strong>目前策略摘要</strong><button type="button" class="info-btn" id="summary-info" data-info="選擇策略後顯示規則。" aria-label="查看目前策略摘要">ⓘ</button><button id="read-strategy" type="button" class="text-btn">完整說明 ›</button></div><p id="current-summary" class="sr-only">選擇策略後顯示規則。</p></section>
     </section>
-    <footer class="app-footer">RUBY Smart Chip V0.1.6 · 本機試算 · 非自動下注</footer>
+    <footer class="app-footer">RUBY Smart Chip V0.1.7 · 本機試算 · 非自動下注</footer>
   </main>
 
   <aside id="drawer-config" class="drawer drawer-right" role="dialog" aria-modal="true" aria-label="計畫參數設定" aria-hidden="true"><div class="drawer-head"><div><strong>計畫參數</strong><button type="button" class="info-btn" data-info="輸入後請按確認，進行中的計畫不會被暗中修改。" aria-label="參數套用說明">ⓘ</button></div><button class="icon-btn close-drawer" type="button" aria-label="關閉參數設定">×</button></div>
     <div class="drawer-scroll"><form id="config-form">
       <label class="field field-full"><span>選擇策略</span><select id="strategy-select" name="strategy"></select></label>
       <label class="field"><span>操作金</span><input name="operation" type="number" min="1" step="1" value="1000" required></label>
+      <label class="field hidden" id="fixed-parts-field"><span>切分份數</span><input name="parts" type="number" min="2" max="50" value="6" required disabled></label>
+      <div class="field" id="range-parts-field"><span>切分等份</span><div class="parts-range-inputs"><input aria-label="最小等份" name="partsMin" type="number" min="2" max="50" step="1" value="6" required><span aria-hidden="true">～</span><input aria-label="最大等份" name="partsMax" type="number" min="2" max="50" step="1" value="6" required></div></div>
       <label class="field"><span>玩法</span><select id="market" name="market"><option value="單球">賽車單球</option><option value="兩面盤">兩面盤</option><option value="百家樂">百家樂</option></select></label>
       <label class="field"><span>下注碼數</span><input name="count" type="number" min="1" max="8" value="6" required></label>
       <div id="market-limits-fields" class="field-full market-limits"><label class="field"><span>最低下注（限紅）</span><input name="minBet" type="number" min="1" max="1000000000" step="1" value="1" required></label><label class="field"><span>最高下注（限紅）</span><input name="maxBet" type="number" min="1" max="1000000000" step="1" value="20000" required></label><p id="market-limit-warning" class="limit-warning hidden" role="alert"></p></div>
-       <input type="hidden" name="limitSingleMin" value="1"><input type="hidden" name="limitSingleMax" value="20000">
-       <input type="hidden" name="limitDoubleMin" value="1"><input type="hidden" name="limitDoubleMax" value="10000">
-       <input type="hidden" name="limitBaccaratMin" value="100"><input type="hidden" name="limitBaccaratMax" value="10000">
-       <label class="field hidden" id="fixed-parts-field"><span>切分份數</span><input name="parts" type="number" min="2" max="50" value="6" required disabled></label>
-       <div class="field" id="range-parts-field"><span>切分等份</span><div class="parts-range-inputs"><input aria-label="最小等份" name="partsMin" type="number" min="2" max="50" step="1" value="6" required><span aria-hidden="true">～</span><input aria-label="最大等份" name="partsMax" type="number" min="2" max="50" step="1" value="6" required></div></div>
-      <div id="win-start-preview" class="field field-full hidden win-start-preview"><label for="win-preview-total">預估起注（第一關總額）</label><input id="win-preview-total" type="text" value="—" readonly tabindex="-1"><small id="win-preview-detail">每碼 × 碼數 = 本局總注</small></div>
+      <input type="hidden" name="limitSingleMin" value="1"><input type="hidden" name="limitSingleMax" value="20000">
+      <input type="hidden" name="limitDoubleMin" value="1"><input type="hidden" name="limitDoubleMax" value="10000">
+      <input type="hidden" name="limitBaccaratMin" value="100"><input type="hidden" name="limitBaccaratMax" value="10000">
+      <label class="field" id="planned-field"><span>計畫總局數</span><input name="planned" type="number" min="1" max="100000" value="35" required></label>
+      <label class="field" id="max-steps-field"><span>最大關卡</span><input name="maxSteps" type="number" min="1" max="50" value="6" required></label>
       <div id="win-sprint-fields" class="field-full hidden win-sprint-fields">
         <label class="field"><span>開始獲利衝刺</span><select name="sprintStart"><option value="3">第 3 關</option><option value="4">第 4 關</option></select></label>
         <div class="field"><span>獲利衝刺比例（%）</span><div class="parts-range-inputs"><input type="number" name="sprintMinPct" aria-label="衝刺最小百分比" min="1" max="100" step="1" value="80"><span aria-hidden="true">～</span><input type="number" name="sprintMaxPct" aria-label="衝刺最大百分比" min="1" max="100" step="1" value="80"></div></div>
       </div>
-      <label class="field" id="max-steps-field"><span>最大關卡</span><input name="maxSteps" type="number" min="1" max="50" value="6" required></label>
-      <label class="field"><span>計畫總局數</span><input name="planned" type="number" min="1" max="100000" value="35" required></label>
+      <div id="win-start-preview" class="field field-full win-start-preview" aria-live="polite"><label for="win-preview-total">預估起注（第一局總下注金額）</label><input id="win-preview-total" type="text" value="計算核心載入中" readonly tabindex="-1"><small id="win-preview-detail">每碼注額 × 下注碼數 = 第一局總下注金額</small></div>
       <details class="advanced field-full"><summary>進階設定 <span>停利、停損及策略專屬參數</span></summary><div class="fields">
         <label class="field"><span>停利比例（%）</span><input name="profitPct" type="number" min="1" max="10000" step="any" value="100" required></label>
         <label class="field"><span>停損比例（%）</span><input name="lossPct" type="number" min="1" max="100" step="any" value="100" required></label>
@@ -433,7 +436,7 @@ body[data-font-size="large"]{
   </aside>
   <section class="view drawer drawer-left drawer-wide" id="view-strategies" role="dialog" aria-modal="true" aria-hidden="true" aria-label="策略中心"><div class="drawer-head"><div><strong>26 套策略中心</strong><button type="button" class="info-btn" data-info="可搜尋策略名稱與編號，點擊選用不會立即更改進行中的計畫。" aria-label="策略中心說明">ⓘ</button></div><button class="icon-btn close-drawer" type="button" aria-label="關閉策略中心">×</button></div><div class="drawer-scroll"><div class="search-wrap"><input id="strategy-search" type="search" placeholder="搜尋策略名稱或編號，例如 #26、馬丁"></div><div class="strategy-grid" id="strategy-grid"></div></div></section>
   <section class="view drawer drawer-bottom" id="view-history" role="dialog" aria-modal="true" aria-hidden="true" aria-label="結算紀錄"><div class="drawer-handle" aria-hidden="true"></div><div class="drawer-head"><div><strong>本次與歷史結算</strong><small id="history-count">0 筆</small></div><button class="icon-btn close-drawer" type="button" aria-label="關閉歷史紀錄">×</button></div><div class="drawer-scroll"><div class="history-summary"><div class="mini-panel"><small>累積投注</small><strong id="sum-cost">—</strong></div><div class="mini-panel"><small>累積盈虧</small><strong id="sum-pnl">—</strong></div><div class="mini-panel"><small>已鎖利</small><strong id="sum-locked">—</strong></div></div><div class="panel history-panel"><div class="panel-head"><h3>結算明細</h3><button id="export-csv" type="button" class="button subtle">匯出 CSV</button></div><div class="table-wrap"><table><thead><tr><th>局數</th><th>策略</th><th>中／掛</th><th>每碼</th><th>投注</th><th>本局損益</th></tr></thead><tbody id="history-rows"><tr><td colspan="6" class="empty">目前沒有紀錄</td></tr></tbody></table></div></div></div></section>
-  <section class="view drawer drawer-left drawer-wide" id="view-settings" role="dialog" aria-modal="true" aria-hidden="true" aria-label="網站設定"><div class="drawer-head"><div><strong>系統設定</strong><small>字體及本機資料管理</small></div><button class="icon-btn close-drawer" type="button" aria-label="關閉設定">×</button></div><div class="drawer-scroll"><section class="panel plan-management"><div class="panel-head"><h3>計畫管理</h3></div><div class="secondary-actions more-actions" id="more-actions"><button id="resume-button" type="button" class="button subtle hidden" disabled>下一輪</button><button id="finish-button" type="button" class="button subtle" disabled>結算本次</button></div></section><div class="settings-grid"><section class="panel"><div class="panel-head"><h3>文字大小</h3><button type="button" class="info-btn" data-info="調整網站標題、卡片、按鈕、說明的字體大小；變更後會記住設定。" aria-label="文字大小說明">ⓘ</button></div><div class="font-controls" role="group" aria-label="文字大小"><button type="button" data-font="small">小</button><button type="button" data-font="medium">中</button><button type="button" data-font="large">大</button></div></section><section class="panel"><h3>本機資料備份</h3><button type="button" class="info-btn" data-info="歷史明細只保留最近 24 小時，超過期限會在開啟或操作時移除。策略、操作金及其他設定會保留；重新開啟網頁會從新計畫開始，不自動接續上一個計畫。資料只存於本機瀏覽器，清除瀏覽資料可能遺失。" aria-label="歷史保存說明">ⓘ</button><div class="button-row"><button id="backup-button" type="button" class="button subtle">匯出 JSON</button><button id="restore-button" type="button" class="button subtle">還原 JSON</button><input id="restore-file" type="file" accept=".json,application/json" hidden></div></section><section class="panel"><h3>版本資訊</h3><p>RUBY Smart Chip V0.1.6 Neon Portrait · 26 套策略 Python 引擎沿用原版；只作本機籌碼試算，不會送出訂單或 Telegram 訊息。</p></section></div></div></section>
+  <section class="view drawer drawer-left drawer-wide" id="view-settings" role="dialog" aria-modal="true" aria-hidden="true" aria-label="網站設定"><div class="drawer-head"><div><strong>系統設定</strong><small>字體及本機資料管理</small></div><button class="icon-btn close-drawer" type="button" aria-label="關閉設定">×</button></div><div class="drawer-scroll"><section class="panel plan-management"><div class="panel-head"><h3>計畫管理</h3></div><div class="secondary-actions more-actions" id="more-actions"><button id="resume-button" type="button" class="button subtle hidden" disabled>下一輪</button><button id="finish-button" type="button" class="button subtle" disabled>結算本次</button></div></section><div class="settings-grid"><section class="panel"><div class="panel-head"><h3>文字大小</h3><button type="button" class="info-btn" data-info="調整網站標題、卡片、按鈕、說明的字體大小；變更後會記住設定。" aria-label="文字大小說明">ⓘ</button></div><div class="font-controls" role="group" aria-label="文字大小"><button type="button" data-font="small">小</button><button type="button" data-font="medium">中</button><button type="button" data-font="large">大</button></div></section><section class="panel"><h3>本機資料備份</h3><button type="button" class="info-btn" data-info="歷史明細只保留最近 24 小時，超過期限會在開啟或操作時移除。策略、操作金及其他設定會保留；重新開啟網頁會從新計畫開始，不自動接續上一個計畫。資料只存於本機瀏覽器，清除瀏覽資料可能遺失。" aria-label="歷史保存說明">ⓘ</button><div class="button-row"><button id="backup-button" type="button" class="button subtle">匯出 JSON</button><button id="restore-button" type="button" class="button subtle">還原 JSON</button><input id="restore-file" type="file" accept=".json,application/json" hidden></div></section><section class="panel"><h3>版本資訊</h3><p>RUBY Smart Chip V0.1.7 Neon Portrait · 26 套策略 Python 引擎沿用原版；只作本機籌碼試算，不會送出訂單或 Telegram 訊息。</p></section></div></div></section>
 </div>
 <div class="info-backdrop hidden" id="info-backdrop"><div class="info-modal" role="dialog" aria-modal="true" aria-label="功能說明"><div class="panel-title"><strong>ⓘ 操作說明</strong><button type="button" id="info-close" class="icon-btn" aria-label="關閉說明">×</button></div><p id="info-text"></p></div></div>
 <nav class="mobile-nav" aria-label="底部分頁"><button type="button" class="active" data-tab="calculator">▣<span>計算</span></button><button type="button" data-tab="strategies">▤<span>策略</span></button><button type="button" data-tab="history">◷<span>紀錄</span></button><button type="button" data-tab="settings">⚙<span>設定</span></button></nav>
@@ -1666,6 +1669,10 @@ def details(s):
         result['line'] = f'設定最大{maximum}關｜天門固定有效{effective}關（1／3／7／15／31）'
         if maximum > 5:
             result['warning'] = '天門內建倍率只有5關，最大關卡超過5不會自動產生新的倍率；第5關掛後暫停。'
+    elif sid == 'winner' and s.get('win_mode_version')==2:
+        # #14 sprint uses the selected stage cap, NOT the obsolete 1/1 sequence.
+        result['effective']=maximum
+        result['line']=f'獲利勝進最多{maximum}關｜第{s.get("win_sprint_start",3)}關開始以獲利比例衝刺'
     elif sid in ('custom','custom_win','winner'):
         if sid == 'custom' and s.get('use_count_sequence'):
             import sizing_v180
@@ -1686,8 +1693,8 @@ def details(s):
             result['warning'] = f'序列實際只有{len(values)}個倍率，未自動補足到{maximum}關。'
     elif sid == 'equal_reset':
         parts = int(s.get('risk_parts', 1))
-        result['effective'] = parts
-        result['line'] = f'#26 依切分{parts}份執行{parts}關，與最大關卡設定分離'
+        result['effective'] = None
+        result['line'] = f'#26 本輪切分{parts}份只決定下注除數，不限制可執行關數'
     return result
 
 
@@ -1894,14 +1901,19 @@ def enforce_table_limits(s,q,reason=''):
         return None,f'{market}限紅：{unit} {amount:g} 超過最高下注 {maximum:g}；請重新編排操作金、切分及策略參數'
     return q,reason
 
-def validate_initial_quotes(s):
-    """Reject settings when *any* possible #26 split cannot place its first bet."""
+def validate_initial_quotes(s, include_range=False):
+    """Check every possible #26 split and return REAL first-wager quote(s).
+
+    The preview uses the same quote/limit engine as Start and Settle.
+    A range preview must not flicker because a random initial split was sampled.
+    """
     if strategy26.active(s):
         low=int(s.get('split_min',s['risk_parts']))
         high=int(s.get('split_max',s['risk_parts']))
         candidates=range(low,high+1)
     else:
         candidates=[int(s['risk_parts'])]
+    checked=[]
     for parts in candidates:
         probe=copy.deepcopy(s)
         if strategy26.active(probe):
@@ -1914,8 +1926,20 @@ def validate_initial_quotes(s):
         if q is None:
             prefix=f'切分 {parts} 等份：' if strategy26.active(s) else ''
             raise ValueError(prefix+(reason or '無法產生符合限紅的下一局注碼，請重新編排參數'))
+        checked.append((parts,q))
     q,reason=sizing.quote(s)
-    return enforce_table_limits(s,q,reason)[0]
+    q,reason=enforce_table_limits(s,q,reason)
+    if q is None:
+        raise ValueError(reason or '無法產生符合限紅的第一局注碼')
+    if include_range:
+        return q,dict(minTotal=min(v['total'] for _,v in checked),
+                      maxTotal=max(v['total'] for _,v in checked),
+                      minPer=min(v['per'] for _,v in checked),
+                      maxPer=max(v['per'] for _,v in checked),
+                      count=int(q['count']),
+                      splitMin=min(part for part,_ in checked),
+                      splitMax=max(part for part,_ in checked))
+    return q
 
 def evaluate_state():
     if STATE is None:
@@ -2067,8 +2091,8 @@ def web_call(action, payload_json='{}'):
         p=json.loads(payload_json or '{}')
         if action=='validate':
             sample=new_state(p)
-            q=validate_initial_quotes(sample)
-            out={'valid':True,'firstQuote':q}
+            q,quote_range=validate_initial_quotes(sample,include_range=True)
+            out={'valid':True,'firstQuote':q,'firstQuoteRange':quote_range}
             return json.dumps({'ok':True,'result':out},ensure_ascii=False,allow_nan=False)
         if action=='start':
             candidate=new_state(p)
@@ -2322,15 +2346,24 @@ function showMarketLimitWarning(message){
   el.classList.toggle('hidden',!message);
 }
 function marketSettingsValid(show=true){
-  if(!callPython||visibleLimitMarket!==$('#market').value)return false;
+  if(!callPython||visibleLimitMarket!==$('#market').value){
+    updateWinStartPreview(null,'計算核心尚未載入');
+    return false;
+  }
   try{
-    if(!$('#config-form').checkValidity())throw Error('請確認等份區間與限紅輸入有效，最低不得超過最高');
+    if(!$('#config-form').checkValidity()){
+      const invalid=$('#config-form input, #config-form select').find(el=>!el.checkValidity());
+      throw Error(invalid?.validationMessage||'請確認參數輸入正確');
+    }
     const result=JSON.parse(callPython('validate',JSON.stringify(readConfig())));
-    if(!result.ok)throw Error(result.error||'目前參數無法產生符合限紅的第一局注碼');
-    if(show)showMarketLimitWarning('');
+    if(!result.ok)throw Error(result.error||'目前參數無法產生有效的第一局注碼');
+    updateWinStartPreview(result.result);
+    showMarketLimitWarning('');
     return true;
   }catch(err){
-    if(show)showMarketLimitWarning((err.message||String(err))+'。此設定不會儲存，請重新編排。');
+    const message=err.message||String(err);
+    updateWinStartPreview(null,message);
+    showMarketLimitWarning(/限紅|最低下注|最高下注/.test(message)?message:'');
     return false;
   }
 }
@@ -2452,17 +2485,28 @@ async function action(command,payload={},success){
   finally{busy=false;render();}
 }
 function getCode(){return Number($('#strategy-select').value||26);}
-function updateWinStartPreview(){
-  const el=$('#win-start-preview');
-  if(!el||el.classList.contains('hidden'))return;
-  const operation=Number($('[name=operation]').value);
-  const parts=Number($('[name=parts]').value);
-  const count=$('#market').value==='單球'?Number($('[name=count]').value):1;
-  const valid=Number.isFinite(operation)&&operation>0&&Number.isInteger(parts)&&parts>=2&&parts<=50&&Number.isInteger(count)&&count>=1&&count<=8;
-  const per=valid?Math.floor(operation/parts/count):0;
-  const total=per*count;
-  $('#win-preview-total').value=valid?fmt(total,0):'—';
-  $('#win-preview-detail').textContent=valid?`${fmt(per,0)}／碼 × ${count} 碼＝${fmt(total,0)} 總注（分配額 ${fmt(operation/parts,2)}）`:'請填入有效操作金、份數與碼數';
+function updateWinStartPreview(result=null,error=''){
+  const value=$('#win-preview-total'),detail=$('#win-preview-detail');
+  if(error){
+    value.value='無法起注';
+    detail.textContent=error;
+    detail.classList.add('invalid');
+    return;
+  }
+  const q=result?.firstQuote,range=result?.firstQuoteRange;
+  if(!q||!range){
+    value.value=callPython?'等待有效參數':'計算核心載入中';
+    detail.textContent=callPython?'完成設定後自動計算':'請稍候，正在載入試算核心';
+    detail.classList.remove('invalid');
+    return;
+  }
+  const variable=range.minTotal!==range.maxTotal||range.minPer!==range.maxPer;
+  const total=variable?fmt(range.minTotal,0)+' ～ '+fmt(range.maxTotal,0):fmt(q.total,0);
+  const per=variable?fmt(range.minPer,0)+' ～ '+fmt(range.maxPer,0):fmt(q.per,0);
+  value.value=total;
+  detail.textContent='每碼 '+per+' 元 × '+q.count+' 碼＝首局總注 '+total+' 元'+
+    (range.splitMin!==range.splitMax?'（隨機 '+range.splitMin+'～'+range.splitMax+' 等份，顯示可行範圍）':'');
+  detail.classList.remove('invalid');
 }
 function changeStrategyFields(){
   const code=getCode();
@@ -2483,8 +2527,7 @@ function changeStrategyFields(){
     for(const input of field.querySelectorAll('input,select,textarea'))input.disabled=hidden;
   }
   const is26=code===26;
-  const isWin=code===14||code===99;
-  $('#win-start-preview').classList.toggle('hidden',!isWin);
+  $('#win-start-preview').classList.remove('hidden');
   $('#win-sprint-fields').classList.toggle('hidden',code!==14);
   for(const input of $$('#win-sprint-fields input, #win-sprint-fields select'))input.disabled=code!==14;
   $('#fixed-parts-field').classList.toggle('hidden',is26);
@@ -2492,8 +2535,16 @@ function changeStrategyFields(){
   $('[name=parts]').disabled=is26;
   for(const field of $$('[name=partsMin], [name=partsMax]'))field.disabled=!is26;
   const max=$('[name=maxSteps]');
-  $('#max-steps-field').classList.toggle('hidden',is26||code===99);
-  if(is26){max.value=$('[name=partsMax]').value;max.disabled=true;}else{max.disabled=code===99;}
+  // User-defined stage cap is meaningful only for these progressions.
+  // #00/#66/#99 derive it from sequence length; #26 is not stage-limited.
+  const manualStageCodes=new Set([14,16,17,18,19,20,22,24]);
+  const manualStages=manualStageCodes.has(code);
+  $('#max-steps-field').classList.toggle('hidden',!manualStages);
+  $('#planned-field').classList.toggle('field-full',!manualStages);
+  max.disabled=!manualStages;
+  max.max=code===17?'5':'50';
+  if(code===17&&Number(max.value)>5)max.value='5';
+  if(is26)max.value=$('[name=partsMax]').value;
   const s=strategies.find(x=>x.code===code);
   $('#strategy-hint').dataset.info=is26?'#26：等份數只是每局的除數，不是關卡上限。固定等份填相同數字；區間每輪隨機抽一次。每局依目前操作金加淨盈虧重新分切至整數，直到不能符合限紅或資金限制才停止。':code===14?'#14：第一關按操作金÷份數起注；前段以起注總額＋本輪已獲淨利，衝刺階段僅用本輪獲利的固定或隨機百分比。掛回首關。':code===99?'#99：首關倍率必須為1；每關以固定起注×自訂倍率，中進、掛回首。倍率長度就是勝進關數，不會反推縮小第一關。':s?.description||'此策略依原本 RUBY TG Chip V1.8.18 計算規則運作。';
   updateWinStartPreview();
@@ -2515,7 +2566,9 @@ function readConfig(){
   if(config.strategy===26){config.parts=config.partsMin;config.maxSteps=config.partsMax;}
   const codes={0:'loss_sequence',99:'custom_win_sequence',66:'layer_sequence',20:'attack_sequence',24:'cancel_list'};
   if(codes[config.strategy])config[codes[config.strategy]]=parseSeq(f.get('sequenceInput')||'');
-  if(config.strategy===99)config.maxSteps=config.custom_win_sequence.length;
+  if([0,66,99].includes(config.strategy))
+    config.maxSteps=config[{0:'loss_sequence',66:'layer_sequence',99:'custom_win_sequence'}[config.strategy]].length;
+  if(config.strategy===17)config.maxSteps=Math.min(config.maxSteps,5);
   if(config.strategy===14){
     config.sprintStart=Number($('[name=sprintStart]').value);
     config.sprintMinPct=Number($('[name=sprintMinPct]').value);
@@ -2685,8 +2738,6 @@ function bindEvents(){
   historyHandle.addEventListener('touchstart',e=>{drawerTouchY=e.changedTouches[0]?.clientY??null;},{passive:true});
   historyHandle.addEventListener('touchend',e=>{if(drawerTouchY!==null&&e.changedTouches[0]?.clientY-drawerTouchY>70)closeDrawers();drawerTouchY=null;},{passive:true});
   $('#strategy-select').addEventListener('change',changeStrategyFields);
-  $('#config-form').addEventListener('input',updateWinStartPreview);
-  $('#config-form').addEventListener('change',updateWinStartPreview);
   $('#market').addEventListener('change',e=>{
     $('[name=count]').value=e.target.value==='單球'?6:1;
     updateMarketLimitFields();
