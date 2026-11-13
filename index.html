@@ -890,6 +890,15 @@ def common_rules():
 
 def rule_text(name):
     d=descriptor(name)
+    if d['id']=='giveback':
+        return '\n'.join([
+          '獲利回吐底線法｜新版#08獲利保底勝進（僅新建計畫）',
+          '起注：每碼無條件捨去(操作金÷切分份數÷碼數)，總注為每碼×碼數。',
+          '勝進：第一中以當局實際淨獲利扣掉指定鎖利比例後作為下關可滾利；後續中獎則將原滾利池加上新淨利扣掉當局鎖利繼續勝進。',
+          '掛掉：回原始起注；歷史與已鎖利保留。勝進最高關中後：剩餘滾利轉入鎖利，重新從第一關開始。',
+          '鎖利：以實際淨獲利計算，預設20%，不等於下注金額或返還本金；滾利及鎖利均不表示平台已實際出金。',
+          '限額：受可用操作金、停利停損、每碼限紅與計畫局數約束，不保證下注或盈利。',
+          '舊備份：仍使用原版「歷史獲利高點回吐底線」演算法，不套用此新版勝進。'])
     if name in progression.BY_NAME:
         return '\n'.join([d['name']+'｜'+d['kind'], '原理：'+d['principle'], '觸發：'+d['trigger'], '限制：'+d['limit'], common_rules(),
             '新增策略每碼不足整數向上取整（比例／預算法／凱利先向下取整）。兩面盤每局僅押一邊，1.90含本金。',
@@ -909,7 +918,7 @@ def update_protection(s):
         lock=max(lock,peak*.5)
     if name=='本金獲利雙池法':
         lock=max(lock,peak*.7)
-    if name=='獲利回吐底線法' and peak >= s['loss_limit']*.2:
+    if name=='獲利回吐底線法' and not s.get('giveback_roll_v2') and peak >= s['loss_limit']*.2:
         lock=max(lock,peak-max(s['loss_limit']*.2,peak*.25))
         s['giveback_active']=True
     s['locked_profit']=round(max(0,lock),2)
