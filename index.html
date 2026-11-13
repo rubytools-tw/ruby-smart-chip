@@ -1981,26 +1981,44 @@ def new_state(config):
     if prob not in (None,''):
         s['kelly_probability']=float(prob)
     if strategy_code==66:
-        raw_grid=config.get('layerStakes',[[12,24,48,96],[36,72,144,288],
-                                           [60,120,240,480],[120,240,480,960]])
+        # Version 4: four rows of PER-CODE amounts. Empty and zero values
+        # disable unused trailing cells. Empty final rows are allowed.
+        default_grid=[[6,12,0,0],[12,36,0,0],[36,180,0,0],[0,0,0,0]]
+        raw_grid=config.get('layerStakes',default_grid)
         if not isinstance(raw_grid,list) or len(raw_grid)!=4:
-            raise ValueError('#66 必須設定4層，每層4～10個總注金額')
+            raise ValueError('#66 需要4層，每層顯示4～10格每碼下注金額')
         grid=[]
+        active_counts=[]
+        seen_empty_layer=False
         for layer,row in enumerate(raw_grid,1):
             if not isinstance(row,list) or not 4<=len(row)<=10:
-                raise ValueError(f'#66 第{layer}層必須設定4～10關')
+                raise ValueError(f'#66 第{layer}層必須顯示4～10個欄位')
             numbers=[]
+            found_disabled=False
             for step,value in enumerate(row,1):
                 try:
-                    amount=Decimal(str(value))
+                    raw=Decimal('0') if value is None or value=='' else Decimal(str(value))
                 except (TypeError,ValueError,ArithmeticError):
-                    raise ValueError(f'#66 第{layer}層第{step}關請輸入有效總注金額')
-                if not amount.is_finite() or amount!=amount.to_integral_value() or not 1<=amount<=1000000000:
-                    raise ValueError(f'#66 第{layer}層第{step}關總注必須是1～10億的整數')
-                numbers.append(int(amount))
+                    raise ValueError(f'#66 第{layer}層第{step}關請輸入整數每碼金額或0／空白')
+                if not raw.is_finite() or raw!=raw.to_integral_value() or not 0<=raw<=1000000000:
+                    raise ValueError(f'#66 第{layer}層第{step}關只接受0～10億的整數')
+                unit=int(raw)
+                if unit==0:found_disabled=True
+                elif found_disabled:
+                    raise ValueError(f'#66 第{layer}層請把未使用的0／空白集中在最後；不能在停用格之後設定正數')
+                numbers.append(unit)
+            count_active=sum(1 for v in numbers if v>0)
+            if count_active==0:seen_empty_layer=True
+            elif seen_empty_layer:
+                raise ValueError('#66 空白層只能位於最後；不要在空白層後面設定有效金額')
             grid.append(numbers)
+            active_counts.append(count_active)
+        if active_counts[0]==0:
+            raise ValueError('#66 第一層第一關必須設定正數每碼注額')
         s['layer_stakes']=grid
-        s['twoleg_version']=3
+        s['layer_active_counts']=active_counts
+        s['layer_active_count']=sum(1 for c in active_counts if c>0)
+        s['twoleg_version']=4
         s['max_steps']=len(grid)
     if strategy_code==1:
         try:
@@ -2217,11 +2235,12 @@ def settle(outcome, action_id=None):
         if next_quote is None and not sizing.plan_limit_reached(s):
             s['session_status']='paused_funds'
             s['strategy_pause_reason']=reason or '剩餘操作金無法繼續下注，計畫停止'
-    if (s.get('strategy')=='逐關分層法' and s.get('twoleg_version')==3
+    if (s.get('strategy')=='逐關分層法' and s.get('twoleg_version') in (3,4)
         and s.get('plan_state',{}).get('exhausted')
         and s.get('session_status')=='active'):
         s['session_status']='paused_strategy'
-        s['strategy_pause_reason']='第4層已掛，分層計畫暫停；可手動進入下一輪'
+        active_last=(s.get('layer_active_count',4) if s.get('twoleg_version')==4 else 4)
+        s['strategy_pause_reason']=f'第{active_last}層已掛，後續沒有啟用的層，計畫暫停；可手動進入下一輪'
     UNDO=before
     LAST_ACTION_ID=action_id
     return evaluate_state()
