@@ -3060,7 +3060,7 @@ function changeStrategyFields(){
   const code=getCode();
   $('#balance-preview').classList.toggle('hidden',code!==2);
   $('#high-preview').classList.toggle('hidden',code!==3);
-  for(const input of $('#high-preview input[name]'))input.disabled=code!==3;
+  for(const input of $$('#high-preview input[name]'))input.disabled=code!==3;
   const fieldMap={0:['loss_sequence','自訂關卡倍率','1,2'],99:['custom_win_sequence','勝進倍率','1,1'],20:['attack_sequence','攻擊倍率','1,1.6,2,2.6,3.2,4,5,6'],24:['cancel_list','清單數值','1,1']};
   for(const id of ['fraction-field','kelly-field','probability-field','sequence-field','sequence-secondary-field','twoleg-layers-field','peak-lock-fields'])$('#'+id).classList.add('hidden');
   if(code===66)$('#twoleg-layers-field').classList.remove('hidden');
