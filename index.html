@@ -331,6 +331,7 @@ body[data-font-size="large"]{
 .win-start-preview{min-width:0}
 .win-start-preview input{width:100%;font-weight:700;font-size:var(--ruby-fs-value,16px);color:inherit}
 .win-start-preview small{font-size:var(--ruby-fs-note,12px);color:var(--muted);line-height:1.35}
+.win-start-preview small{display:block;white-space:normal;overflow-wrap:anywhere}
 .win-start-preview small.invalid{color:#ff94ad}
 .win-start-preview input{overflow:hidden;text-overflow:ellipsis}
 .win-sprint-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
@@ -414,7 +415,7 @@ body[data-font-size="large"]{
       <input type="hidden" name="limitSingleMin" value="1"><input type="hidden" name="limitSingleMax" value="20000">
       <input type="hidden" name="limitDoubleMin" value="1"><input type="hidden" name="limitDoubleMax" value="10000">
       <input type="hidden" name="limitBaccaratMin" value="100"><input type="hidden" name="limitBaccaratMax" value="10000">
-      <label class="field"><span>計畫總局數</span><input name="planned" type="number" min="1" max="100000" value="35" required></label>
+      <label class="field" id="planned-field"><span>計畫總局數</span><input name="planned" type="number" min="1" max="100000" value="35" required></label>
       <label class="field" id="max-steps-field"><span>最大關卡</span><input name="maxSteps" type="number" min="1" max="50" value="6" required></label>
       <div id="win-sprint-fields" class="field-full hidden win-sprint-fields">
         <label class="field"><span>開始獲利衝刺</span><select name="sprintStart"><option value="3">第 3 關</option><option value="4">第 4 關</option></select></label>
@@ -2539,6 +2540,7 @@ function changeStrategyFields(){
   const manualStageCodes=new Set([14,16,17,18,19,20,22,24]);
   const manualStages=manualStageCodes.has(code);
   $('#max-steps-field').classList.toggle('hidden',!manualStages);
+  $('#planned-field').classList.toggle('field-full',!manualStages);
   max.disabled=!manualStages;
   max.max=code===17?'5':'50';
   if(code===17&&Number(max.value)>5)max.value='5';
