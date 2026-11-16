@@ -12,7 +12,7 @@ body[data-theme="blue"]{--bg:#102334;--rail:#112c44;--panel:#173b53;--panel-hi:#
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text)}body{line-height:1.55}button,input,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.38;cursor:not-allowed}button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}a{color:var(--accent)}.hidden{display:none!important}
 .app-shell{display:flex;min-height:100vh;max-width:1660px;margin:auto}.sidebar{width:245px;flex:none;background:var(--rail);border-right:1px solid var(--stroke);padding:28px 18px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}.brand{display:flex;align-items:center;gap:12px;padding:4px 5px 28px}.brand-mark{display:grid;place-items:center;width:46px;height:46px;border:2px solid var(--accent);background:var(--panel-hi);border-radius:16px;font-size:28px;font-weight:900;color:var(--accent);box-shadow:0 0 0 5px rgba(112,225,199,.07)}.brand strong{display:block;font-size:16px;letter-spacing:.02em}.brand strong span{font-weight:400;color:var(--accent)}.brand small{display:block;color:var(--muted);font-size:12px}.desktop-nav{display:grid;gap:8px}.nav-item{display:flex;align-items:center;gap:14px;width:100%;text-align:left;border:0;border-radius:12px;background:transparent;padding:13px 17px;color:var(--muted);font-weight:600}.nav-item span{font-size:22px;width:25px;text-align:center}.nav-item:hover,.nav-item.active{background:var(--panel-hi);color:var(--text)}.nav-item.active{box-shadow:inset 3px 0 var(--accent)}.sidebar-footer{margin-top:auto;color:var(--muted);font-size:12px;display:flex;align-items:center;gap:8px}.online-dot{width:7px;height:7px;border-radius:50%;background:var(--accent)}
 .main-view{min-width:0;flex:1;padding:24px clamp(18px,4vw,48px) 36px}.topbar{display:flex;align-items:center;justify-content:space-between;gap:15px;margin:0 0 23px}.eyebrow{font-size:11px;letter-spacing:.19em;color:var(--accent);font-weight:700}h1{font-size:clamp(23px,2.4vw,31px);margin:1px 0 0;letter-spacing:.02em}h2{font-size:20px;margin:0 0 2px}h3{font-size:16px;margin:0}.status-pill{border:1px solid var(--stroke);color:var(--accent);border-radius:30px;padding:6px 13px;white-space:nowrap;font-size:12px;font-weight:700}.status-pill.loading{color:var(--muted)}.status-pill.error{color:var(--danger);border-color:var(--danger)}.view{display:none}.view.active{display:block}.section-intro{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:17px}.section-intro p,.muted{margin:3px 0;color:var(--muted);font-size:13px}.tip{font-size:12px;color:var(--accent);padding:7px 10px;border-radius:30px;border:1px solid var(--stroke);white-space:nowrap}.layout-two{display:grid;grid-template-columns:minmax(340px,1fr) minmax(345px,1.05fr);gap:19px;align-items:start}.right-stack{display:grid;gap:17px}.panel{border:1px solid var(--stroke);background:var(--panel);border-radius:17px;padding:20px;box-shadow:var(--shadow)}.panel-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:17px}.panel-head small{color:var(--muted)}.soft-tag{font-size:11px;padding:4px 8px;color:var(--muted);background:var(--panel-hi);border:1px solid var(--stroke);border-radius:8px}.fields,#config-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.field{min-width:0;display:flex;flex-direction:column;gap:5px;color:var(--muted);font-size:12px;font-weight:600}.field-full{grid-column:1/-1}.field input,.field select,.search-wrap input,#kelly-probability{width:100%;min-width:0;height:43px;background:#102f3a;border:1px solid var(--stroke);border-radius:9px;padding:0 11px;color:var(--text);font-size:15px;outline:0}body[data-theme=blue] .field input,body[data-theme=blue] .field select,body[data-theme=blue] .search-wrap input{background:#19374a}.field select{cursor:pointer}.advanced{border:1px solid var(--stroke);border-radius:10px;padding:10px 12px}.advanced summary{color:var(--text);font-size:13px;cursor:pointer;font-weight:700}.advanced summary span{color:var(--muted);font-size:11px;font-weight:400;margin-left:5px}.advanced .fields{padding-top:12px}.form-note{grid-column:1/-1;margin:0;font-size:12px;color:var(--muted);min-height:37px}.button{border:1px solid var(--stroke);border-radius:10px;padding:10px 13px;font-weight:800;color:var(--text);background:var(--panel-hi);font-size:14px;transition:filter .14s,transform .1s}.button:hover:not(:disabled){filter:brightness(1.12)}.button:active:not(:disabled){transform:scale(.985)}.button.primary{color:#092e36;background:var(--accent);border-color:transparent}.button.full{grid-column:1/-1;width:100%;height:47px}.button.win{background:#1b5e52;border:1px solid #348c76;color:#b5ffe1;font-size:18px;min-height:56px}.button.loss{background:#683740;border:1px solid #8e5660;color:#ffd6d8;font-size:18px;min-height:56px}.button.subtle{background:transparent;color:var(--text);font-weight:650}.text-btn{border:0;background:transparent;padding:0;color:var(--accent);font-size:12px;font-weight:700}.quote-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:18px}.quote-amount{padding:14px 15px;background:var(--panel-hi);border:1px solid var(--stroke);border-radius:12px}.quote-amount small{display:block;color:var(--muted);font-size:12px}.quote-amount strong{display:block;font-size:clamp(25px,3.3vw,36px);line-height:1.38;letter-spacing:-.03em}.quote-amount:first-child strong{color:var(--accent)}.metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 16px}.metrics div{display:flex;flex-direction:column}.metrics span{font-size:11px;color:var(--muted)}.metrics b{font-size:15px;font-weight:750}.positive{color:var(--success)!important}.negative{color:var(--danger)!important}.progress-block{margin:19px 0 15px}.progress-label{display:flex;justify-content:space-between;margin-bottom:8px;font-size:12px}.progress-label span:first-child{color:var(--muted)}.progress{background:var(--rail);height:9px;border-radius:10px;overflow:hidden}.progress>div{width:0%;height:100%;background:var(--accent);transition:width .2s}.notice{border:1px solid var(--stroke);border-radius:10px;padding:10px 12px;background:rgba(255,255,255,.025);color:var(--muted);font-size:13px;margin-bottom:13px;min-height:47px}.action-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.secondary-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.secondary-actions>.button{flex:1;min-width:110px;padding:9px 8px;font-size:12px}.compact-panel p{margin:0;white-space:pre-line;color:var(--muted);font-size:13px}.offer{border:1px solid var(--stroke);border-radius:10px;margin-top:13px;padding:12px}.offer p{font-size:13px;color:var(--muted);margin:0 0 10px}.offer-row{display:flex;flex-wrap:wrap;gap:8px}.offer-row button{flex:1;white-space:nowrap;font-size:12px}.offer label{font-size:12px;display:block;margin-bottom:10px}.offer #kelly-probability{margin-top:5px}.alert{padding:12px 16px;background:#533b3e;color:#ffe4e4;border:1px solid #9f6262;border-radius:10px;margin-bottom:14px;font-size:13px}
-.search-wrap{margin-bottom:18px}.search-wrap input{max-width:500px}.strategy-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:13px}.strategy-card{background:var(--panel);border:1px solid var(--stroke);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px}.strategy-card header{display:flex;gap:10px;align-items:center}.strategy-code{display:grid;place-items:center;width:46px;height:42px;flex:none;border:1px solid var(--stroke);border-radius:10px;color:var(--accent);font-size:18px;font-weight:850}.strategy-card h3{font-size:15px}.strategy-card small{color:var(--muted);font-size:11px}.strategy-card p{font-size:12px;color:var(--muted);margin:0;line-height:1.65;flex:1;white-space:pre-line}.strategy-card button{align-self:flex-end}.history-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:16px}.mini-panel{border:1px solid var(--stroke);border-radius:12px;background:var(--panel);padding:14px}.mini-panel small{display:block;color:var(--muted);font-size:12px}.mini-panel strong{display:block;font-size:22px}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:13px;min-width:530px}th{text-align:right;color:var(--muted);font-size:11px;font-weight:650;padding:11px 8px;border-bottom:1px solid var(--stroke)}th:first-child{text-align:left}td{padding:12px 8px;text-align:right;border-bottom:1px solid rgba(255,255,255,.07)}td:first-child{text-align:left}.empty{text-align:center!important;color:var(--muted)}.settings-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}.settings-grid>.panel:last-child{grid-column:1/-1}.settings-grid .panel p{font-size:13px;line-height:1.8}.theme-actions,.button-row{display:flex;gap:10px;flex-wrap:wrap}.theme-choice{border:1px solid var(--stroke);border-radius:11px;padding:11px 15px;background:var(--panel-hi);color:var(--text);font-weight:800;display:flex;align-items:center;gap:10px}.theme-choice.active{border-color:var(--accent)}.theme-dot{display:inline-block;width:17px;height:17px;border-radius:50%}.theme-dot.mint{background:#71e1c7}.theme-dot.blue{background:#83d9ff}.app-footer{border-top:1px solid var(--stroke);padding-top:14px;margin-top:27px;color:var(--muted);font-size:11px;text-align:center}.mobile-nav{display:none}.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(40px);opacity:0;transition:all .2s;background:#264a56;color:#f5ffff;border:1px solid var(--stroke);border-radius:12px;padding:11px 17px;z-index:40;font-size:13px;pointer-events:none;text-align:center;box-shadow:var(--shadow)}.toast.visible{opacity:1;transform:translateX(-50%) translateY(0)}
+.search-wrap{margin-bottom:18px}.search-wrap input{max-width:500px}.strategy-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:13px}.strategy-card{background:var(--panel);border:1px solid var(--stroke);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px}.strategy-card header{display:flex;gap:10px;align-items:center}.strategy-code{display:grid;place-items:center;width:46px;height:42px;flex:none;border:1px solid var(--stroke);border-radius:10px;color:var(--accent);font-size:18px;font-weight:850}.strategy-card h3{font-size:15px}.strategy-card small{color:var(--muted);font-size:11px}.strategy-card p{font-size:12px;color:var(--muted);margin:0;line-height:1.65;flex:1;white-space:pre-line}.strategy-card button{align-self:flex-end}.strategy-guide{border-top:1px solid var(--stroke);padding-top:8px;color:var(--text)}.strategy-guide summary{cursor:pointer;font-size:13px;font-weight:700;line-height:1.5;color:var(--accent);padding:3px 0;list-style-position:inside}.strategy-guide[open] summary{margin-bottom:7px}.strategy-guide-row{display:grid;grid-template-columns:66px minmax(0,1fr);gap:6px;align-items:start;margin:0 0 7px!important;line-height:1.6!important;font-size:13px!important;color:var(--text)!important;flex:initial!important;white-space:normal!important}.strategy-guide-row b{font-weight:700;color:var(--accent)}.strategy-guide-row span{overflow-wrap:anywhere}.history-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:16px}.mini-panel{border:1px solid var(--stroke);border-radius:12px;background:var(--panel);padding:14px}.mini-panel small{display:block;color:var(--muted);font-size:12px}.mini-panel strong{display:block;font-size:22px}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:13px;min-width:530px}th{text-align:right;color:var(--muted);font-size:11px;font-weight:650;padding:11px 8px;border-bottom:1px solid var(--stroke)}th:first-child{text-align:left}td{padding:12px 8px;text-align:right;border-bottom:1px solid rgba(255,255,255,.07)}td:first-child{text-align:left}.empty{text-align:center!important;color:var(--muted)}.settings-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}.settings-grid>.panel:last-child{grid-column:1/-1}.settings-grid .panel p{font-size:13px;line-height:1.8}.theme-actions,.button-row{display:flex;gap:10px;flex-wrap:wrap}.theme-choice{border:1px solid var(--stroke);border-radius:11px;padding:11px 15px;background:var(--panel-hi);color:var(--text);font-weight:800;display:flex;align-items:center;gap:10px}.theme-choice.active{border-color:var(--accent)}.theme-dot{display:inline-block;width:17px;height:17px;border-radius:50%}.theme-dot.mint{background:#71e1c7}.theme-dot.blue{background:#83d9ff}.app-footer{border-top:1px solid var(--stroke);padding-top:14px;margin-top:27px;color:var(--muted);font-size:11px;text-align:center}.mobile-nav{display:none}.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(40px);opacity:0;transition:all .2s;background:#264a56;color:#f5ffff;border:1px solid var(--stroke);border-radius:12px;padding:11px 17px;z-index:40;font-size:13px;pointer-events:none;text-align:center;box-shadow:var(--shadow)}.toast.visible{opacity:1;transform:translateX(-50%) translateY(0)}
 @media(max-width:1050px){.sidebar{width:185px}.brand strong{font-size:13px}.main-view{padding:24px 20px}.layout-two{grid-template-columns:1fr 1fr}.panel{padding:16px}.quote-amount strong{font-size:26px}}@media(max-width:850px){.layout-two{grid-template-columns:1fr}.sidebar{width:174px}.settings-grid{grid-template-columns:1fr}.settings-grid>.panel:last-child{grid-column:auto}}@media(max-width:630px){.sidebar{display:none}.mobile-nav{display:grid;grid-template-columns:repeat(4,1fr);position:fixed;bottom:0;left:0;right:0;background:var(--rail);border-top:1px solid var(--stroke);padding:7px 7px calc(7px + env(safe-area-inset-bottom));z-index:10}.mobile-nav button{display:flex;align-items:center;flex-direction:column;gap:0;border:0;background:transparent;color:var(--muted);font-size:21px;padding:5px 0;border-radius:8px;line-height:1.15}.mobile-nav button span{font-size:11px}.mobile-nav button.active{color:var(--accent);background:var(--panel-hi)}.main-view{padding:19px 13px 104px}.topbar{align-items:flex-end}.status-pill{font-size:10px;padding:5px 8px}h1{font-size:24px}.section-intro{align-items:flex-start}.tip{display:none}.panel{padding:15px;border-radius:14px}.fields,#config-form{gap:11px}.field input,.field select{height:41px}.app-footer{margin-top:17px}.history-summary{gap:7px}.mini-panel{padding:9px}.mini-panel strong{font-size:17px}.strategy-grid{grid-template-columns:1fr}.quote-amount strong{font-size:30px}.settings-grid{grid-template-columns:1fr}.settings-grid>.panel:last-child{grid-column:auto}.toast{bottom:85px;max-width:90%;min-width:180px}}@media(max-width:355px){.topbar{display:block}.status-pill{display:inline-block;margin-top:8px}.field{font-size:11px}.quote-amount strong{font-size:25px}.secondary-actions{flex-direction:column}}
 
 
@@ -690,182 +690,338 @@ body[data-font-size="large"]{
     "name": "自訂關卡配注法",
     "code": 0,
     "kind": "負追",
-    "description": "未取整每碼基額＝(一份÷碼數÷有效配注序列和)。掛進、中回首；末階後回首開新輪。"
+    "description": "自訂掛後進關倍率，中獎回首關。",
+    "guide": {
+      "start": "自行設定每關倍率，系統按操作金計算每碼金額。",
+      "win": "回第1關，重新開始。",
+      "loss": "進下一關；走完自訂倍率後回第1關開新輪。",
+      "stop": "達總局數、停損、停利、資金或限紅限制時停止。"
+    }
   },
   {
     "id": "custom_win",
     "name": "自訂關卡配注法（勝近）",
     "code": 99,
     "kind": "勝近",
-    "description": "第一關每碼=floor(操作金÷切分份數÷碼數)，自訂倍率第一項固定為1；之後依首關基額×指定倍率（不除倍率總和），中進、掛回首，序列走完下一輪。"
+    "description": "自訂連中勝進倍率，掛後回首關。",
+    "guide": {
+      "start": "第1關固定1倍，後續倍率自行設定。",
+      "win": "進下一關；最後關中後回首關。",
+      "loss": "回第1關，不因掛牌自動追倍。",
+      "stop": "達總局數、停損、停利、資金或限紅限制時停止。"
+    }
   },
   {
     "id": "twoleg",
     "name": "逐關分層法",
     "code": 66,
     "kind": "雙向",
-    "description": "#66 逐關分層：固定4層、每層預設4格、最多10格。每格填寫每碼下注金額，實際本局總注＝每碼×下注碼數。每層尾端可填0或留空，整個尾端層可停用。中獎進同層下一個啟用關，最後關中退上一層第1關；掛則跳下一個啟用層，若沒有下一層就暫停。每局皆檢查可用資金、停損和限紅。"
+    "description": "每格設定每碼金額，中走關、掛換層。",
+    "guide": {
+      "start": "最多4層，每層最多10格；未使用的尾端可填0或留空。",
+      "win": "進同層下一格；該層最後一格中，回上一層首格。",
+      "loss": "跳下一個啟用層；沒有下一層就暫停。",
+      "stop": "最後層掛後暫停；也受總局數及風險限制。"
+    }
   },
   {
     "id": "peak",
     "name": "高點獲利鎖定法",
     "code": 1,
     "kind": "中性",
-    "description": "#01 高點獲利鎖定：第一局每碼＝floor(操作金÷切分份數÷碼數)。每局依可用操作金（原操作金＋累積淨盈虧－已鎖利）重新分切；每次獲利按自訂比例自動鎖利，未鎖獲利持續投入。連續達指定鎖利次數完成一週期，掛則連續次數歸零；不設最大關卡。"
+    "description": "獲利自動鎖住一部分，剩下繼續配注。",
+    "guide": {
+      "start": "依目前可用操作金及切分份數，逐局計算注碼。",
+      "win": "依設定比例自動鎖利；連續達指定次數後換週期。",
+      "loss": "重新配注，連續鎖利次數歸零。",
+      "stop": "達總局數、停損、停利、資金或限紅限制時停止。"
+    }
   },
   {
     "id": "progress",
     "name": "停利進度收斂法",
     "code": 2,
     "kind": "中性",
-    "description": "起始基額＝floor(一份÷碼數÷10)。調節倍數＝剩餘停損÷初始停損×份數÷(份數＋floor(停利進度×12))。"
+    "description": "依目前獲利進度調整下一注。",
+    "guide": {
+      "start": "依停利目標進度與剩餘風險額度計算注碼。",
+      "win": "更新獲利及停利進度，重新算下一注。",
+      "loss": "更新剩餘風險額度，重新算下一注。",
+      "stop": "達總局數、停損、停利、資金或限紅限制時停止。"
+    }
   },
   {
     "id": "drawdown",
     "name": "高點回撤階梯法",
     "code": 3,
     "kind": "中性",
-    "description": "起始基額＝floor(一份÷碼數÷10)。每回撤初始操作金5%，分母增加4份；回撤20%暫停，恢復不重置高點。"
+    "description": "盈虧從最高紀錄下滑時，逐階降低投入。",
+    "guide": {
+      "start": "依目前盈虧距離最高紀錄的回撤程度計算。",
+      "win": "更新盈虧高點與下一注金額。",
+      "loss": "每回撤操作金5%，提高一級防守。",
+      "stop": "回撤達操作金20%即暫停；也受一般風險限制。"
+    }
   },
   {
     "id": "volatility",
     "name": "損益波動調節法",
     "code": 4,
     "kind": "中性",
-    "description": "起注每碼＝floor(操作金÷切分份數÷碼數)，#04 可切分1～200份；超過最高限紅時按上限計算。後續依最近10局損益波動調節，未滿3局視為波動0。"
+    "description": "最近10局盈虧波動越大，下注越保守。",
+    "guide": {
+      "start": "起注依操作金與份數切分；最多可切分200份。",
+      "win": "更新最近10局盈虧波動，重算注碼。",
+      "loss": "更新最近10局盈虧波動，重算注碼。",
+      "stop": "達總局數、停損、停利、資金或限紅限制時停止。"
+    }
   },
   {
     "id": "shock",
     "name": "最大虧損壓力法",
     "code": 5,
     "kind": "中性",
-    "description": "起始基額＝floor(一份÷碼數÷10)。調節倍數＝剩餘停損÷初始停損×基準÷max(基準,近20局最大虧損)，基準＝初始停損÷份數。"
+    "description": "依最近20局最大的單次虧損調整注額。",
+    "guide": {
+      "start": "虧損壓力越大，計算出的單注通常越小。",
+      "win": "更新剩餘風險額度，重新配注。",
+      "loss": "記錄本次虧損，依近20局最大虧損重算。",
+      "stop": "達總局數、停損、停利、資金或限紅限制時停止。"
+    }
   },
   {
     "id": "dual",
     "name": "本金獲利雙池法",
     "code": 6,
     "kind": "中性",
-    "description": "新建#06計畫採自訂勝進倍率（預設1,2），遇中進階、遇掛回首關；當輪獲利達操作金10%，全部當輪獲利70%自動鎖利、30%滾入下一輪操作金。舊備份依原規則運作。"
+    "description": "連中勝進；獲利達標後自動鎖利及滾利。",
+    "guide": {
+      "start": "依設定的勝進倍率及本輪操作金配注。",
+      "win": "勝進下一關；本輪獲利達目標後，70%鎖利、30%滾利。",
+      "loss": "回第1關，保留本輪盈虧紀錄。",
+      "stop": "達總局數、停損、停利、資金或限紅限制時停止。"
+    }
   },
   {
     "id": "cooldown",
     "name": "連掛冷卻檢核法",
     "code": 7,
     "kind": "中性",
-    "description": "起始基額＝floor(一份÷碼數÷10)。調節倍數＝剩餘停損÷初始停損×份數÷(份數＋近10局掛數)；連掛3局冷卻，手動恢復只重置冷卻計數。"
+    "description": "連掛達門檻先冷卻，觀察達標再恢復。",
+    "guide": {
+      "start": "依可用操作金分配，參考最近10局掛牌數調節。",
+      "win": "正常下注時清除連掛計數，重新配注。",
+      "loss": "連掛預設3局進入冷卻；觀察連中預設2局才恢復。",
+      "stop": "冷卻期間不下注；停損、停利及限紅仍優先。"
+    }
   },
   {
     "id": "giveback",
     "name": "獲利回吐底線法",
     "code": 8,
     "kind": "中性",
-    "description": "新建#08為獲利保底勝進滾利。首局每碼=floor(操作金÷份數÷碼數)；每中一次按實際淨獲利自動鎖利（預設20%），首中後只滾剩餘淨獲利，後續以舊滾利池加新未鎖淨獲利勝進；掛回起注，最高關中後剩餘滾利全鎖並重新起注。舊備份仍使用原高點回吐算法。"
+    "description": "先折減起注；連中勝進、掛後再退階。",
+    "guide": {
+      "start": "底線預設20%，第1關先折減；勝進倍率預設1.8倍。",
+      "win": "往下一關加注；最高關中後回第1關。",
+      "loss": "回第1關，起注再依底線比例降低。",
+      "stop": "達總局數、停損、停利、資金或限紅限制時停止。"
+    }
   },
   {
     "id": "rounds",
     "name": "剩餘局數預算法",
     "code": 9,
     "kind": "中性",
-    "description": "每輪按設定局數循環，例35局完成後第36局是第二輪第1局。每碼＝floor(max(0,原始一份操作金＋本輪盈虧)÷碼數÷本輪剩餘局數)。換輪只重置本輪盈虧計算基準，不清除總盈虧、投注量或歷史。"
+    "description": "每輪固定局數，依本輪盈虧調整下一注。",
+    "guide": {
+      "start": "依每輪設定局數平均分配操作預算。",
+      "win": "依本輪獲利重算下一注。",
+      "loss": "依本輪虧損重算下一注，通常逐步減注。",
+      "stop": "本輪局數用完自動換輪，保留全程盈虧；停損等限制仍生效。"
+    }
   },
   {
     "id": "consensus",
     "name": "多因子防守共識法",
     "code": 10,
     "kind": "中性",
-    "description": "每局由A獲利進度、B正獲利高點回撤、C近10局損益波動各算每碼金額，取最小值。尚未有正獲利高點的連掛依設定停損%及限額控制，不再固定20%停機；出現正獲利高點後才啟用自訂回撤門檻（預設20%）。正獲利鎖利預設50%可自訂。"
+    "description": "A、B、C各算一個金額，採用最低下注額。",
+    "guide": {
+      "start": "A看獲利進度、B看高點回撤、C看近10局波動。",
+      "win": "更新三項金額；最高獲利達操作金10%後啟動高點保護。",
+      "loss": "重新取A／B／C最低值；達回撤門檻時停止。",
+      "stop": "高點保護啟動後，回撤達操作金20%暫停；也受其他限制。"
+    }
   },
   {
     "id": "fixed",
     "name": "動態固定注",
     "code": 11,
     "kind": "中性",
-    "description": "動態固定注：每碼＝floor((當前操作預算＋本次尚未分配的損益)÷分割份數÷碼數÷5)，中掛後重算；鎖利扣操作預算，滾利加當次獲利，均不重複。"
+    "description": "依最新操作預算與盈虧，動態調整固定注。",
+    "guide": {
+      "start": "把目前操作預算與可分配盈虧重新切分。",
+      "win": "結算獲利後重算，可選擇鎖利或滾利。",
+      "loss": "結算虧損後重算，不固定按倍數追注。",
+      "stop": "達總局數、停損、停利、資金或限紅限制時停止。"
+    }
   },
   {
     "id": "fraction",
     "name": "固定比例法",
     "code": 12,
     "kind": "中性",
-    "description": "每碼＝floor(一份÷碼數×投入比例)，新使用者預設20%；已存在的自訂比例保留。"
+    "description": "每局依設定比例投入，不自動追倍。",
+    "guide": {
+      "start": "先分一份操作金，再按投入比例計算每碼。",
+      "win": "依原設定比例繼續；未手動調整不自動加倍。",
+      "loss": "依原設定比例繼續；不自動翻倍追損。",
+      "stop": "達總局數、停損、停利、資金或限紅限制時停止。"
+    }
   },
   {
     "id": "budget",
     "name": "預算分配法",
     "code": 13,
     "kind": "中性",
-    "description": "每碼＝floor(一份÷碼數÷份數)。先取一份後再除份數，保留指定二次分份。"
+    "description": "把操作金分兩次切分，降低單局投入。",
+    "guide": {
+      "start": "先取一份操作金，再依份數分一次。",
+      "win": "沿用分份方式；如操作預算變動則重新計算。",
+      "loss": "沿用分份方式，不自動倍增。",
+      "stop": "達總局數、停損、停利、資金或限紅限制時停止。"
+    }
   },
   {
     "id": "winner",
     "name": "有限連贏法",
     "code": 14,
     "kind": "勝進",
-    "description": "第一關總注=floor(操作金÷切分份數÷碼數)×碼數；衝刺前下一注=第一關總注＋本輪累積淨獲利，衝刺後下一注=本輪累積淨獲利×所選固定／隨機比例；每碼取整數，中進、掛回第一關。"
+    "description": "連中逐關勝進；衝刺階段改用獲利比例。",
+    "guide": {
+      "start": "先依操作金分份起注，並設定從第幾關開始衝刺。",
+      "win": "進下一關；衝刺時依本輪獲利及設定比例配注。",
+      "loss": "回第1關重新開始，不追補先前虧損。",
+      "stop": "最高關完成後回首關；也受總局數及風險限制。"
+    }
   },
   {
     "id": "martingale",
     "name": "標準馬丁法",
     "code": 16,
     "kind": "負追",
-    "description": "未取整每碼基額＝(一份÷碼數÷有效1/2/4/8…總和)。掛進、中回首；末階掛保留原版暫停。"
+    "description": "1、2、4、8倍逐關遞增；中回首關。",
+    "guide": {
+      "start": "依最大關卡配置倍數，將操作預算分配到各關。",
+      "win": "回第1關。",
+      "loss": "進下一關，倍率逐關增加。",
+      "stop": "最後關掛後暫停；也受總局數及風險限制。"
+    }
   },
   {
     "id": "tianmen",
     "name": "天門打法",
     "code": 17,
     "kind": "負追",
-    "description": "未取整每碼基額＝(一份÷碼數÷有效1/3/7/15/31總和)。固定只有5個倍率，最大關卡超過5不會自動補倍率；掛進、中回首；末階掛保留原版暫停。"
+    "description": "依1、3、7、15、31倍追關；中回首關。",
+    "guide": {
+      "start": "最多5關，依固定倍率分配每碼注額。",
+      "win": "回第1關。",
+      "loss": "進下一關，依固定倍率加注。",
+      "stop": "最後關掛後暫停；也受總局數及風險限制。"
+    }
   },
   {
     "id": "dalembert",
     "name": "達朗貝爾法",
     "code": 18,
     "kind": "負追",
-    "description": "未取整每碼基額＝(一份÷碼數÷有效1/2/3…總和)。掛加1單位、中減1單位；超過末階保留原版暫停。有限序列總和不代表來回操作的最大支出。"
+    "description": "掛加1單位、中減1單位的配注法。",
+    "guide": {
+      "start": "第1關1單位，後續依2、3、4…單位配置。",
+      "win": "退1單位，最低回第1關。",
+      "loss": "加1單位，往下一關。",
+      "stop": "超過最大關卡會暫停；也受總局數及風險限制。"
+    }
   },
   {
     "id": "fibonacci",
     "name": "費波納契法",
     "code": 19,
     "kind": "負追",
-    "description": "未取整每碼基額＝(一份÷碼數÷有效費波納契總和)。掛進1、中退2；超過末階保留原版暫停。"
+    "description": "依1、1、2、3、5…級數調整每關注額。",
+    "guide": {
+      "start": "依費波納契序列及設定關卡切分操作金。",
+      "win": "退2關，最低回第1關。",
+      "loss": "進1關，依序列調整下注。",
+      "stop": "超過最大關卡會暫停；也受總局數及風險限制。"
+    }
   },
   {
     "id": "attack",
     "name": "攻擊／退守切換法",
     "code": 20,
     "kind": "雙向",
-    "description": "未取整每碼基額＝((一份÷(有效攻擊和＋有效防守和))×(碼數÷份數))，同輪固定，測試2倍不入序列和；最大關卡包含測試1關，其餘取攻擊／退守最多(最大關卡－1)筆。測試中轉攻擊、掛轉退守；攻擊掛回測試；退守最低關中回測試。回測試時：本輪有可分配獲利可選鎖利／滾利；當輪虧損、打平或無可分配獲利時，未觸發整體停損則進下一輪。末階仍保留關卡上限暫停。"
+    "description": "先測試，再按中掛切換攻擊或退守。",
+    "guide": {
+      "start": "先下注測試關，再分別依攻擊、退守倍率運作。",
+      "win": "測試中轉攻擊；攻擊中進關；退守中退關。",
+      "loss": "測試掛轉退守；攻擊掛回測試；退守掛進關。",
+      "stop": "到末關或達總局數、停損、停利、資金、限紅時暫停。"
+    }
   },
   {
     "id": "recovery",
     "name": "目標回補法",
     "code": 22,
     "kind": "負追",
-    "description": "每碼＝ceil((未回補虧損＋回補目標)÷(含本金賠率－碼數))。分母≤0不計算。"
+    "description": "按目前待回補虧損與目標，計算下一注。",
+    "guide": {
+      "start": "設定回補目標，系統依待回補金額與賠率配注。",
+      "win": "把實際淨獲利用來扣減待回補虧損。",
+      "loss": "增加待回補虧損，再重新計算注額。",
+      "stop": "關卡用完、賠率不符或達風險限制時暫停。"
+    }
   },
   {
     "id": "kelly",
     "name": "凱利公式",
     "code": 23,
     "kind": "中性",
-    "description": "每期先提供本期預估中獎率p。b＝含本金賠率÷碼數－1；f＝(b×p－(1－p))÷b。每碼＝floor(一份×f×凱利折數÷碼數)；未提供p、b≤0或f≤0不進場。"
+    "description": "每期輸入預估命中率，計算合適的投入比例。",
+    "guide": {
+      "start": "輸入本期預估中獎率與凱利折數。",
+      "win": "結算後清除本期機率，下期重新填寫。",
+      "loss": "結算後清除本期機率，下期重新填寫。",
+      "stop": "未輸入機率、試算無正值或達一般限制時不下注。"
+    }
   },
   {
     "id": "labouchere",
     "name": "清單消去法",
     "code": 24,
     "kind": "負追",
-    "description": "新輪未取整每碼基額＝(一份÷初始清單和÷碼數)，同輪固定。倍數取首尾和，單項僅一次；掛追加、中刪首尾。清空才完成；不受連掛或關卡上限重置。新輪基額依當前操作預算重新算；鎖利扣預算，滾利加當次可滾獲利。"
+    "description": "用清單首尾計算下注；中刪、掛加。",
+    "guide": {
+      "start": "依清單首尾數字（單項只取一次）計算注額。",
+      "win": "刪掉清單首尾；清空則完成本輪。",
+      "loss": "將本次首尾合計追加到清單末尾。",
+      "stop": "關卡、資金、限紅或總局數限制時停止；清空則換輪。"
+    }
   },
   {
     "id": "equal_reset",
     "name": "等分倍盈歸本法",
     "code": 26,
     "kind": "等分",
-    "description": "每碼=floor((原操作金＋當前淨盈虧－已鎖利)÷本輪等份÷下注碼數)；每局都依剩餘可用金重算注碼。固定輸入相同等份，區間在每輪開始時均勻隨機抽一個整數；掛沿用本輪等份、中則下輪重新抽。等份數不是關卡上限，無法再分切出符合限紅的整數注碼才停止（仍遵守停損等安全設定）。累計已結算週期淨獲利達起始操作金100%時，已鎖金額不重複計入，超額獲利全鎖，操作預算歸回起始值，開始下一週期。"
+    "description": "每局用剩餘可用金等分；中後重新開輪。",
+    "guide": {
+      "start": "設定等份數，依目前可用金平均切分每碼。",
+      "win": "結束本輪，下輪重新選等份；獲利達歸本目標時鎖利。",
+      "loss": "沿用本輪等份數，依剩餘金額重新配注。",
+      "stop": "注額不足、達停損、停利、限紅或總局數時停止。"
+    }
   }
 ]</script>
 <script type="text/plain" id="py-src-strategy_engine.py">
@@ -3863,9 +4019,9 @@ function changeStrategyFields(){
   if(code===17&&Number(max.value)>5)max.value='5';
   if(is26)max.value=$('[name=partsMax]').value;
   const s=strategies.find(x=>x.code===code);
-  $('#strategy-hint').dataset.info=code===10?'#10：A停利進度、B正獲利高點回撤、C近10局波動，各自換算實際每碼候選金額，以最低者配注。最高正淨獲利先達自訂啟動門檻（預設操作金10%），才啟用高點回撤停機（預設操作金20%）與高點鎖利（預設50%）；初期連掛只受整體停損、可用資金及限紅限制。':code===9?'#09：每輪依設定局數循環；每碼＝floor(max(0,原始一份操作金+本輪盈虧)÷每輪固定局數÷碼數)。掛後依虧損降低下局金額，避免剩餘局數同步減少造成注額不變。每輪完成僅更新本輪起點，總盈虧、投注量及歷史保留至結算。':code===4?'#04：起注每碼＝floor(操作金÷切分份數÷碼數)，切分1～200份；超出最高限紅時改用上限，低於最低限紅不補注。結算後照最近10局盈虧波動調節，停利停損依原設定。':is26?'#26：等份數只是每局的除數，不是關卡上限。固定等份填相同數字；區間每輪隨機抽一次。每局依目前操作金加淨盈虧重新分切至整數，直到不能符合限紅或資金限制才停止。':code===66?'#66：4層，每層4～10格，每格填「每碼下注金額」，總注＝每碼×碼數。0／空白只能放在各層末尾，末尾整層也能停用。中獎進同層下一啟用關，末關中回上一層；掛跳下一啟用層，沒有下一層就暫停。':code===1?'#01：依目前可用操作金÷切分份數÷碼數逐局算起注。每次中獎自動鎖利指定比例，剩餘獲利繼續操作；連續達設定次數完成一週期、掛歸零。不使用最大關卡。':code===14?'#14：第一關按操作金÷份數起注；前段以起注總額＋本輪已獲淨利，衝刺階段僅用本輪獲利的固定或隨機百分比。掛回首關。':code===99?'#99：首關倍率必須為1；每關以固定起注×自訂倍率，中進、掛回首。倍率長度就是勝進關數，不會反推縮小第一關。':code===8?'#08：參考基額＝操作金÷份數÷碼數；首關按底線比例預先折減，中後依勝進倍率提升，掛後回首關並再折減一次。限紅、停損與資金不足時暫停。':s?.description||'此策略依原本 RUBY TG Chip V1.8.18 計算規則運作。';
+  $('#strategy-hint').dataset.info=formatStrategyGuide(s);
   updateWinStartPreview();
-  $('#current-summary').textContent=s?.description||'請選擇策略。';$('#summary-info').dataset.info=s?.description||'請選擇策略。';
+  $('#current-summary').textContent=s?.description||'請選擇策略。';$('#summary-info').dataset.info=formatStrategyGuide(s);
 }
 function parseSeq(value){
   const seq=value.trim().split(/[\s,，/、]+/).filter(Boolean).map(Number);
@@ -3977,10 +4133,20 @@ function refreshStrategyFirstQuotes(){
   };
   work();
 }
+function formatStrategyGuide(item){
+  if(!item)return '請先選擇策略。';
+  const g=item.guide||{};
+  return ['#'+String(item.code).padStart(2,'0')+' '+displayStrategyName(item.name),
+    item.description,
+    '怎麼下注：'+(g.start||'依設定計算配注。'),
+    '中後：'+(g.win||'依策略規則調整。'),
+    '掛後：'+(g.loss||'依策略規則調整。'),
+    '何時停止：'+(g.stop||'依設定限制停止。')].join('\n');
+}
 function displayStrategyLibrary(query=''){
   const holder=$('#strategy-grid');holder.textContent='';
   const q=query.trim().toLocaleLowerCase();
-  const visible=strategies.filter(s=>!q||(`${s.code} #${s.code} ${displayStrategyName(s.name)} ${s.name} ${s.kind} ${s.description}`).toLocaleLowerCase().includes(q));
+  const visible=strategies.filter(s=>!q||(`${s.code} #${s.code} ${displayStrategyName(s.name)} ${s.name} ${s.kind} ${s.description} ${Object.values(s.guide||{}).join(" ")}`).toLocaleLowerCase().includes(q));
   if(!visible.length){const p=document.createElement('p');p.className='muted';p.textContent='沒有符合條件的策略';holder.append(p);return;}
   for(const item of visible){
     const card=document.createElement('article');card.className='strategy-card';
@@ -3989,10 +4155,19 @@ function displayStrategyLibrary(query=''){
     const detail=document.createElement('div');const name=document.createElement('h3');name.textContent=displayStrategyName(item.name);
     const kind=document.createElement('small');kind.textContent=item.kind;detail.append(name,kind);head.append(code,detail);
     const desc=document.createElement('p');desc.textContent=item.description;
+    const rules=document.createElement('details');rules.className='strategy-guide';
+    const ruleToggle=document.createElement('summary');ruleToggle.textContent='查看操作規則';
+    rules.append(ruleToggle);
+    for(const [label,key] of [['怎麼下注','start'],['中後','win'],['掛後','loss'],['何時停止','stop']]){
+      const line=document.createElement('p');line.className='strategy-guide-row';
+      const heading=document.createElement('b');heading.textContent=label+'：';
+      const content=document.createElement('span');content.textContent=item.guide?.[key]||'請依設定操作。';
+      line.append(heading,content);rules.append(line);
+    }
     const quoteCard=document.createElement('div');quoteCard.className='strategy-quote';quoteCard.dataset.quoteCode=String(item.code);quoteCard.textContent='預估起注：計算核心載入後顯示';
     const btn=document.createElement('button');btn.type='button';btn.className='text-btn';btn.textContent='選擇此策略 →';
     btn.addEventListener('click',()=>{$('#strategy-select').value=item.code;changeStrategyFields();saveSettings();showDrawer('drawer-config');toast('已選擇策略，請確認設定後開始新計畫');});
-    card.append(head,desc,quoteCard,btn);holder.append(card);
+    card.append(head,desc,rules,quoteCard,btn);holder.append(card);
   }
   refreshStrategyFirstQuotes();
 }
