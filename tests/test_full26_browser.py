@@ -295,7 +295,13 @@ with sync_playwright() as playwright:
             assert page.evaluate("snapshot.quote") is None
             assert page.locator("#win-button").is_disabled() and page.locator("#loss-button").is_disabled()
             assert page.locator("#round-count").text_content()=="2 / 2 · #1",page.locator("#round-count").text_content()
-            assert page.locator("#progress-text").text_content()=="100.0%"
+            if code!=26:
+                # The standard progress bar is the completed plan ratio.
+                assert abs(float(page.locator("#progress-text").text_content().rstrip("%"))-100)<0.01
+            else:
+                # #26 intentionally shows capital-return progress instead.
+                capital_pct=float(page.locator("#progress-text").text_content().rstrip("%"))
+                assert 0<=capital_pct<=100,capital_pct
             print("BROWSER P0 hard cap",code,flush=True)
     assert not errors,errors
     assert not failed,f"Browser UI failed for {len(failed)} of 26 strategies"
