@@ -28,13 +28,22 @@ class Server(socketserver.TCPServer):
     allow_reuse_address=True
 server=Server(("127.0.0.1",0),handler)
 threading.Thread(target=server.serve_forever,daemon=True).start()
-url=f"http://127.0.0.1:{server.server_address[1]}/index.html"
+url=__import__("os").environ.get("RUBY_PUBLIC_SITE_URL") or f"http://127.0.0.1:{server.server_address[1]}/index.html"
 errors=[]
 with sync_playwright() as pw:
     browser=pw.chromium.launch(headless=True,args=["--no-sandbox"])
     page=browser.new_page(viewport={"width":1350,"height":950},locale="zh-TW")
     page.on("pageerror",lambda e: errors.append(str(e)))
     page.goto(url,wait_until="domcontentloaded",timeout=120000)
+    if __import__("os").environ.get("RUBY_PUBLIC_SITE_URL"):
+        live_data=json.loads(page.evaluate("document.getElementById('ruby-strategies-json')?.textContent || '[]'"))
+        assert len(live_data)==26,"Live site did not load 26 strategies"
+        assert next(x["description"] for x in live_data if x["code"]==7)=="連掛達門檻先冷卻；觀察連中後再恢復配注。"
+        assert next(x["description"] for x in live_data if x["code"]==8)=="先按底線降低起注；中獎勝進，掛後再降起注。"
+        assert next(x["description"] for x in live_data if x["code"]==9)=="把預算分到每輪固定局數，每局依本輪盈虧重算。"
+        assert next(x["description"] for x in live_data if x["code"]==10)=="A 獲利、B 回撤、C 波動各算一注，取最低金額。"
+        assert "s=copy.deepcopy(before)" in page.evaluate("document.getElementById('py-src-web_engine.py')?.textContent || ''"),"Live site lost P0 engine"
+        print("LIVE GITHUB PAGES GUIDE AND P0 SOURCE VERIFIED",page.url,flush=True)
     page.wait_for_function("document.querySelector('#engine-status')?.textContent?.includes('已就緒')",timeout=150000)
     page.locator("#open-strategies").click()
     page.wait_for_selector("#view-strategies.open",timeout=15000)
