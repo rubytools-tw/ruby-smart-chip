@@ -29,6 +29,31 @@ with sync_playwright() as playwright:
         assert "web_batch_mode=(strategy_code==9)" in embedded, "LIVE GITHUB PAGES missing P0 hard round cap"
         print("LIVE PAGES P0 SOURCE VERIFIED",page.url,flush=True)
     page.wait_for_function("document.querySelector('#engine-status')?.textContent?.includes('已就緒')", timeout=150000)
+    if not __import__("os").environ.get("RUBY_PUBLIC_SITE_URL"):
+        print("GUIDE AUDIT opening 26 strategy cards",flush=True)
+        page.locator("#open-strategies").click()
+        page.wait_for_function("document.querySelectorAll('#strategy-grid .strategy-card').length===26",timeout=15000)
+        cards=page.locator("#strategy-grid .strategy-card")
+        assert cards.count()==26
+        for i in range(cards.count()):
+            card=cards.nth(i)
+            summary=card.locator("p").first.text_content().strip()
+            assert summary and len(summary)<=55,(i,summary)
+            toggle=card.locator(".strategy-guide summary")
+            assert toggle.count()==1,(i,"missing expandable guide")
+            toggle.click()
+            guide=card.locator(".strategy-guide")
+            assert guide.get_attribute("open") is not None,(i,"guide did not expand")
+            rows=card.locator(".strategy-guide-row")
+            assert rows.count()==4,(i,rows.count())
+            expected=("怎麼下注：","中後：","掛後：","何時停止：")
+            for k,label in enumerate(expected):
+                assert rows.nth(k).locator("b").text_content()==label,(i,k)
+                assert len(rows.nth(k).locator("span").text_content().strip())>=5,(i,k)
+            toggle.click()
+            assert guide.get_attribute("open") is None,(i,"guide did not collapse")
+        page.locator("#view-strategies .close-drawer").click()
+        print("GUIDE AUDIT 26/26 expandable descriptions PASS",flush=True)
     page.locator("#create-plan").click()
     page.select_option("#strategy-select", "7")
     page.locator('input[name="operation"]').fill("6000")
@@ -216,6 +241,11 @@ with sync_playwright() as playwright:
             opener="#create-plan" if page.locator("#create-plan").is_visible() else "#open-config"
             page.locator(opener).click()
             page.select_option("#strategy-select",str(code))
+            if not __import__("os").environ.get("RUBY_PUBLIC_SITE_URL"):
+                description=page.evaluate("document.querySelector('#strategy-hint').dataset.info")
+                for line in ("怎麼下注：","中後：","掛後：","何時停止："):
+                    assert line in description,(code,line,description)
+                assert "#"+str(code).zfill(2) in description,(code,description)
             page.locator('input[name="operation"]').fill("1000000")
             if code==26:
                 page.locator('input[name="partsMin"]').fill("10")
