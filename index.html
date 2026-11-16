@@ -2787,8 +2787,11 @@ def observe_cooldown(outcome):
         q,why=sizing.quote(s)
         q,why=enforce_table_limits(s,q,why)
         if q is None:
-            s['session_status']='paused_funds'
-            s['strategy_pause_reason']=why or '剩餘可用金不足以恢復配注'
+            s['session_status']=('paused_loss' if s['pnl']<=-s['loss_limit'] else
+                                 'paused_profit' if s['pnl']>=s['profit_target'] else
+                                 'paused_round_limit' if sizing.plan_limit_reached(s) else
+                                 'paused_funds')
+            s['strategy_pause_reason']=why or '目前未符合恢復配注條件'
     else:
         s['strategy_pause_reason']=f'#07 觀察連中{s["cooldown_observe_streak"]}/{target}期，尚未恢復配注'
     return evaluate_state()
