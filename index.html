@@ -1280,6 +1280,9 @@ def base_raw(s):
         return dec(strategy26.per_code_base(s,available(s),operation_budget(s)))
     if s['strategy']=='高點獲利鎖定法' and s.get('peak_lock_version')==2:
         return max(dec(0),dec(available(s)))/f/n
+    if s['strategy']=='連掛冷卻檢核法' and s.get('cooldown_v2'):
+        # Recalculate every new round from the live, unlocked available funds.
+        return max(dec(0),dec(available(s)))/f/n/dec(10)
     if k in ('winner','custom_win') and s.get('win_mode_version')==2:
         # The first stake depends only on original capital, split count and codes;
         # a long winning sequence must NOT dilute the first entry.
@@ -1396,7 +1399,11 @@ def adjustment(s):
     if name=='本金獲利雙池法':
         principal=max(0,L+min(P,0));profit=max(0,P-s.get('peak_pnl',0)*.7)
         return (principal+2*profit)/L,''
-    if name=='連掛冷卻檢核法':return h/L*f/(f+sum(r['delta']<0 for r in s.get('ledger',[])[-10:])) ,''
+    if name=='連掛冷卻檢核法':
+        # v2 already uses live available operation funds in base_raw; avoid
+        # applying the cumulative-loss ratio twice.
+        recent_losses=sum(r['delta']<0 for r in s.get('ledger',[])[-10:])
+        return (f/(f+recent_losses) if s.get('cooldown_v2') else h/L*f/(f+recent_losses)),''
     if name=='獲利回吐底線法':
         return min(h,max(0,P-s['locked_profit']))/L if s.get('giveback_active') else h/L,''
     if name=='多因子防守共識法':return min(consensus_factor_details(s)['factors']),''
@@ -2445,7 +2452,7 @@ def new_state(config):
             or not observe_target.is_finite() or observe_target!=observe_target.to_integral_value()
             or not 1<=cooldown_limit<=100 or not 1<=observe_target<=100):
             raise ValueError('#07 連掛與觀察連中次數必須為1～100的整數')
-        s.update(cooldown_loss_limit=int(cooldown_limit),
+        s.update(cooldown_v2=True,cooldown_loss_limit=int(cooldown_limit),
                  cooldown_resume_wins=int(observe_target),cooldown_observe_streak=0,
                  cooldown_observe_total=0)
     if strategy_code==9:
@@ -2763,11 +2770,18 @@ def observe_cooldown(outcome):
     s['cooldown_observe_streak']=int(s.get('cooldown_observe_streak',0))+1 if outcome=='win' else 0
     target=int(s.get('cooldown_resume_wins',2))
     if s['cooldown_observe_streak']>=target:
+        # Cold observation results must not advance wager levels or change PnL.
+        # Explicitly return to the first step and reprice using remaining funds.
+        p=s.setdefault('plan_state',{})
+        p.update(step=0,leg=0,exhausted=False,done=False)
+        s['round_win_streak']=0
         s['cooldown_losses']=0
+        s['open_quote']=None
         s['strategy_pause_reason']=''
         s['session_status']='active'
-        s['round_notice']='#07 觀察連中達標，下一局恢復配注'
-        # If there is no affordable quote, maintain the funds pause.
+        sizing.refresh_base(s)
+        s['round_notice']='#07 觀察連中達標；回第1關按目前可用操作金重新配注'
+        # Global stop-loss, insufficient funds and market limits still block continuation.
         q,why=sizing.quote(s)
         q,why=enforce_table_limits(s,q,why)
         if q is None:
