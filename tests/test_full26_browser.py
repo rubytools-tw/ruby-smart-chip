@@ -15,7 +15,7 @@ class Server(socketserver.TCPServer):
     allow_reuse_address = True
 server = Server(("127.0.0.1", 0), handler)
 threading.Thread(target=server.serve_forever, daemon=True).start()
-url = f"http://127.0.0.1:{server.server_address[1]}/index.html"
+url = __import__("os").environ.get("RUBY_PUBLIC_SITE_URL") or f"http://127.0.0.1:{server.server_address[1]}/index.html"
 errors = []
 with sync_playwright() as playwright:
     browser = playwright.chromium.launch(headless=True, args=["--no-sandbox"])
@@ -23,6 +23,11 @@ with sync_playwright() as playwright:
     page.on("pageerror", lambda error: errors.append(str(error)))
     print("BROWSER", url, flush=True)
     page.goto(url, wait_until="domcontentloaded", timeout=120000)
+    if __import__("os").environ.get("RUBY_PUBLIC_SITE_URL"):
+        embedded=page.evaluate("document.getElementById('py-src-web_engine.py')?.textContent || ''")
+        assert "s=copy.deepcopy(before)" in embedded, "LIVE GITHUB PAGES missing P0 atomic settlement"
+        assert "web_batch_mode=(strategy_code==9)" in embedded, "LIVE GITHUB PAGES missing P0 hard round cap"
+        print("LIVE PAGES P0 SOURCE VERIFIED",page.url,flush=True)
     page.wait_for_function("document.querySelector('#engine-status')?.textContent?.includes('已就緒')", timeout=150000)
     page.locator("#create-plan").click()
     page.select_option("#strategy-select", "7")
