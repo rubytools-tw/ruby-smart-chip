@@ -28,6 +28,12 @@ jobs:
         id: browser
         continue-on-error: true
         run: python tests/test_full26_browser.py
+      - name: Live GitHub Pages P0 browser regression
+        id: live_pages
+        continue-on-error: true
+        env:
+          RUBY_PUBLIC_SITE_URL: https://rubytools-tw.github.io/ruby-smart-chip/?p0_verify=95272f2
+        run: python tests/test_full26_browser.py
       - name: Preserve audit reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -42,6 +48,7 @@ jobs:
         run: |
           echo "ENGINE_OUTCOME=${{ steps.engine.outcome }}"
           echo "BROWSER_OUTCOME=${{ steps.browser.outcome }}"
-          if [ "${{ steps.engine.outcome }}" != "success" ] || [ "${{ steps.browser.outcome }}" != "success" ]; then
+          echo "LIVE_PAGES_OUTCOME=${{ steps.live_pages.outcome }}"
+          if [ "${{ steps.engine.outcome }}" != "success" ] || [ "${{ steps.browser.outcome }}" != "success" ] || [ "${{ steps.live_pages.outcome }}" != "success" ]; then
             exit 1
           fi
