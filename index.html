@@ -481,6 +481,8 @@ body[data-font-size="large"]{
       <div id="dual-live" class="notice hidden" aria-live="polite"></div>
       <div id="giveback-live" class="notice hidden" aria-live="polite"></div>
       <div id="rounds-live" class="notice hidden" aria-live="polite"></div>
+      <div id="cooldown-live" class="notice hidden" aria-live="polite"></div>
+      <div id="cooldown-observe" class="action-grid hidden" aria-live="polite"><button type="button" id="cooldown-observe-win" class="button win">觀察中</button><button type="button" id="cooldown-observe-loss" class="button loss">觀察掛</button></div>
       <div id="consensus-live" class="notice hidden" aria-live="polite">
         <strong>#10 三因子配注（每碼）</strong>
         <div class="consensus-rows">
@@ -636,6 +638,11 @@ body[data-font-size="large"]{
         <label class="field special-param hidden" id="fraction-field"><span>投入比例（%）</span><input name="fraction" type="number" min="0.1" max="100" step="any" value="20"></label>
         <label class="field special-param hidden" id="kelly-field"><span>凱利採用比例（%）</span><input name="kellyFraction" type="number" min="1" max="100" value="25"></label>
         <label class="field special-param hidden" id="probability-field"><span>預估中獎率（%）</span><input name="probability" type="number" min="0.1" max="100" step="any" value="55"></label>
+        <div id="cooldown-fields" class="field-full special-param hidden consensus-config">
+          <label class="field"><span>連掛幾期暫停配注</span><input name="cooldownLossCount" type="number" min="1" max="100" step="1" value="3" disabled></label>
+          <label class="field"><span>觀察連中幾期恢復配注</span><input name="cooldownResumeWins" type="number" min="1" max="100" step="1" value="2" disabled></label>
+          <small>冷卻期間只記錄「觀察中／觀察掛」，不計入實際計畫盈虧、投注量與已完成局數。</small>
+        </div>
         <div id="consensus-fields" class="field-full special-param hidden consensus-config">
           <label class="field"><span>#10 獲利後高點回撤停機（%）</span><input name="consensusDrawdownPercent" type="number" min="1" max="100" step="0.1" value="20" disabled></label>
           <label class="field"><span>#10 正獲利高點鎖利（%）</span><input name="consensusLockPercent" type="number" min="0" max="100" step="0.1" value="50" disabled></label>
@@ -1449,7 +1456,8 @@ def quote(s):
         return None,'本輪末階已用完；保留原版末階暫停，請恢復或結束'
     d=max(0,s.get('peak_pnl',0)-s['pnl'])
     if s['strategy']=='高點回撤階梯法' and d+1e-8>=s['operation_base']*.2:return None,'回撤已達操作金20%'
-    if s['strategy']=='連掛冷卻檢核法' and s.get('cooldown_losses',0)>=3:return None,'連掛3局冷卻'
+    if s['strategy']=='連掛冷卻檢核法' and s.get('cooldown_losses',0)>=int(s.get('cooldown_loss_limit',3)):
+        return None,'連掛冷卻中，使用觀察中／掛；達標後才重新報價'
     completed=s['wins']+s['losses']
     # Equal-split must re-evaluate the base from the current PnL for EVERY
     # quote. Other strategies keep their previously committed round base.
@@ -2427,6 +2435,19 @@ def new_state(config):
         s['layer_active_count']=sum(1 for c in active_counts if c>0)
         s['twoleg_version']=4
         s['max_steps']=len(grid)
+    if strategy_code==7:
+        try:
+            cooldown_limit=Decimal(str(config.get('cooldownLossCount',3)))
+            observe_target=Decimal(str(config.get('cooldownResumeWins',2)))
+        except (ValueError,TypeError,ArithmeticError):
+            raise ValueError('#07 連掛及連中次數格式不正確')
+        if (not cooldown_limit.is_finite() or cooldown_limit!=cooldown_limit.to_integral_value()
+            or not observe_target.is_finite() or observe_target!=observe_target.to_integral_value()
+            or not 1<=cooldown_limit<=100 or not 1<=observe_target<=100):
+            raise ValueError('#07 連掛與觀察連中次數必須為1～100的整數')
+        s.update(cooldown_loss_limit=int(cooldown_limit),
+                 cooldown_resume_wins=int(observe_target),cooldown_observe_streak=0,
+                 cooldown_observe_total=0)
     if strategy_code==9:
         s['rounds_cycle_v2']=True
     if strategy_code==10:
@@ -2646,6 +2667,10 @@ def settle(outcome, action_id=None):
     s['last_result']=outcome
     s['last_total_bet']=cost
     s['cooldown_losses']=0 if win else s.get('cooldown_losses',0)+1
+    if s['strategy']=='連掛冷卻檢核法' and s['cooldown_losses']>=int(s.get('cooldown_loss_limit',3)):
+        s['session_status']='paused_cooldown'
+        s['cooldown_observe_streak']=0
+        s['strategy_pause_reason']='#07 已達連掛門檻；觀察連中達標才恢復配注'
     s['open_quote']=None
     if win and s['payout_cycle_enabled']:
         s['payout_cycle_wins']=s.get('payout_cycle_wins',0)+1
@@ -2721,6 +2746,35 @@ def undo():
     STATE=copy.deepcopy(UNDO)
     UNDO=None
     LAST_ACTION_ID=None
+    return evaluate_state()
+
+
+def observe_cooldown(outcome):
+    global STATE,UNDO,LAST_ACTION_ID
+    s=STATE
+    if s is None or s.get('strategy')!='連掛冷卻檢核法' or s.get('session_status')!='paused_cooldown':
+        raise ValueError('目前不在#07冷卻觀察狀態')
+    if outcome not in ('win','loss'):
+        raise ValueError('觀察結果只能是中或掛')
+    # Observation is not a settled wager: keep ledger, bet totals, PnL and plan count intact.
+    UNDO=copy.deepcopy(s)
+    LAST_ACTION_ID=None
+    s['cooldown_observe_total']=int(s.get('cooldown_observe_total',0))+1
+    s['cooldown_observe_streak']=int(s.get('cooldown_observe_streak',0))+1 if outcome=='win' else 0
+    target=int(s.get('cooldown_resume_wins',2))
+    if s['cooldown_observe_streak']>=target:
+        s['cooldown_losses']=0
+        s['strategy_pause_reason']=''
+        s['session_status']='active'
+        s['round_notice']='#07 觀察連中達標，下一局恢復配注'
+        # If there is no affordable quote, maintain the funds pause.
+        q,why=sizing.quote(s)
+        q,why=enforce_table_limits(s,q,why)
+        if q is None:
+            s['session_status']='paused_funds'
+            s['strategy_pause_reason']=why or '剩餘可用金不足以恢復配注'
+    else:
+        s['strategy_pause_reason']=f'#07 觀察連中{s["cooldown_observe_streak"]}/{target}期，尚未恢復配注'
     return evaluate_state()
 
 
@@ -2812,6 +2866,7 @@ def web_call(action, payload_json='{}'):
         elif action=='choose':out=choose(p.get('choice'),p.get('percent'))
         elif action=='undo':out=undo()
         elif action=='resume':out=resume()
+        elif action=='observe_cooldown':out=observe_cooldown(p.get('outcome'))
         elif action=='probability':out=set_probability(p['value'])
         elif action=='finish':out=finish()
         elif action=='status':out=evaluate_state()
@@ -3582,6 +3637,7 @@ function changeStrategyFields(){
   $('#dual-sequence').disabled=code!==6;
   $('#giveback-preview').classList.toggle('hidden',code!==8);
   $('#consensus-fields').classList.toggle('hidden',code!==10);
+  $('#cooldown-fields').classList.toggle('hidden',code!==7);
   $('#planned-field span').textContent=code===9?'每輪計畫局數':'計畫總局數';
   for(const input of $$('#giveback-preview input[name]'))input.disabled=code!==8;
   for(const input of $$('#high-preview input[name]'))input.disabled=code!==3;
@@ -3659,6 +3715,7 @@ function readConfig(){
     config.peakLockCount=Number($('[name=peakLockCount]').value);
   }
   if(config.strategy===6)config.dualSequence=parseSeq($('[name=dualSequence]').value);
+  if(config.strategy===7){config.cooldownLossCount=Number($('[name=cooldownLossCount]').value);config.cooldownResumeWins=Number($('[name=cooldownResumeWins]').value);}
   if(config.strategy===8){config.givebackLockPercent=Number($('[name=givebackLockPercent]').value);config.givebackWinSteps=Number($('[name=givebackWinSteps]').value);}
   if(config.strategy===10){config.consensusDrawdownPercent=Number($('[name=consensusDrawdownPercent]').value);config.consensusLockPercent=Number($('[name=consensusLockPercent]').value);}
   if(config.strategy===17)config.maxSteps=Math.min(config.maxSteps,5);
@@ -3706,6 +3763,7 @@ function firstQuoteConfigForStrategy(code){
   }
   if(code===24)base.cancel_list=[1,1];
   if(code===6){try{base.dualSequence=parseSeq($('[name=dualSequence]').value);}catch{base.dualSequence=[1,2];}}
+  if(code===7){base.cooldownLossCount=Number($('[name=cooldownLossCount]').value);base.cooldownResumeWins=Number($('[name=cooldownResumeWins]').value);}
   if(code===8){base.givebackLockPercent=Number($('[name=givebackLockPercent]').value);base.givebackWinSteps=Number($('[name=givebackWinSteps]').value);}
   if(code===10){base.consensusDrawdownPercent=Number($('[name=consensusDrawdownPercent]').value);base.consensusLockPercent=Number($('[name=consensusLockPercent]').value);}
   if(code===getCode()){try{return readConfig();}catch{}}
@@ -3778,6 +3836,10 @@ function render(){
   $('#stage-label').textContent=on?(data.position||`第 ${s.round_id||1} 輪`):'—';
   const batch=batchInfo(s||{planned_rounds:planned});
   const is66=on&&s.strategy==='逐關分層法'&&Number(s.twoleg_version)===4;
+  const cooldown=on&&s.strategy==='連掛冷卻檢核法';
+  $('#cooldown-live').classList.toggle('hidden',!cooldown);
+  $('#cooldown-observe').classList.toggle('hidden',!(cooldown&&s.session_status==='paused_cooldown'));
+  if(cooldown)$('#cooldown-live').textContent='#07 連掛 '+Number(s.cooldown_losses||0)+'/'+Number(s.cooldown_loss_limit||3)+'；觀察連中 '+Number(s.cooldown_observe_streak||0)+'/'+Number(s.cooldown_resume_wins||2)+'；已觀察 '+Number(s.cooldown_observe_total||0)+'期（不計投注與盈虧）';
   $('#rounds-live').classList.toggle('hidden',!(on&&s.strategy==='剩餘局數預算法'&&s.rounds_cycle_v2));
   if(on&&s.strategy==='剩餘局數預算法'&&s.rounds_cycle_v2){
     const localCount=Math.max(0,complete-Number(s.round_start_count||0));
@@ -4001,6 +4063,8 @@ function bindEvents(){
   const settle=outcome=>action('settle',{outcome,actionId:Date.now().toString(36)+'-'+Math.random().toString(36).slice(2)},'已記錄本局'+(outcome==='win'?'中':'掛'));
   $('#win-button').addEventListener('click',()=>settle('win'));
   $('#loss-button').addEventListener('click',()=>settle('loss'));
+  $('#cooldown-observe-win').addEventListener('click',()=>action('observe_cooldown',{outcome:'win'},'已記錄觀察中'));
+  $('#cooldown-observe-loss').addEventListener('click',()=>action('observe_cooldown',{outcome:'loss'},'已記錄觀察掛'));
   $('#undo-button').addEventListener('click',()=>action('undo',{},'已撤銷上一局與相關鎖利變更'));
   $('#resume-button').addEventListener('click',()=>action('resume',{},'已進下一輪'));
   $('#finish-button').addEventListener('click',()=>{if(confirm('確認結算並停止目前計畫？歷史記錄會保留到建立新計畫為止。'))action('finish',{},'本次計畫已結算');});
