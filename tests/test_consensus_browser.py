@@ -195,6 +195,12 @@ with sync_playwright() as playwright:
     assert "高點保護已啟動" in page.locator("#consensus-status").text_content()
     assert page.locator("#consensus-final").text_content()==f"{page.evaluate('snapshot.quote.per'):,} 元／碼"
     print("BROWSER #10 risk",info["perCode"],"quote",page.evaluate("snapshot.quote.per"),flush=True)
+    page.locator("#loss-button").click()
+    info=assert_live_bars()
+    assert page.evaluate("snapshot.state.session_status")=="active"
+    assert len(set(info["perCode"]))>1, "A B C values must diverge after mixed real win/loss results"
+    assert min(info["perCode"])==page.evaluate("snapshot.quote.per")
+    print("BROWSER #10 DIVERGENT risk",info["perCode"],"quote",page.evaluate("snapshot.quote.per"),flush=True)
     assert not errors,errors
     print("BROWSER E2E PASS #07 #08 #09 #10",flush=True)
     browser.close()
