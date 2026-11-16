@@ -1640,8 +1640,8 @@ def after_result(s,win,delta):
     if s['strategy']=='本金獲利雙池法' and s.get('dual_v2'):
         # #06 v2: only this branch performs 70/30 automatic allocation.
         # Completed stage cycles do NOT trigger allocation without 10% gain.
-        sequence=s.get('dual_sequence') or [1,2]
-        p['step']=(i+1)%len(sequence) if win else 0
+        dual_stages=s.get('dual_sequence') or [1,2]
+        p['step']=(i+1)%len(dual_stages) if win else 0
         p['exhausted']=False
         p['done']=False
         s['plan_state']=p
