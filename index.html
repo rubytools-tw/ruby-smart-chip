@@ -620,17 +620,18 @@ body[data-font-size="large"]{
         <p id="dual-warning" role="status">正式計算已啟用，滑軌本身只提供試算，不會修改正在運行的計畫。</p>
       </section>
 
-      <section id="giveback-preview" class="balance-preview field-full hidden" aria-label="#08 勝進滾利設定">
-        <div class="balance-head"><strong>#08 獲利保底勝進</strong><small>獨立新版 · 每碼整數</small></div>
-        <p>起注由操作金／切分／碼數自動計算。每中一次依實際淨利鎖住指定比例，首中只滾未鎖的獲利；後續以原滾利預算加未鎖新利逐關勝進。掛就回起注，不追損。最高關中後剩餘可滾獲利轉鎖利，另起新輪。</p>
+      <section id="giveback-preview" class="balance-preview field-full hidden" aria-label="#08 底線退階與勝進設定">
+        <div class="balance-head"><strong>#08 底線退階勝進</strong><small>每碼整數 · 獨立中掛規則</small></div>
+        <p>參考基額＝操作金÷切分份數÷碼數。底線預設20%，首關先取參考基額80%，中後按設定倍率勝進。掛後回第1關，每掛一次起注基準再乘80%。例如參考1000→首關800→連中1440→2592；掛後首關640→512。每局仍受實際可用金、停損及限紅限制。</p>
         <div class="grid-08-params">
-          <label class="field"><span>每中鎖利（%）</span><input id="giveback-lock-pct" name="givebackLockPercent" type="number" min="0" max="100" step="0.1" value="20" disabled></label>
+          <label class="field"><span>底線／每掛退階（%）</span><input id="giveback-lock-pct" name="givebackLockPercent" type="number" min="0" max="99" step="0.1" value="20" disabled></label>
+          <label class="field"><span>連中勝進倍率</span><input id="giveback-win-mult" name="givebackWinMultiplier" type="number" min="1" max="20" step="0.1" value="1.8" disabled></label>
           <label class="field"><span>勝進最高關數（含起注）</span><input id="giveback-win-steps" name="givebackWinSteps" type="number" min="1" max="20" step="1" value="5" disabled></label>
         </div>
-        <div class="dual-rule-grid"><div><small>第一局每碼</small><strong id="giveback-first-per">—</strong></div><div><small>第一局總注</small><strong id="giveback-first-total">—</strong></div><div><small>假設賠率</small><strong id="giveback-rate">—</strong></div></div>
+        <div class="dual-rule-grid"><div><small>首關每碼（折減後）</small><strong id="giveback-first-per">—</strong></div><div><small>第一局總注</small><strong id="giveback-first-total">—</strong></div><div><small>假設賠率</small><strong id="giveback-rate">—</strong></div></div>
         <div class="balance-head"><strong>逐關金額預覽</strong><small>假設連中 · 不修改進行中計畫</small></div>
         <div id="giveback-stage-preview" class="giveback-stage-preview" aria-live="polite"></div>
-        <p id="giveback-preview-notice" role="status">顯示每碼、總注及逐關鎖利。真實中獎以當局賠率結算。</p>
+        <p id="giveback-preview-notice" role="status">顯示每碼、總注、勝進倍率及掛後退階。真正可用注碼仍依資金、停損及限紅判斷。</p>
       </section>
       <details class="advanced field-full"><summary>進階設定 <span>停利、停損及策略專屬參數</span></summary><div class="fields">
         <label class="field"><span>停利比例（%）</span><input name="profitPct" type="number" min="1" max="10000" step="any" value="100" required></label>
@@ -1559,6 +1560,21 @@ def quote(s):
         requested=dec(s['layer_stakes'][i][p['leg']])
         per=floor(requested/dec(n))
         chosen_pct=None
+    elif s['strategy']=='獲利回吐底線法' and s.get('giveback_step_v3'):
+        if i<0 or i>=int(s.get('giveback_win_steps',5)):
+            return None,'#08 勝進關卡異常'
+        # Apply the configured bottom-line reduction before stage 1; after
+        # every actual loss the reference base drops one additional step.
+        # Only integer per-code stakes are displayed or settled.
+        step_reduction=dec(1)-dec(s.get('giveback_lock_pct',20))/dec(100)
+        losses=int(s.get('giveback_loss_steps',0))
+        if losses<0:
+            return None,'#08 退階紀錄無效'
+        basis=dec(s['operation_base'])/dec(s['risk_parts'])/dec(n)
+        multiplier=dec(s.get('giveback_win_multiplier',1.8))
+        per=floor(basis*(step_reduction**(losses+1))*(multiplier**i))
+        chosen_pct=None
+        mult=float(multiplier**i)
     elif k=='giveback' and s.get('giveback_roll_v2'):
         if i<0 or i>=int(s.get('giveback_win_steps',5)):
             return None,'#08 勝進關卡異常'
@@ -1686,6 +1702,39 @@ def after_result(s,win,delta):
             s['round_notice']=f'#06 第{s["dual_cycle_count"]}輪達標，淨利{gain:g}；鎖利{kept:g}、滾利{rolled:g}；下一輪操作金{s["dual_round_budget"]:g}'
         else:
             s['round_notice']=f'#06 本輪盈虧{gain:g}／目標{target:g}；勝進第{p["step"]+1}關'
+        return
+
+    if s['strategy']=='獲利回吐底線法' and s.get('giveback_step_v3'):
+        # V3: deterministic bottom-line shrink after every LOSS; wins progress
+        # by a user-specified multiplier. Do not silently migrate V2 sessions.
+        p['exhausted']=False
+        p['done']=False
+        s['peak_pnl']=max(s.get('peak_pnl',0),s['pnl'],0)
+        s['giveback_last_gain']=cents(delta)
+        s['giveback_last_lock']=0.
+        s['giveback_last_roll']=0.
+        s['giveback_roll_pool']=0.
+        if win:
+            next_step=i+1
+            if next_step>=int(s.get('giveback_win_steps',5)):
+                p['step']=0
+                s['giveback_cycles']=int(s.get('giveback_cycles',0))+1
+                s['round_complete_count']=int(s.get('round_complete_count',0))+1
+                s['round_id']=int(s.get('round_id',1))+1
+                s['round_start_pnl']=s['pnl']
+                s['round_start_count']=plan_completed(s)
+                s['round_notice']='#08 勝進最高關完成，下局回第一關；退階基準保留'
+            else:
+                p['step']=next_step
+                s['round_notice']=f'#08 連中勝進第{next_step+1}/{s.get("giveback_win_steps",5)}關，倍率 {s.get("giveback_win_multiplier",1.8):g}'
+        else:
+            p['step']=0
+            s['giveback_loss_steps']=int(s.get('giveback_loss_steps',0))+1
+            s['round_id']=int(s.get('round_id',1))+1
+            s['round_start_pnl']=s['pnl']
+            s['round_start_count']=plan_completed(s)
+            s['round_notice']=f'#08 掛後回第一關；累計底線退階 {s["giveback_loss_steps"]} 次'
+        s['plan_state']=p
         return
 
     if s['strategy']=='獲利回吐底線法' and s.get('giveback_roll_v2'):
@@ -2473,13 +2522,18 @@ def new_state(config):
         try:
             lock_pct=Decimal(str(config.get('givebackLockPercent',20)))
             win_steps=Decimal(str(config.get('givebackWinSteps',5)))
+            multiplier=Decimal(str(config.get('givebackWinMultiplier',1.8)))
         except (TypeError,ValueError,ArithmeticError):
             raise ValueError('#08 設定格式錯誤')
-        if not lock_pct.is_finite() or not 0<=lock_pct<=100:
-            raise ValueError('#08 鎖利比例請填0～100%')
+        if not lock_pct.is_finite() or not 0<=lock_pct<100:
+            raise ValueError('#08 底線退階比例必須介於0～小於100%')
+        if not multiplier.is_finite() or not 1<=multiplier<=20:
+            raise ValueError('#08 勝進倍率必須介於1～20')
         if not win_steps.is_finite() or win_steps!=win_steps.to_integral_value() or not 1<=win_steps<=20:
             raise ValueError('#08 勝進最高關數請填1～20的整數')
-        s.update(giveback_roll_v2=True,giveback_lock_pct=float(lock_pct),
+        s.update(giveback_roll_v2=True,giveback_step_v3=True,
+                 giveback_win_multiplier=float(multiplier),giveback_loss_steps=0,
+                 giveback_lock_pct=float(lock_pct),
                  giveback_win_steps=int(win_steps),giveback_roll_pool=0.,
                  giveback_cycles=0,giveback_last_gain=0.,giveback_last_lock=0.,
                  giveback_last_roll=0.,giveback_round_locked=0.,
@@ -3492,39 +3546,36 @@ function updateGivebackPreview(){
   const market=$('#market').value;
   const count=market==='單球'?Number($('[name=count]').value):1;
   const pct=Number($('#giveback-lock-pct').value),steps=Number($('#giveback-win-steps').value);
+  const mult=Number($('#giveback-win-mult').value);
   const root=$('#giveback-stage-preview');root.replaceChildren();
-  if(![op,parts,count,pct,steps].every(Number.isFinite)||op<=0||parts<=0||count<=0||pct<0||pct>100||!Number.isInteger(steps)||steps<1||steps>20){
+  const valid=[op,parts,count,pct,steps,mult].every(Number.isFinite)&&op>0&&parts>0&&count>0&&pct>=0&&pct<100&&
+    Number.isInteger(steps)&&steps>=1&&steps<=20&&mult>=1&&mult<=20;
+  if(!valid){
     $('#giveback-first-per').textContent='—';$('#giveback-first-total').textContent='—';$('#giveback-rate').textContent='—';
-    $('#giveback-preview-notice').textContent='請檢查設定，勝進關數為1～20、鎖利比例為0～100%。';return;
+    $('#giveback-preview-notice').textContent='底線請填0～小於100%，連中倍率1～20，最高關數1～20。';
+    return;
   }
-  const rates=market==='單球'?[9.54,9.54,9.59,9.54,9.54,9.59,9.54,9.54,9.59,9.54]:[1.90];
-  const first=Math.floor(op/parts/count);
+  const reference=op/parts/count;
+  const first=reference*(1-pct/100);
+  const firstPer=Math.floor(first);
   $('#giveback-rate').textContent=market==='單球'?'9.54／9.59':'1.90';
-  $('#giveback-first-per').textContent=fmt(first,0);
-  $('#giveback-first-total').textContent=fmt(first*count,0);
-  let poolCents=0,stopped=false;
+  $('#giveback-first-per').textContent=firstPer>=1?fmt(firstPer,0):'不足1元';
+  $('#giveback-first-total').textContent=firstPer>=1?fmt(firstPer*count,0):'—';
   for(let i=0;i<steps;i++){
-    const per=i===0?first:Math.floor(poolCents/100/count);
-    if(per<1){stopped=true;break;}
-    const rate=rates[i%rates.length],total=per*count;
-    const gainCents=Math.round((per*rate-total)*100);
-    if(gainCents<=0){stopped=true;break;}
-    const keepCents=Math.round(gainCents*pct/100);
-    const nextPoolCents=(i===0?0:poolCents)+gainCents-keepCents;
-    const last=i===steps-1||Math.floor(nextPoolCents/100/count)<1;
-    const lockShownCents=keepCents+(last?nextPoolCents:0);
+    const per=Math.floor(first*Math.pow(mult,i));
+    if(per<1)break;
     const row=document.createElement('div');row.className='giveback-stage-row';
     const no=document.createElement('b');no.textContent=String(i+1).padStart(2,'0');
     const bet=document.createElement('span');bet.textContent=fmt(per,0)+'／碼';
-    const stake=document.createElement('small');stake.textContent='總注 '+fmt(total,0)+' · 賠率 '+rate.toFixed(2);bet.append(stake);
-    const locked=document.createElement('span');locked.textContent=(last?'本關鎖利 ':'鎖 ')+fmt(lockShownCents/100,2);
-    const r=document.createElement('small');r.textContent=last?'勝進完成，回原起注':'下關池 '+fmt(nextPoolCents/100,2);locked.append(r);
-    row.append(no,bet,locked);root.append(row);
-    poolCents=last?0:nextPoolCents;
-    if(last)break;
+    const stake=document.createElement('small');stake.textContent='總注 '+fmt(per*count,0)+' · 倍率 '+fmt(Math.pow(mult,i),2);bet.append(stake);
+    const desc=document.createElement('span');
+    desc.textContent=i===steps-1?'完成後回首關':'中 → 下關';
+    const note=document.createElement('small');note.textContent='任何一關掛都回首關，底線再減 '+fmt(pct,1)+'%';
+    desc.append(note);row.append(no,bet,desc);root.append(row);
   }
-  $('#giveback-preview-notice').textContent=(stopped?'可滾金額不足或賠率無正淨利時，無法繼續勝進。':'最高關中後剩餘可滾獲利轉鎖利，下一局回起注。')+
-    ' 本表假設每關皆中，按各局賠率試算，實際仍需通過停損、資金與限紅驗證。';
+  const afterLoss=Math.floor(reference*Math.pow(1-pct/100,2));
+  $('#giveback-preview-notice').textContent='參考每碼 '+fmt(reference,2)+' → 首關 '+fmt(firstPer,0)+'；掛一次後首關 '+fmt(afterLoss,0)+
+    '。這是連中情境預覽，不含實際盈虧、停損及限紅檢查。';
 }
 function persistBalancePreview(){
   try{localStorage.setItem(SETTINGS_KEY,JSON.stringify({version:1,fields:getSavedFields()}));}
@@ -3703,7 +3754,7 @@ function changeStrategyFields(){
   if(code===17&&Number(max.value)>5)max.value='5';
   if(is26)max.value=$('[name=partsMax]').value;
   const s=strategies.find(x=>x.code===code);
-  $('#strategy-hint').dataset.info=code===10?'#10：A停利進度、B正獲利高點回撤、C近10局波動，各自換算每碼元數，採用最低值。未曾正獲利前連掛依你的整體停損比例及限紅；曾正獲利後才按自訂回撤門檻暫停。高點鎖利預設50%可自訂。':code===9?'#09：每輪設定35局等局數循環，只重置本輪盈虧與局數；主畫面的總盈虧、歷史與投注量保留至結算。每碼＝floor((原始一份操作金+本輪盈虧)÷碼數÷本輪剩餘局數)。':code===4?'#04：起注每碼＝floor(操作金÷切分份數÷碼數)，切分1～200份；超出最高限紅時改用上限，低於最低限紅不補注。結算後照最近10局盈虧波動調節，停利停損依原設定。':is26?'#26：等份數只是每局的除數，不是關卡上限。固定等份填相同數字；區間每輪隨機抽一次。每局依目前操作金加淨盈虧重新分切至整數，直到不能符合限紅或資金限制才停止。':code===66?'#66：4層，每層4～10格，每格填「每碼下注金額」，總注＝每碼×碼數。0／空白只能放在各層末尾，末尾整層也能停用。中獎進同層下一啟用關，末關中回上一層；掛跳下一啟用層，沒有下一層就暫停。':code===1?'#01：依目前可用操作金÷切分份數÷碼數逐局算起注。每次中獎自動鎖利指定比例，剩餘獲利繼續操作；連續達設定次數完成一週期、掛歸零。不使用最大關卡。':code===14?'#14：第一關按操作金÷份數起注；前段以起注總額＋本輪已獲淨利，衝刺階段僅用本輪獲利的固定或隨機百分比。掛回首關。':code===99?'#99：首關倍率必須為1；每關以固定起注×自訂倍率，中進、掛回首。倍率長度就是勝進關數，不會反推縮小第一關。':s?.description||'此策略依原本 RUBY TG Chip V1.8.18 計算規則運作。';
+  $('#strategy-hint').dataset.info=code===10?'#10：A停利進度、B正獲利高點回撤、C近10局波動，各自換算每碼元數，採用最低值。未曾正獲利前連掛依你的整體停損比例及限紅；曾正獲利後才按自訂回撤門檻暫停。高點鎖利預設50%可自訂。':code===9?'#09：每輪設定35局等局數循環，只重置本輪盈虧與局數；主畫面的總盈虧、歷史與投注量保留至結算。每碼＝floor((原始一份操作金+本輪盈虧)÷碼數÷本輪剩餘局數)。':code===4?'#04：起注每碼＝floor(操作金÷切分份數÷碼數)，切分1～200份；超出最高限紅時改用上限，低於最低限紅不補注。結算後照最近10局盈虧波動調節，停利停損依原設定。':is26?'#26：等份數只是每局的除數，不是關卡上限。固定等份填相同數字；區間每輪隨機抽一次。每局依目前操作金加淨盈虧重新分切至整數，直到不能符合限紅或資金限制才停止。':code===66?'#66：4層，每層4～10格，每格填「每碼下注金額」，總注＝每碼×碼數。0／空白只能放在各層末尾，末尾整層也能停用。中獎進同層下一啟用關，末關中回上一層；掛跳下一啟用層，沒有下一層就暫停。':code===1?'#01：依目前可用操作金÷切分份數÷碼數逐局算起注。每次中獎自動鎖利指定比例，剩餘獲利繼續操作；連續達設定次數完成一週期、掛歸零。不使用最大關卡。':code===14?'#14：第一關按操作金÷份數起注；前段以起注總額＋本輪已獲淨利，衝刺階段僅用本輪獲利的固定或隨機百分比。掛回首關。':code===99?'#99：首關倍率必須為1；每關以固定起注×自訂倍率，中進、掛回首。倍率長度就是勝進關數，不會反推縮小第一關。':code===8?'#08：參考基額＝操作金÷份數÷碼數；首關按底線比例預先折減，中後依勝進倍率提升，掛後回首關並再折減一次。限紅、停損與資金不足時暫停。':s?.description||'此策略依原本 RUBY TG Chip V1.8.18 計算規則運作。';
   updateWinStartPreview();
   $('#current-summary').textContent=s?.description||'請選擇策略。';$('#summary-info').dataset.info=s?.description||'請選擇策略。';
 }
@@ -3735,7 +3786,7 @@ function readConfig(){
   }
   if(config.strategy===6)config.dualSequence=parseSeq($('[name=dualSequence]').value);
   if(config.strategy===7){config.cooldownLossCount=Number($('[name=cooldownLossCount]').value);config.cooldownResumeWins=Number($('[name=cooldownResumeWins]').value);}
-  if(config.strategy===8){config.givebackLockPercent=Number($('[name=givebackLockPercent]').value);config.givebackWinSteps=Number($('[name=givebackWinSteps]').value);}
+  if(config.strategy===8){config.givebackLockPercent=Number($('[name=givebackLockPercent]').value);config.givebackWinSteps=Number($('[name=givebackWinSteps]').value);config.givebackWinMultiplier=Number($('[name=givebackWinMultiplier]').value);}
   if(config.strategy===10){config.consensusDrawdownPercent=Number($('[name=consensusDrawdownPercent]').value);config.consensusLockPercent=Number($('[name=consensusLockPercent]').value);}
   if(config.strategy===17)config.maxSteps=Math.min(config.maxSteps,5);
   if(config.strategy===14){
@@ -3783,7 +3834,7 @@ function firstQuoteConfigForStrategy(code){
   if(code===24)base.cancel_list=[1,1];
   if(code===6){try{base.dualSequence=parseSeq($('[name=dualSequence]').value);}catch{base.dualSequence=[1,2];}}
   if(code===7){base.cooldownLossCount=Number($('[name=cooldownLossCount]').value);base.cooldownResumeWins=Number($('[name=cooldownResumeWins]').value);}
-  if(code===8){base.givebackLockPercent=Number($('[name=givebackLockPercent]').value);base.givebackWinSteps=Number($('[name=givebackWinSteps]').value);}
+  if(code===8){base.givebackLockPercent=Number($('[name=givebackLockPercent]').value);base.givebackWinSteps=Number($('[name=givebackWinSteps]').value);base.givebackWinMultiplier=Number($('[name=givebackWinMultiplier]').value);}
   if(code===10){base.consensusDrawdownPercent=Number($('[name=consensusDrawdownPercent]').value);base.consensusLockPercent=Number($('[name=consensusLockPercent]').value);}
   if(code===getCode()){try{return readConfig();}catch{}}
   return base;
@@ -3895,7 +3946,9 @@ function render(){
   $('#giveback-live').classList.toggle('hidden',!givebackLive);
   if(givebackLive){
     const steps=Number(s.giveback_win_steps||5),stage=Math.max(1,Number(s?.plan_state?.step||0)+1);
-    $('#giveback-live').textContent='#08 勝進第'+stage+'/'+steps+'關 · 累積鎖利 '+money(s.locked_profit||0)+' · 可滾利 '+money(s.giveback_roll_pool||0)+' · 已完成'+Number(s.giveback_cycles||0)+'輪';
+    $('#giveback-live').textContent=s.giveback_step_v3
+      ?'#08 勝進第'+stage+'/'+steps+'關 · 底線 '+fmt(s.giveback_lock_pct||0,1)+'% · 掛後退階 '+Number(s.giveback_loss_steps||0)+'次 · 勝進倍率 '+fmt(s.giveback_win_multiplier||1.8,2)+' · 下局每碼 '+(q?fmt(q.per,0)+'元':'暫停')
+      :'#08 勝進第'+stage+'/'+steps+'關 · 累積鎖利 '+money(s.locked_profit||0)+' · 可滾利 '+money(s.giveback_roll_pool||0)+' · 已完成'+Number(s.giveback_cycles||0)+'輪';
   }
   $('#dual-live').classList.toggle('hidden',!dualLive);
   if(dualLive){
@@ -3903,7 +3956,7 @@ function render(){
     const progress=target>0?Math.max(0,Math.min(100,gain/target*100)):0;
     $('#dual-live').textContent='#06 第'+String(s.round_id||1)+'輪 · 本輪操作金 '+money(budget)+' · 本輪盈虧 '+money(gain)+'／'+money(target)+'（'+fmt(progress,1)+'%） · 累積鎖利 '+money(s.locked_profit||0)+' · 已達標 '+Number(s.dual_cycle_count||0)+' 輪';
   }
-  $('#notice').textContent=(data?.status||'')||(!on?'請先設定並開始新計畫。':q?(dualLive?'中／掛後依 #06 規則自動結算鎖利與滾利。':givebackLive?'#08 按實際淨利自動鎖利；掛回原始起注。':'中／掛後自動更新下一局；鎖利／滾利為自主選擇。'):'目前沒有下一局的建議金額。');
+  $('#notice').textContent=(data?.status||'')||(!on?'請先設定並開始新計畫。':q?(dualLive?'中／掛後依 #06 規則自動結算鎖利與滾利。':givebackLive?(s.giveback_step_v3?'#08 中獎依倍率進階，掛後回首關且逐次降低起注。':'#08 按實際淨利自動鎖利；掛回原始起注。'):'中／掛後自動更新下一局；鎖利／滾利為自主選擇。'):'目前沒有下一局的建議金額。');
   $('#notice').classList.toggle('hidden',on&&s.session_status==='active'&&!!q&&!(data?.status||'').trim());
   $('#win-button').disabled=!valid;$('#loss-button').disabled=!valid;
   $('#undo-button').disabled=busy||!data?.undoAvailable;
