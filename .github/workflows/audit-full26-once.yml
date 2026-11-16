@@ -1,0 +1,47 @@
+name: RUBY Smart Chip one-time full26 audit
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout isolated audit branch
+        uses: actions/checkout@v4
+      - name: Configure Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run Python calculation and settlement audit for 26 strategies
+        id: engine
+        continue-on-error: true
+        run: python tests/test_full26_matrix.py
+      - name: Install Playwright Chromium
+        run: |
+          python -m pip install playwright==1.57.0
+          python -m playwright install --with-deps chromium
+      - name: Browser Pyodide UI audit for all 26 strategies
+        id: browser
+        continue-on-error: true
+        run: python tests/test_full26_browser.py
+      - name: Preserve audit reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ruby_full26_audit
+          path: |
+            audit_result.json
+            audit_browser_result.json
+          if-no-files-found: warn
+      - name: Report overall outcome
+        if: always()
+        run: |
+          echo "ENGINE_OUTCOME=\${{ steps.engine.outcome }}"
+          echo "BROWSER_OUTCOME=\${{ steps.browser.outcome }}"
+          if [ "\${{ steps.engine.outcome }}" != "success" ] || [ "\${{ steps.browser.outcome }}" != "success" ]; then
+            exit 1
+          fi
