@@ -1408,8 +1408,12 @@ def consensus_factor_details(s):
     peak=max(0.,float(s.get('peak_pnl',0)))
     origin=float(s['operation_base'])
     h=max(0.,L+P)
-    # An initial losing run is NOT a profit high-water drawdown.
-    high_drop=max(0.,peak-P) if peak>0 else 0.
+    # For V3, do not apply B drawdown even as a sizing factor before the
+    # user-configured profit-high activation threshold has been reached.
+    activate_pct=dec(s.get('consensus_activate_pct',0)) if s.get('consensus_v3') else dec(0)
+    activation=cents(dec(s['operation_base'])*activate_pct/dec(100))
+    armed=peak>0 and peak+1e-8>=activation
+    high_drop=max(0.,peak-P) if armed else 0.
     progress=min(1.,max(0.,P)/max(.01,float(s['profit_target'])))
     steps=floor(high_drop/max(.01,origin*.05))
     recent=[r['delta'] for r in s.get('ledger',[])[-10:]]
@@ -1422,9 +1426,6 @@ def consensus_factor_details(s):
     base=(dec(raw) if raw is not None else base_raw(s))
     candidates=[max(0,floor(base*dec(r))) for r in factors]
     limit=cents(dec(s['operation_base'])*dec(s.get('consensus_drawdown_pct',20))/dec(100))
-    activate_pct=dec(s.get('consensus_activate_pct',0)) if s.get('consensus_v3') else dec(0)
-    activation=cents(dec(s['operation_base'])*activate_pct/dec(100))
-    armed=peak>0 and peak+1e-8>=activation
     return dict(factors=factors,perCode=candidates,appliedPer=min(candidates),
                 peak=peak,drawdown=cents(high_drop),drawdownLimit=limit,
                 peakProtectionActive=armed,basePer=floor(base),
