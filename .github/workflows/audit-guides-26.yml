@@ -26,6 +26,10 @@ jobs:
         run: python tests/test_full26_browser.py
       - name: All 26 strategy guide cards and shared text
         run: python tests/test_strategy_guides_browser.py
+      - name: Live GitHub Pages strategy-guide verification
+        env:
+          RUBY_PUBLIC_SITE_URL: https://rubytools-tw.github.io/ruby-smart-chip/?guides=17c35ba
+        run: python tests/test_strategy_guides_browser.py
       - name: Preserve test output
         if: always()
         uses: actions/upload-artifact@v4
