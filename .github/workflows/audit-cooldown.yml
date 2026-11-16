@@ -1,0 +1,21 @@
+name: RUBY Smart Chip isolated regression
+on:
+  push:
+    branches:
+      - fix/audit-cooldown-20261116
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test-python-engine:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout isolated branch
+        uses: actions/checkout@v4
+      - name: Configure Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile and test embedded Python modules
+        run: python tests/test_cooldown_engine.py
