@@ -1282,7 +1282,7 @@ def base_raw(s):
         return max(dec(0),dec(available(s)))/f/n
     if s['strategy']=='連掛冷卻檢核法' and s.get('cooldown_v2'):
         # Recalculate every new round from the live, unlocked available funds.
-        return max(dec(0),dec(available(s)))/f/n/dec(10)
+        return max(dec(0),min(dec(available(s)),dec(operation_budget(s))))/f/n/dec(10)
     if k in ('winner','custom_win') and s.get('win_mode_version')==2:
         # The first stake depends only on original capital, split count and codes;
         # a long winning sequence must NOT dilute the first entry.
@@ -2646,6 +2646,8 @@ def evaluate_state():
                       not (s['strategy']=='高點獲利鎖定法' and s.get('peak_lock_version')==2)
                       and not (s.get('strategy')=='本金獲利雙池法' and s.get('dual_v2'))
                       and not (s.get('strategy')=='獲利回吐底線法' and s.get('giveback_roll_v2')))}
+    if s['strategy']=='連掛冷卻檢核法':
+        out['position']='第 1 關 · '+('冷卻觀察中' if s.get('session_status')=='paused_cooldown' else '依剩餘操作金配注')
     return out
 
 
