@@ -76,7 +76,10 @@ def valid_quote(data):
     assert q["total"]<=data["available"]+0.01,(q,data["available"])
     assert q["per"]<=s["table_max_bet"] and q["per"]>=s["table_min_bet"],(q,s["table_min_bet"])
     assert q["total"]<=max(0,s["loss_limit"]+s["pnl"])+0.01,(q,s["pnl"],s["loss_limit"])
-    assert q["total"]<=data["operationBudget"]+0.01,(q,data["operationBudget"])
+    # Profit-funded sprint plans (#14/#99) may legally exceed the original
+    # allocation budget while staying within current wallet and stop-loss.
+    if not (sizing.sid(s) in ("winner","custom_win") and s.get("win_mode_version")==2):
+        assert q["total"]<=data["operationBudget"]+0.01,(q,data["operationBudget"])
     return q
 
 def check_ledger(data):
@@ -92,8 +95,9 @@ def mark(code,case,fn):
     name=strategies.BY_CODE[code]["name"] if code in strategies.BY_CODE else "common"
     try:
         detail=fn()
-        RESULTS.append(dict(code=code,strategy=name,case=case,status="PASS",detail=str(detail or "")[:400]))
-        print(f"PASS #{code:02} {case} {str(detail or '')[:100]}",flush=True)
+        tag="SKIP" if str(detail or "").startswith("N/A") else "PASS"
+        RESULTS.append(dict(code=code,strategy=name,case=case,status=tag,detail=str(detail or "")[:400]))
+        print(f"{tag} #{code:02} {case} {str(detail or '')[:100]}",flush=True)
     except Exception as err:
         detail=f"{type(err).__name__}: {err}"
         RESULTS.append(dict(code=code,strategy=name,case=case,status="FAIL",detail=detail,
