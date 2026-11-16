@@ -1560,7 +1560,7 @@ def quote(s):
         requested=dec(s['layer_stakes'][i][p['leg']])
         per=floor(requested/dec(n))
         chosen_pct=None
-    elif k=='giveback' and s.get('giveback_step_v3'):
+    elif s['strategy']=='獲利回吐底線法' and s.get('giveback_step_v3'):
         if i<0 or i>=int(s.get('giveback_win_steps',5)):
             return None,'#08 勝進關卡異常'
         # Apply the configured bottom-line reduction before stage 1; after
