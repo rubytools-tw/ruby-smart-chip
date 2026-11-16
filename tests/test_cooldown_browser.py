@@ -30,6 +30,7 @@ with sync_playwright() as playwright:
     page.locator('input[name="parts"]').fill("2")
     page.locator('input[name="count"]').fill("1")
     page.locator('input[name="planned"]').fill("35")
+    page.locator('input[name="profitPct"]').evaluate("(el) => { el.closest('details').open = true; }")
     page.locator('input[name="profitPct"]').fill("1000")
     page.locator('input[name="lossPct"]').fill("100")
     page.locator('input[name="cooldownLossCount"]').fill("3")
