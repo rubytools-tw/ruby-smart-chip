@@ -1,0 +1,37 @@
+name: RUBY Smart Chip 26 strategy guide text audit
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test-guides:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout text-only branch
+        uses: actions/checkout@v4
+      - name: Configure Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 26 strategy Python regression (unchanged calculations)
+        run: python tests/test_full26_matrix.py
+      - name: Install Chromium
+        run: |
+          python -m pip install playwright==1.57.0
+          python -m playwright install --with-deps chromium
+      - name: 26 strategy actual UI regression
+        run: python tests/test_full26_browser.py
+      - name: All 26 strategy guide cards and shared text
+        run: python tests/test_strategy_guides_browser.py
+      - name: Preserve test output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ruby_26_guides_audit
+          path: |
+            audit_result.json
+            audit_browser_result.json
+          if-no-files-found: warn
