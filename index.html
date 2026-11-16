@@ -1328,8 +1328,20 @@ def base_raw(s):
         return dec(s['dual_round_budget'])/f/n/sum(map(dec,s['dual_sequence']))
     if s['strategy']=='本金獲利雙池法':return u/(2*f)/n
     if s['strategy']=='剩餘局數預算法':
+        if s.get('rounds_budget_v3'):
+            # Use the FIXED planning horizon for every stake in the current
+            # round. Shrinking both the budget and the remaining denominator
+            # after a loss otherwise cancels out and keeps the stake unchanged.
+            # This is a new-plan opt-in; loaded V2 plans retain their math.
+            horizon=int(s['planned_rounds'])
+            local_elapsed=plan_completed(s)-int(s.get('round_start_count',0))
+            if horizon<=0 or local_elapsed>=horizon:
+                return dec(0)
+            share=dec(s['operation_base'])/f
+            local=dec(s['pnl'])-dec(s['round_start_pnl'])
+            return max(dec(0),share+local)/n/dec(horizon)
         if s.get('rounds_cycle_v2'):
-            # Each N settled rounds opens a new window without clearing global PnL.
+            # Legacy V2: denominator shrinks with remaining rounds.
             elapsed=plan_completed(s)-int(s.get('round_start_count',0))
             remain=int(s['planned_rounds'])-elapsed
             share=dec(s['operation_base'])/f
@@ -1340,6 +1352,32 @@ def base_raw(s):
     if s['strategy']=='損益波動調節法' and s.get('volatility_split_v2'):
         return u/n
     return u/n/10
+
+
+def rounds_budget_details(s, actual_quote=None):
+    """Expose the SAME #09 budget inputs used for the next quote.
+
+    Displayed per-code stake must come from the accepted quote, not a second
+    JavaScript implementation, so market/stop conditions remain authoritative.
+    """
+    if s.get('strategy')!='剩餘局數預算法':
+        return None
+    horizon=max(1,int(s['planned_rounds']))
+    elapsed=max(0,plan_completed(s)-int(s.get('round_start_count',0)))
+    local=dec(s['pnl'])-dec(s.get('round_start_pnl',0))
+    share=dec(s['operation_base'])/dec(s['risk_parts'])
+    remaining_budget=max(dec(0),share+local)
+    remaining=max(0,horizon-elapsed)
+    divisor=(horizon if s.get('rounds_budget_v3') else max(1,remaining))
+    raw=(remaining_budget/dec(s['number_count'])/dec(divisor) if remaining>0 else dec(0))
+    return dict(roundNumber=int(s.get('round_id',1)),planned=horizon,completed=elapsed,
+                remaining=remaining,referenceShare=float(share),
+                localPnl=cents(local),availableRoundBudget=float(remaining_budget),
+                divisor=divisor,codeCount=int(s['number_count']),
+                theoreticalPer=floor(raw),
+                quotedPer=int(actual_quote['per']) if actual_quote else None,
+                formulaVersion=3 if s.get('rounds_budget_v3') else 2)
+
 
 def refresh_base(s):
     raw=base_raw(s)
@@ -1635,7 +1673,7 @@ def after_result(s,win,delta):
             next_round(s,refresh=True)
             s['round_notice']=f'#09 已完成本輪，開始第{s["round_id"]}輪；總盈虧與投注量保留'
         else:
-            s['round_notice']=f'#09 第{s["round_id"]}輪已完成{elapsed}/{s["planned_rounds"]}局，依本輪盈虧重算'
+            s['round_notice']=f'#09 第{s["round_id"]}輪已完成{elapsed}/{s["planned_rounds"]}局，本輪盈虧更新後按固定局數重算每碼注額'
         return
     if s['strategy']=='高點獲利鎖定法' and s.get('peak_lock_version')==2:
         # Lock a selected fraction of THIS wager's positive net profit.
@@ -2505,7 +2543,10 @@ def new_state(config):
                  cooldown_resume_wins=int(observe_target),cooldown_observe_streak=0,
                  cooldown_observe_total=0)
     if strategy_code==9:
+        # Only new plans adopt the declining-stake formula; historical
+        # recovered states with rounds_cycle_v2 remain compatible.
         s['rounds_cycle_v2']=True
+        s['rounds_budget_v3']=True
     if strategy_code==10:
         try:
             decline=Decimal(str(config.get('consensusDrawdownPercent',20)))
@@ -2693,6 +2734,7 @@ def evaluate_state():
            'canResume':bool(s.get('plan_state',{}).get('exhausted') or s.get('plan_state',{}).get('done')),
            'cycleProgress':strategy26.cycle_progress(s) if strategy26.active(s) else None,
            'consensusBreakdown':(sizing.consensus_factor_details(s) if s['strategy']=='多因子防守共識法' else None),
+           'roundsBreakdown':sizing.rounds_budget_details(s,actual_quote=q),
            'allocatable':sizing.unallocated(s),
            'pendingRoll':s.get('auto_roll_pending',0),
            'canLock':s.get('strategy')!='高點獲利鎖定法' and not (s.get('strategy')=='本金獲利雙池法' and s.get('dual_v2')) and not (s.get('strategy')=='獲利回吐底線法' and s.get('giveback_roll_v2')),
@@ -3754,7 +3796,7 @@ function changeStrategyFields(){
   if(code===17&&Number(max.value)>5)max.value='5';
   if(is26)max.value=$('[name=partsMax]').value;
   const s=strategies.find(x=>x.code===code);
-  $('#strategy-hint').dataset.info=code===10?'#10：A停利進度、B正獲利高點回撤、C近10局波動，各自換算每碼元數，採用最低值。未曾正獲利前連掛依你的整體停損比例及限紅；曾正獲利後才按自訂回撤門檻暫停。高點鎖利預設50%可自訂。':code===9?'#09：每輪設定35局等局數循環，只重置本輪盈虧與局數；主畫面的總盈虧、歷史與投注量保留至結算。每碼＝floor((原始一份操作金+本輪盈虧)÷碼數÷本輪剩餘局數)。':code===4?'#04：起注每碼＝floor(操作金÷切分份數÷碼數)，切分1～200份；超出最高限紅時改用上限，低於最低限紅不補注。結算後照最近10局盈虧波動調節，停利停損依原設定。':is26?'#26：等份數只是每局的除數，不是關卡上限。固定等份填相同數字；區間每輪隨機抽一次。每局依目前操作金加淨盈虧重新分切至整數，直到不能符合限紅或資金限制才停止。':code===66?'#66：4層，每層4～10格，每格填「每碼下注金額」，總注＝每碼×碼數。0／空白只能放在各層末尾，末尾整層也能停用。中獎進同層下一啟用關，末關中回上一層；掛跳下一啟用層，沒有下一層就暫停。':code===1?'#01：依目前可用操作金÷切分份數÷碼數逐局算起注。每次中獎自動鎖利指定比例，剩餘獲利繼續操作；連續達設定次數完成一週期、掛歸零。不使用最大關卡。':code===14?'#14：第一關按操作金÷份數起注；前段以起注總額＋本輪已獲淨利，衝刺階段僅用本輪獲利的固定或隨機百分比。掛回首關。':code===99?'#99：首關倍率必須為1；每關以固定起注×自訂倍率，中進、掛回首。倍率長度就是勝進關數，不會反推縮小第一關。':code===8?'#08：參考基額＝操作金÷份數÷碼數；首關按底線比例預先折減，中後依勝進倍率提升，掛後回首關並再折減一次。限紅、停損與資金不足時暫停。':s?.description||'此策略依原本 RUBY TG Chip V1.8.18 計算規則運作。';
+  $('#strategy-hint').dataset.info=code===10?'#10：A停利進度、B正獲利高點回撤、C近10局波動，各自換算每碼元數，採用最低值。未曾正獲利前連掛依你的整體停損比例及限紅；曾正獲利後才按自訂回撤門檻暫停。高點鎖利預設50%可自訂。':code===9?'#09：每輪依設定局數循環；每碼＝floor(max(0,原始一份操作金+本輪盈虧)÷每輪固定局數÷碼數)。掛後依虧損降低下局金額，避免剩餘局數同步減少造成注額不變。每輪完成僅更新本輪起點，總盈虧、投注量及歷史保留至結算。':code===4?'#04：起注每碼＝floor(操作金÷切分份數÷碼數)，切分1～200份；超出最高限紅時改用上限，低於最低限紅不補注。結算後照最近10局盈虧波動調節，停利停損依原設定。':is26?'#26：等份數只是每局的除數，不是關卡上限。固定等份填相同數字；區間每輪隨機抽一次。每局依目前操作金加淨盈虧重新分切至整數，直到不能符合限紅或資金限制才停止。':code===66?'#66：4層，每層4～10格，每格填「每碼下注金額」，總注＝每碼×碼數。0／空白只能放在各層末尾，末尾整層也能停用。中獎進同層下一啟用關，末關中回上一層；掛跳下一啟用層，沒有下一層就暫停。':code===1?'#01：依目前可用操作金÷切分份數÷碼數逐局算起注。每次中獎自動鎖利指定比例，剩餘獲利繼續操作；連續達設定次數完成一週期、掛歸零。不使用最大關卡。':code===14?'#14：第一關按操作金÷份數起注；前段以起注總額＋本輪已獲淨利，衝刺階段僅用本輪獲利的固定或隨機百分比。掛回首關。':code===99?'#99：首關倍率必須為1；每關以固定起注×自訂倍率，中進、掛回首。倍率長度就是勝進關數，不會反推縮小第一關。':code===8?'#08：參考基額＝操作金÷份數÷碼數；首關按底線比例預先折減，中後依勝進倍率提升，掛後回首關並再折減一次。限紅、停損與資金不足時暫停。':s?.description||'此策略依原本 RUBY TG Chip V1.8.18 計算規則運作。';
   updateWinStartPreview();
   $('#current-summary').textContent=s?.description||'請選擇策略。';$('#summary-info').dataset.info=s?.description||'請選擇策略。';
 }
@@ -3912,9 +3954,17 @@ function render(){
   if(cooldown)$('#cooldown-live').textContent='#07 連掛 '+Number(s.cooldown_losses||0)+'/'+Number(s.cooldown_loss_limit||3)+'；觀察連中 '+Number(s.cooldown_observe_streak||0)+'/'+Number(s.cooldown_resume_wins||2)+'；已觀察 '+Number(s.cooldown_observe_total||0)+'期（不計投注與盈虧）';
   $('#rounds-live').classList.toggle('hidden',!(on&&s.strategy==='剩餘局數預算法'&&s.rounds_cycle_v2));
   if(on&&s.strategy==='剩餘局數預算法'&&s.rounds_cycle_v2){
-    const localCount=Math.max(0,complete-Number(s.round_start_count||0));
-    const localPnL=Number(s.pnl||0)-Number(s.round_start_pnl||0);
-    $('#rounds-live').textContent='#09 第'+String(s.round_id||1)+'輪 · 本輪 '+localCount+'/'+s.planned_rounds+'局 · 本輪盈虧 '+(localPnL>0?'+':'')+money(localPnL)+' · 全程盈虧 '+(Number(s.pnl)>0?'+':'')+money(s.pnl)+' · 累積投注 '+fmt(s.total_bet||0,0);
+    const info=data.roundsBreakdown;
+    const localCount=info?Number(info.completed):Math.max(0,complete-Number(s.round_start_count||0));
+    const localPnL=info?Number(info.localPnl):Number(s.pnl||0)-Number(s.round_start_pnl||0);
+    const reference=info?Number(info.referenceShare):Number(s.operation_base||0)/Math.max(1,Number(s.risk_parts||1));
+    const remainingBudget=info?Number(info.availableRoundBudget):Math.max(0,reference+localPnL);
+    const horizon=info?Number(info.divisor):Number(s.planned_rounds||35);
+    const count=info?Number(info.codeCount):Number(s.number_count||1);
+    const remain=info?Number(info.remaining):Math.max(0,Number(s.planned_rounds||35)-localCount);
+    const formula='floor(max(0, '+money(reference)+' + ('+money(localPnL)+')) ÷ '+horizon+'局 ÷ '+count+'碼)';
+    const outcome=q?formula+' = '+fmt(q.per,0)+'元／碼':formula+'；目前暫停／不符合資金或限紅條件';
+    $('#rounds-live').textContent='#09 第'+String(s.round_id||1)+'輪｜本輪 '+localCount+'/'+s.planned_rounds+'局（剩 '+remain+'局）｜本輪盈虧 '+(localPnL>0?'+':'')+money(localPnL)+'｜本輪可配注預算 '+money(remainingBudget)+'｜全程盈虧 '+(Number(s.pnl)>0?'+':'')+money(s.pnl)+'｜累積投注 '+fmt(s.total_bet||0,0)+'｜下一注：'+outcome;
   }
   const risk=on&&s.strategy==='多因子防守共識法'?data.consensusBreakdown:null;
   $('#consensus-live').classList.toggle('hidden',!risk);
@@ -3927,8 +3977,9 @@ function render(){
       ' 停損上限 '+money(risk.initialLossLimit)+' 元（剩餘額度 '+money(Math.max(0,Number(risk.initialLossLimit)+Number(s.pnl||0)))+'）；累積鎖利 '+money(s.locked_profit||0)+' 元。';
   }
   $('#round-count').textContent=is66?`${batch.completed} 局`:`${batch.count} / ${batch.size} · #${batch.index}`;
-  $('#strategy-round-metric').style.display=is66?'':'none';
-  $('#strategy-round-count').textContent=is66?`第 ${Math.max(Number(s.round_id||1),Number(s.round_complete_count||0)+1)} 輪`:'第 1 輪';
+  const is09=on&&s.strategy==='剩餘局數預算法'&&s.rounds_cycle_v2;
+  $('#strategy-round-metric').style.display=is66||is09?'':'none';
+  $('#strategy-round-count').textContent=is66?`第 ${Math.max(Number(s.round_id||1),Number(s.round_complete_count||0)+1)} 輪`:is09?`第 ${Number(s.round_id||1)} 輪`:'第 1 輪';
   const activeCode=on?(strategies.find(x=>x.name===s.strategy)?.code??'—'):getCode();
   $('#strategy-active-name').textContent='#'+String(activeCode).padStart(2,'0')+' '+displayStrategyName(on?s.strategy:(strategies.find(x=>x.code===getCode())?.name||'尚未選擇'));
   $('#strategy-active-meta').textContent=on?(s.rounds_cycle_v2?`${data.position} · 本輪 ${batch.count}/${batch.size} · 累計 ${complete} 局`:`${data.position||'計畫執行中'} · ${complete}/${planned} 局`):'尚未開始 · 點擊選擇策略';
