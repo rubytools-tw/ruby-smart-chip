@@ -40,8 +40,8 @@ jobs:
       - name: Report overall outcome
         if: always()
         run: |
-          echo "ENGINE_OUTCOME=\${{ steps.engine.outcome }}"
-          echo "BROWSER_OUTCOME=\${{ steps.browser.outcome }}"
-          if [ "\${{ steps.engine.outcome }}" != "success" ] || [ "\${{ steps.browser.outcome }}" != "success" ]; then
+          echo "ENGINE_OUTCOME=${{ steps.engine.outcome }}"
+          echo "BROWSER_OUTCOME=${{ steps.browser.outcome }}"
+          if [ "${{ steps.engine.outcome }}" != "success" ] || [ "${{ steps.browser.outcome }}" != "success" ]; then
             exit 1
           fi
