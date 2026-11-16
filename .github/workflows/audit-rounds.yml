@@ -1,0 +1,29 @@
+name: RUBY Smart Chip #09 isolated regression
+on:
+  push:
+    branches:
+      - fix/audit-rounds-20261116
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test-python-engine:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Checkout isolated branch
+        uses: actions/checkout@v4
+      - name: Configure Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile and test embedded Python modules
+        run: python tests/test_rounds_regression.py
+      - name: Install browser harness
+        run: |
+          python -m pip install playwright==1.57.0
+          python -m playwright install --with-deps chromium
+      - name: Real browser Pyodide UI regression
+        run: python tests/test_rounds_browser.py
