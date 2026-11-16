@@ -2847,7 +2847,7 @@ def settle(outcome, action_id=None):
         next_quote,reason=sizing.quote(s)
         next_quote,reason=enforce_table_limits(s,next_quote,reason)
         if next_quote is None and not sizing.plan_limit_reached(s):
-            due_to_high_point=(s['strategy']=='多因子防守共識法' and (reason or '').startswith('#10 高點回撤'))
+            due_to_high_point=(s['strategy']=='多因子防守共識法' and (reason or '').startswith('#10') and '回撤' in (reason or ''))
             s['session_status']='paused_drawdown' if due_to_high_point else 'paused_funds'
             s['strategy_pause_reason']=reason or '剩餘操作金無法繼續下注，計畫停止'
     if (s.get('strategy')=='逐關分層法' and s.get('twoleg_version') in (3,4)
