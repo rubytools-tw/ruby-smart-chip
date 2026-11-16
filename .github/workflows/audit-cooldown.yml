@@ -11,7 +11,7 @@ permissions:
 jobs:
   test-python-engine:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 12
     steps:
       - name: Checkout isolated branch
         uses: actions/checkout@v4
@@ -21,3 +21,9 @@ jobs:
           python-version: '3.11'
       - name: Compile and test embedded Python modules
         run: python tests/test_cooldown_engine.py
+      - name: Install browser harness
+        run: |
+          python -m pip install playwright==1.57.0
+          python -m playwright install --with-deps chromium
+      - name: Real browser Pyodide UI regression
+        run: python tests/test_cooldown_browser.py
