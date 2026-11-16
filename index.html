@@ -1470,8 +1470,12 @@ def plan_round_cap(s):
     substitute for the settled result count. planned_rounds is the canonical
     user-configured ceiling; round_limit is a legacy mirror only.
     """
-    if s.get('web_batch_mode'):return max(1,int(s.get('web_batch_total_cap') or s.get('planned_rounds') or 12))
-    return max(1, int(s.get('planned_rounds') or s.get('round_limit') or 12))
+    # Only #09 is a repeating planned-round cycle. All other strategies
+    # interpret the configured total as a HARD cumulative settlement ceiling,
+    # including sessions imported from older web_batch_mode backups.
+    if s.get('strategy')=='剩餘局數預算法' and s.get('web_batch_mode'):
+        return max(1,int(s.get('web_batch_total_cap') or s.get('planned_rounds') or 12))
+    return max(1,int(s.get('planned_rounds') or s.get('round_limit') or 12))
 
 
 def plan_completed(s):
@@ -2494,7 +2498,8 @@ def new_state(config):
         split_min=split_min,split_max=split_max,
         stop_profit_mode='percent',stop_profit_value=profit_pct,stop_loss_mode='percent',stop_loss_value=loss_pct,
         profit_target=cash(operation*profit_pct/100),loss_limit=cash(operation*loss_pct/100),
-        planned_rounds=planned,round_limit=planned,web_batch_mode=True,web_batch_size=planned,web_batch_total_cap=planned,payout_multiplier=payout,
+        planned_rounds=planned,round_limit=planned,
+        web_batch_mode=(strategy_code==9),web_batch_size=planned,web_batch_total_cap=planned,payout_multiplier=payout,
         payout_cycle_enabled=(market=='單球'),payout_cycle_wins=0,
         stake=0,started=True,session_status='active',
         streak=0,loss_streak=0,last_result='start',last_total_bet=None,
@@ -2783,6 +2788,9 @@ def settle(outcome, action_id=None):
     if not quote: raise ValueError(reason or '目前沒有可執行的注碼')
     if outcome not in ('win','loss'): raise ValueError('只能選中或掛')
     before=copy.deepcopy(s)
+    # Work on an isolated snapshot. No ledger, bankroll, or stage update
+    # touches the live STATE until the entire result path succeeds.
+    s=copy.deepcopy(before)
     cost=cash(quote['total']);win=outcome=='win'
     returned=cash(Decimal(str(quote['per']))*Decimal(str(quote['rate']))) if win else 0.0
     delta=cash(Decimal(str(returned))-Decimal(str(cost)))
@@ -2813,7 +2821,7 @@ def settle(outcome, action_id=None):
     s['ledger'].append(record)
     old_lock=s['locked_profit']
     sizing.after_result(s,win,delta)
-    if s.get('web_batch_mode'):
+    if s.get('web_batch_mode') and s.get('strategy')=='剩餘局數預算法':
         count=sizing.plan_completed(s)
         batch=max(1,int(s.get('web_batch_size') or s.get('planned_rounds') or 35))
         if count >= int(s.get('web_batch_total_cap') or batch):
@@ -2856,9 +2864,17 @@ def settle(outcome, action_id=None):
         s['session_status']='paused_strategy'
         active_last=(s.get('layer_active_count',4) if s.get('twoleg_version')==4 else 4)
         s['strategy_pause_reason']=f'第{active_last}層已掛，後續沒有啟用的層，計畫暫停；可手動進入下一輪'
-    UNDO=before
-    LAST_ACTION_ID=action_id
-    return evaluate_state()
+    previous_state,previous_undo,previous_id=STATE,UNDO,LAST_ACTION_ID
+    # Publish only a fully-settled snapshot; roll back also if the
+    # resulting evaluation / quote fails unexpectedly.
+    try:
+        STATE=s
+        UNDO=before
+        LAST_ACTION_ID=action_id
+        return evaluate_state()
+    except Exception:
+        STATE,UNDO,LAST_ACTION_ID=previous_state,previous_undo,previous_id
+        raise
 
 
 def choose(action,percent=None):
@@ -2976,13 +2992,28 @@ def web_call(action, payload_json='{}'):
                     default_min,default_max=TABLE_LIMITS[STATE['market']]
                     STATE['table_min_bet']=default_min
                     STATE['table_max_bet']=default_max
-                n=max(1,int(STATE.get('web_batch_size') or STATE.get('planned_rounds') or 35))
+                n=max(1,int(STATE.get('planned_rounds') or STATE.get('web_batch_size') or 35))
                 complete=int(STATE.get('wins',0))+int(STATE.get('losses',0))
-                STATE.update(web_batch_mode=True,web_batch_size=n,web_batch_total_cap=(complete//n+1)*n,round_limit=(complete//n+1)*n)
+                is_round_cycle=STATE.get('strategy')=='剩餘局數預算法' and STATE.get('rounds_cycle_v2')
+                if is_round_cycle:
+                    # Keep the intentionally repeating #09 plan and its
+                    # cumulative ledger unchanged.
+                    next_cap=(complete//n+1)*n
+                    STATE.update(web_batch_mode=True,web_batch_size=n,
+                                 web_batch_total_cap=next_cap,round_limit=next_cap)
+                else:
+                    # Loading an old backup cannot silently grant more rounds
+                    # or reopen a plan that has already hit its real cap.
+                    STATE.update(web_batch_mode=False,web_batch_size=n,
+                                 web_batch_total_cap=n,round_limit=n)
                 if STATE.get('strategy')=='逐關分層法' and STATE.get('twoleg_version')==4:
                     STATE['round_id']=max(int(STATE.get('round_id',1)),int(STATE.get('round_complete_count',0))+1)
-                if STATE.get('session_status')=='paused_round_limit' and STATE.get('pnl',0)>-STATE.get('loss_limit',0):
+                if is_round_cycle and STATE.get('session_status')=='paused_round_limit' and STATE.get('pnl',0)>-STATE.get('loss_limit',0):
                     STATE['session_status']='active';STATE['strategy_pause_reason']=''
+                if not is_round_cycle and complete>=n and STATE.get('session_status')!='settled':
+                    STATE['session_status']='paused_round_limit'
+                    STATE['strategy_pause_reason']=sizing.plan_limit_message(STATE)
+                    STATE['open_quote']=None
                 # V0.1.4 incorrectly paused #26 when loss stages exceeded the
                 # selected split divisor. Re-enable only that exact legacy
                 # pause reason; normal stop-loss and insufficient-funds stops
@@ -3001,7 +3032,17 @@ def web_call(action, payload_json='{}'):
                 UNDO['strategy']='逐關分層法'
             LAST_ACTION_ID=None
             out=evaluate_state()
-        elif action=='settle':out=settle(p.get('outcome'),p.get('actionId'))
+        elif action=='settle':
+            saved_state,saved_undo,saved_id=STATE,UNDO,LAST_ACTION_ID
+            try:
+                out=settle(p.get('outcome'),p.get('actionId'))
+                # Serialization is part of the settlement transaction: a
+                # failed browser response must never commit a wager.
+                out['undo']=UNDO
+                return json.dumps({'ok':True,'result':out},ensure_ascii=False,allow_nan=False)
+            except Exception:
+                STATE,UNDO,LAST_ACTION_ID=saved_state,saved_undo,saved_id
+                raise
         elif action=='choose':out=choose(p.get('choice'),p.get('percent'))
         elif action=='undo':out=undo()
         elif action=='resume':out=resume()
@@ -3350,8 +3391,10 @@ function showInfo(text){
 }
 function closeInfo(){ $('#info-backdrop').classList.add('hidden'); }
 function batchInfo(s){
-  const size=Math.max(1,Number(s?.web_batch_size||s?.planned_rounds||35));
+  const size=Math.max(1,Number(s?.planned_rounds||s?.web_batch_size||35));
   const completed=Number(s?.wins||0)+Number(s?.losses||0);
+  const continuous=s?.strategy==='剩餘局數預算法'&&!!s?.rounds_cycle_v2;
+  if(!continuous)return {size,index:1,count:Math.min(size,completed),completed};
   return {size,index:Math.floor(completed/size)+1,count:completed%size,completed};
 }
 function setReady(isReady,message){
