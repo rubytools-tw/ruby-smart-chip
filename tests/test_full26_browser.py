@@ -264,8 +264,41 @@ with sync_playwright() as playwright:
     print("BROWSER26 SUMMARY",len(rows)-len(failed),"passed",len(failed),"failed",flush=True)
     if failed:
         print("BROWSER26 FAILURES",[(r["code"],r["reason"][:100]) for r in failed],flush=True)
+    print("BROWSER P0: total cap and #09 rollover",flush=True)
+    for code in (0,26,9):
+        page.goto(url,wait_until="domcontentloaded",timeout=120000)
+        page.wait_for_function("document.querySelector('#engine-status')?.textContent?.includes('已就緒')",timeout=150000)
+        page.locator("#create-plan").click()
+        page.select_option("#strategy-select",str(code))
+        page.locator('input[name="operation"]').fill("1000000")
+        if code==26:
+            page.locator('input[name="partsMin"]').fill("10")
+            page.locator('input[name="partsMax"]').fill("10")
+        else:
+            page.locator('input[name="parts"]').fill("10")
+        page.locator('input[name="count"]').fill("1")
+        page.locator('input[name="planned"]').fill("2")
+        page.locator('input[name="maxBet"]').fill("10000000")
+        page.locator('input[name="profitPct"]').evaluate("(el)=>{el.closest('details').open=true}")
+        page.locator('input[name="profitPct"]').fill("10000")
+        page.locator("#start-button").click()
+        page.wait_for_function(f"snapshot?.code==={code} && snapshot?.quote?.per>0",timeout=15000)
+        for _ in range(2):
+            page.locator("#loss-button").click()
+        if code==9:
+            assert page.evaluate("snapshot.state.round_id")==2
+            assert page.evaluate("snapshot.state.session_status")=="active"
+            assert page.evaluate("snapshot.quote.per")>0
+            print("BROWSER P0 #09 next round active",flush=True)
+        else:
+            assert page.evaluate("snapshot.state.session_status")=="paused_round_limit"
+            assert page.evaluate("snapshot.quote") is None
+            assert page.locator("#win-button").is_disabled() and page.locator("#loss-button").is_disabled()
+            assert page.locator("#round-count").text_content()=="2 / 2 · #1",page.locator("#round-count").text_content()
+            assert page.locator("#progress-text").text_content()=="100.0%"
+            print("BROWSER P0 hard cap",code,flush=True)
     assert not errors,errors
     assert not failed,f"Browser UI failed for {len(failed)} of 26 strategies"
-    print("BROWSER E2E ALL 26 STRATEGIES PASS",flush=True)
+    print("BROWSER E2E ALL 26 STRATEGIES + P0 CAP PASS",flush=True)
     browser.close()
 server.shutdown()
