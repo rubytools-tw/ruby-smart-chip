@@ -284,6 +284,77 @@ def atomic_failure():
         "ledger_before":len(prior["ledger"]),"ledger_after":len(web.STATE["ledger"])})
     return "exception rolled back all state"
 
+
+def legacy_load_cap(code):
+    """An old serialized batch may never resurrect a capped 25-strategy plan."""
+    r=start(code,planned=2)
+    for index in range(2):
+        maybe_kelly(code)
+        r=api("status")
+        valid_quote(r)
+        r=api("settle",outcome="loss",actionId=f"backup-{code}-{index}")
+    record=copy.deepcopy(r["state"])
+    # Simulate an unpatched V0-era backup that stored an auto-extended cap.
+    record.update(web_batch_mode=True,web_batch_size=2,web_batch_total_cap=4,
+                  round_limit=4,session_status="active",strategy_pause_reason="")
+    got=api("load",state=record)
+    check_ledger(got)
+    assert got["state"]["wins"]+got["state"]["losses"]==2
+    if code==9:
+        assert got["state"]["web_batch_mode"] is True
+        assert got["state"]["web_batch_total_cap"]==4
+        assert got["state"]["session_status"]=="active"
+        valid_quote(got)
+        return "saved #09 2-ply plan continued into next round"
+    assert got["state"]["web_batch_mode"] is False
+    assert got["state"]["web_batch_total_cap"]==2
+    assert got["state"]["session_status"]=="paused_round_limit",got["state"]["session_status"]
+    assert got["quote"] is None
+    err=raw_api("settle",outcome="loss",actionId=f"backed-up-{code}")
+    assert not err["ok"] and len(web.STATE["ledger"])==2
+    err=raw_api("resume")
+    assert not err["ok"],"restore must not bypass the plan cap"
+    return "loaded old auto-extended batch was stopped without deleting ledger"
+
+def evaluation_failure():
+    """Even failure after tentative commit must restore exact prior global state."""
+    start(11)
+    old_state=copy.deepcopy(web.STATE)
+    old_undo=copy.deepcopy(web.UNDO)
+    old_id=web.LAST_ACTION_ID
+    old_eval=web.evaluate_state
+    def forced_failure():
+        raise RuntimeError("AUDIT_POST_COMMIT_EVALUATION_FAIL")
+    web.evaluate_state=forced_failure
+    try:
+        result=raw_api("settle",outcome="win",actionId="eval-crash")
+    finally:
+        web.evaluate_state=old_eval
+    assert not result["ok"] and "AUDIT_POST_COMMIT" in result["error"],result
+    assert web.STATE==old_state and web.UNDO==old_undo and web.LAST_ACTION_ID==old_id
+    return "commit/evaluate exception restores state, undo and action ID"
+
+def serialize_failure():
+    """The HTTP/JS response boundary must not commit if JSON encoding fails."""
+    start(11)
+    old_state=copy.deepcopy(web.STATE)
+    old_undo=copy.deepcopy(web.UNDO)
+    old_id=web.LAST_ACTION_ID
+    original_dumps=web.json.dumps
+    def fail_on_success(*args,**kwargs):
+        payload=args[0] if args else None
+        if isinstance(payload,dict) and payload.get("ok") is True:
+            raise RuntimeError("AUDIT_RESPONSE_SERIALIZATION_FAIL")
+        return original_dumps(*args,**kwargs)
+    web.json.dumps=fail_on_success
+    try:
+        result=json.loads(web.web_call("settle",original_dumps({"outcome":"win","actionId":"serialize-crash"})))
+    finally:
+        web.json.dumps=original_dumps
+    assert not result["ok"] and "AUDIT_RESPONSE" in result["error"],result
+    assert web.STATE==old_state and web.UNDO==old_undo and web.LAST_ACTION_ID==old_id
+    return "JSON/bridge failure cannot leave committed ledger entries"
+
 def main():
     for code in CODES:
         for label,fn in (
@@ -296,9 +367,12 @@ def main():
           ("lock_25pct",lambda c=code:allocation(c,"lock")),
           ("roll_25pct",lambda c=code:allocation(c,"roll")),
           ("finish_blocks_settlement",lambda c=code:finish(c)),
+          ("restore_old_batch_cap",lambda c=code:legacy_load_cap(c)),
         ):
             mark(code,label,fn)
     mark(-1,"atomic_settlement_failure_injection",atomic_failure)
+    mark(-1,"post_commit_evaluation_failure",evaluation_failure)
+    mark(-1,"web_json_serialization_failure",serialize_failure)
     totals=dict(Counter(x["status"] for x in RESULTS))
     issues=[x for x in RESULTS if x["status"]=="FAIL"]
     data=dict(base_sha="read from GitHub main at test setup",strategies=len(CODES),
