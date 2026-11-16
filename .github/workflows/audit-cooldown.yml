@@ -10,7 +10,7 @@ permissions:
   contents: read
 jobs:
   test-python-engine:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
       - name: Checkout isolated branch
