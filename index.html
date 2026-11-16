@@ -424,10 +424,18 @@ body[data-font-size="large"]{
 @media(max-width:420px){.giveback-stage-row{grid-template-columns:32px minmax(0,1fr) minmax(0,1fr);gap:4px;padding:6px 5px}}
 .consensus-config{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .consensus-config small{grid-column:1/-1;color:var(--muted);font-size:11px}
-.consensus-rows{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;margin-top:5px}
-.consensus-rows span{white-space:nowrap}
-.consensus-rows b{font-size:13px;color:var(--accent);font-variant-numeric:tabular-nums}
-#consensus-status{display:block;color:var(--muted);font-size:11px;margin-top:5px}
+.consensus-rows{display:grid;gap:7px;font-size:12px;margin-top:7px}
+.consensus-factor{display:grid;gap:3px;min-width:0}
+.consensus-factor-head{display:flex;justify-content:space-between;align-items:center;gap:10px;white-space:nowrap}
+.consensus-factor-head b{font-size:13px;color:var(--text);font-variant-numeric:tabular-nums}
+.consensus-track{height:8px;border-radius:99px;background:var(--stroke);overflow:hidden;position:relative}
+.consensus-fill{display:block;height:100%;width:0%;border-radius:99px;transition:width .18s ease;background:var(--accent)}
+.consensus-factor[data-factor="b"] .consensus-fill{background:#75bdf5}
+.consensus-factor[data-factor="c"] .consensus-fill{background:#dfbe71}
+.consensus-factor.limiting .consensus-factor-head b{color:var(--accent)}
+.consensus-actual{display:flex;justify-content:space-between;gap:8px;border-top:1px solid var(--stroke);padding-top:6px;font-weight:650}
+.consensus-actual b{font-size:14px;color:var(--accent);font-variant-numeric:tabular-nums}
+#consensus-status{display:block;color:var(--muted);font-size:11px;margin-top:7px;line-height:1.55}
 @media(max-width:430px){.consensus-config{grid-template-columns:minmax(0,1fr)}}
 </style>
 </head>
@@ -486,10 +494,10 @@ body[data-font-size="large"]{
       <div id="consensus-live" class="notice hidden" aria-live="polite">
         <strong>#10 三因子配注（每碼）</strong>
         <div class="consensus-rows">
-          <span>A 獲利進度 <b id="consensus-a">—</b></span>
-          <span>B 高點回撤 <b id="consensus-b">—</b></span>
-          <span>C 近期波動 <b id="consensus-c">—</b></span>
-          <span>實際下一注 <b id="consensus-final">—</b></span>
+          <div class="consensus-factor" data-factor="a"><div class="consensus-factor-head"><span>A 獲利進度</span><b id="consensus-a">—</b></div><div class="consensus-track" role="progressbar" aria-label="A 獲利進度配注金額相對比例" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="consensus-bar-a" class="consensus-fill"></span></div></div>
+          <div class="consensus-factor" data-factor="b"><div class="consensus-factor-head"><span>B 高點回撤</span><b id="consensus-b">—</b></div><div class="consensus-track" role="progressbar" aria-label="B 高點回撤配注金額相對比例" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="consensus-bar-b" class="consensus-fill"></span></div></div>
+          <div class="consensus-factor" data-factor="c"><div class="consensus-factor-head"><span>C 近期波動</span><b id="consensus-c">—</b></div><div class="consensus-track" role="progressbar" aria-label="C 近期波動配注金額相對比例" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="consensus-bar-c" class="consensus-fill"></span></div></div>
+          <div class="consensus-actual"><span>實際下一注（取三者最小）</span><b id="consensus-final">—</b></div>
         </div>
         <small id="consensus-status">尚未開始計算</small>
       </div>
@@ -645,9 +653,10 @@ body[data-font-size="large"]{
           <small>冷卻期間只記錄「觀察中／觀察掛」，不計入實際計畫盈虧、投注量與已完成局數。</small>
         </div>
         <div id="consensus-fields" class="field-full special-param hidden consensus-config">
-          <label class="field"><span>#10 獲利後高點回撤停機（%）</span><input name="consensusDrawdownPercent" type="number" min="1" max="100" step="0.1" value="20" disabled></label>
-          <label class="field"><span>#10 正獲利高點鎖利（%）</span><input name="consensusLockPercent" type="number" min="0" max="100" step="0.1" value="50" disabled></label>
-          <small>在尚未出現正獲利高點前，連掛只依上方停損比例、資金與限紅判斷；每局依三個因子重新計算下一注，不使用固定關卡倍率。</small>
+          <label class="field"><span>#10 高點保護啟動門檻（操作金%）</span><input name="consensusActivatePercent" type="number" min="0" max="100" step="0.1" value="10" disabled></label>
+          <label class="field"><span>#10 啟動後高點回撤停機（操作金%）</span><input name="consensusDrawdownPercent" type="number" min="1" max="100" step="0.1" value="20" disabled></label>
+          <label class="field"><span>#10 高點保護啟動後鎖利（%）</span><input name="consensusLockPercent" type="number" min="0" max="100" step="0.1" value="50" disabled></label>
+          <small>最高正淨獲利達啟動門檻才啟用回撤停機及鎖利。回撤＝最高淨獲利－目前淨盈虧；停止額度依初始操作金計算。啟動前連掛只受一般停損、可用資金與限紅約束。A／B／C 均顯示真正每碼候選金額，下一注取最低值。</small>
         </div>
         <div id="peak-lock-fields" class="field-full special-param hidden peak-lock-grid">
           <label class="field"><span>獲利鎖定（%）</span><input name="peakLockPercent" type="number" min="1" max="100" step="any" value="50" disabled></label>
@@ -1413,9 +1422,14 @@ def consensus_factor_details(s):
     base=(dec(raw) if raw is not None else base_raw(s))
     candidates=[max(0,floor(base*dec(r))) for r in factors]
     limit=cents(dec(s['operation_base'])*dec(s.get('consensus_drawdown_pct',20))/dec(100))
+    activate_pct=dec(s.get('consensus_activate_pct',0)) if s.get('consensus_v3') else dec(0)
+    activation=cents(dec(s['operation_base'])*activate_pct/dec(100))
+    armed=peak>0 and peak+1e-8>=activation
     return dict(factors=factors,perCode=candidates,appliedPer=min(candidates),
                 peak=peak,drawdown=cents(high_drop),drawdownLimit=limit,
-                peakProtectionActive=peak>0,basePer=floor(base),
+                peakProtectionActive=armed,basePer=floor(base),
+                activationThreshold=activation,activationPercent=float(activate_pct),
+                drawdownPercent=float(s.get('consensus_drawdown_pct',20)),
                 protectionPercent=float(s.get('consensus_lock_pct',50)),
                 initialLossLimit=cents(L),cumulativePnL=cents(P))
 def adjustment(s):
@@ -1478,12 +1492,14 @@ def quote(s):
     if plan_limit_reached(s):
         return None,plan_limit_message(s)
     if s['strategy']=='多因子防守共識法':
-        peak=float(s.get('peak_pnl',0))
-        if peak>0:
-            decline=max(0.,peak-float(s['pnl']))
-            limit=float(s['operation_base'])*float(s.get('consensus_drawdown_pct',20))/100
-            if decline+1e-8>=limit:
-                return None,f'#10 高點回撤 {cents(decline):g} 元達設定門檻 {cents(limit):g} 元，已暫停；盈虧與鎖利保留'
+        peak=dec(s.get('peak_pnl',0))
+        activate=(dec(s['operation_base'])*dec(s.get('consensus_activate_pct',0))/dec(100)
+                  if s.get('consensus_v3') else dec(0))
+        if peak>0 and peak+dec('0.00000001')>=activate:
+            decline=max(dec(0),peak-dec(s['pnl']))
+            limit=dec(s['operation_base'])*dec(s.get('consensus_drawdown_pct',20))/dec(100)
+            if decline+dec('0.00000001')>=limit:
+                return None,f'#10 高點保護已啟動，回撤 {cents(decline):g} 元達設定門檻 {cents(limit):g} 元，已暫停；盈虧與鎖利保留'
     if s.get('open_quote'):
         existing=s['open_quote']
         if dec(existing['total']) > max(dec(0),dec(s['loss_limit'])+dec(s['pnl'])):
@@ -1924,8 +1940,12 @@ def after_result(s,win,delta):
     # Retain original 06/08/10 protections. 01 now locks only on round completion.
     if s['strategy']=='本金獲利雙池法' and not s.get('dual_v2'):s['locked_profit']=max(s['locked_profit'],max(0,s['pnl'])*.7)
     if s['strategy']=='多因子防守共識法':
-        rate=dec(s.get('consensus_lock_pct',50))/dec(100)
-        s['locked_profit']=max(s['locked_profit'],cents(max(dec(0),dec(s['pnl']))*rate))
+        high=dec(s.get('peak_pnl',0))
+        arm=(dec(s['operation_base'])*dec(s.get('consensus_activate_pct',0))/dec(100)
+             if s.get('consensus_v3') else dec(0))
+        if high>0 and high+dec('0.00000001')>=arm:
+            rate=dec(s.get('consensus_lock_pct',50))/dec(100)
+            s['locked_profit']=max(s['locked_profit'],cents(max(dec(0),dec(s['pnl']))*rate))
     if s['strategy']=='獲利回吐底線法' and not s.get('giveback_roll_v2') and s['peak_pnl']>=s['loss_limit']*.2:
         s['giveback_active']=True
         s['locked_profit']=max(s['locked_profit'],s['peak_pnl']-max(s['loss_limit']*.2,s['peak_pnl']*.25))
@@ -2549,16 +2569,19 @@ def new_state(config):
         s['rounds_budget_v3']=True
     if strategy_code==10:
         try:
+            activate=Decimal(str(config.get('consensusActivatePercent',10)))
             decline=Decimal(str(config.get('consensusDrawdownPercent',20)))
             protect=Decimal(str(config.get('consensusLockPercent',50)))
         except (TypeError,ValueError,ArithmeticError):
-            raise ValueError('#10 比例格式無效')
+            raise ValueError('#10 保護門檻與比例格式無效')
+        if not activate.is_finite() or not 0<=activate<=100:
+            raise ValueError('#10 高點保護啟動門檻必須介於0～100%')
         if not decline.is_finite() or not 1<=decline<=100:
             raise ValueError('#10 高點回撤停止比例必須介於1～100%')
         if not protect.is_finite() or not 0<=protect<=100:
             raise ValueError('#10 正獲利保留比例必須介於0～100%')
-        s.update(consensus_v2=True,consensus_drawdown_pct=float(decline),
-                 consensus_lock_pct=float(protect))
+        s.update(consensus_v2=True,consensus_v3=True,consensus_activate_pct=float(activate),
+                 consensus_drawdown_pct=float(decline),consensus_lock_pct=float(protect))
     if strategy_code==8:
         try:
             lock_pct=Decimal(str(config.get('givebackLockPercent',20)))
@@ -2733,7 +2756,7 @@ def evaluate_state():
            'code':strategy_engine.BY_NAME[s['strategy']]['code'],
            'canResume':bool(s.get('plan_state',{}).get('exhausted') or s.get('plan_state',{}).get('done')),
            'cycleProgress':strategy26.cycle_progress(s) if strategy26.active(s) else None,
-           'consensusBreakdown':(sizing.consensus_factor_details(s) if s['strategy']=='多因子防守共識法' else None),
+           'consensusBreakdown':(dict(sizing.consensus_factor_details(s),quotedPer=(int(q['per']) if q else None)) if s['strategy']=='多因子防守共識法' else None),
            'roundsBreakdown':sizing.rounds_budget_details(s,actual_quote=q),
            'allocatable':sizing.unallocated(s),
            'pendingRoll':s.get('auto_roll_pending',0),
@@ -3796,7 +3819,7 @@ function changeStrategyFields(){
   if(code===17&&Number(max.value)>5)max.value='5';
   if(is26)max.value=$('[name=partsMax]').value;
   const s=strategies.find(x=>x.code===code);
-  $('#strategy-hint').dataset.info=code===10?'#10：A停利進度、B正獲利高點回撤、C近10局波動，各自換算每碼元數，採用最低值。未曾正獲利前連掛依你的整體停損比例及限紅；曾正獲利後才按自訂回撤門檻暫停。高點鎖利預設50%可自訂。':code===9?'#09：每輪依設定局數循環；每碼＝floor(max(0,原始一份操作金+本輪盈虧)÷每輪固定局數÷碼數)。掛後依虧損降低下局金額，避免剩餘局數同步減少造成注額不變。每輪完成僅更新本輪起點，總盈虧、投注量及歷史保留至結算。':code===4?'#04：起注每碼＝floor(操作金÷切分份數÷碼數)，切分1～200份；超出最高限紅時改用上限，低於最低限紅不補注。結算後照最近10局盈虧波動調節，停利停損依原設定。':is26?'#26：等份數只是每局的除數，不是關卡上限。固定等份填相同數字；區間每輪隨機抽一次。每局依目前操作金加淨盈虧重新分切至整數，直到不能符合限紅或資金限制才停止。':code===66?'#66：4層，每層4～10格，每格填「每碼下注金額」，總注＝每碼×碼數。0／空白只能放在各層末尾，末尾整層也能停用。中獎進同層下一啟用關，末關中回上一層；掛跳下一啟用層，沒有下一層就暫停。':code===1?'#01：依目前可用操作金÷切分份數÷碼數逐局算起注。每次中獎自動鎖利指定比例，剩餘獲利繼續操作；連續達設定次數完成一週期、掛歸零。不使用最大關卡。':code===14?'#14：第一關按操作金÷份數起注；前段以起注總額＋本輪已獲淨利，衝刺階段僅用本輪獲利的固定或隨機百分比。掛回首關。':code===99?'#99：首關倍率必須為1；每關以固定起注×自訂倍率，中進、掛回首。倍率長度就是勝進關數，不會反推縮小第一關。':code===8?'#08：參考基額＝操作金÷份數÷碼數；首關按底線比例預先折減，中後依勝進倍率提升，掛後回首關並再折減一次。限紅、停損與資金不足時暫停。':s?.description||'此策略依原本 RUBY TG Chip V1.8.18 計算規則運作。';
+  $('#strategy-hint').dataset.info=code===10?'#10：A停利進度、B正獲利高點回撤、C近10局波動，各自換算實際每碼候選金額，以最低者配注。最高正淨獲利先達自訂啟動門檻（預設操作金10%），才啟用高點回撤停機（預設操作金20%）與高點鎖利（預設50%）；初期連掛只受整體停損、可用資金及限紅限制。':code===9?'#09：每輪依設定局數循環；每碼＝floor(max(0,原始一份操作金+本輪盈虧)÷每輪固定局數÷碼數)。掛後依虧損降低下局金額，避免剩餘局數同步減少造成注額不變。每輪完成僅更新本輪起點，總盈虧、投注量及歷史保留至結算。':code===4?'#04：起注每碼＝floor(操作金÷切分份數÷碼數)，切分1～200份；超出最高限紅時改用上限，低於最低限紅不補注。結算後照最近10局盈虧波動調節，停利停損依原設定。':is26?'#26：等份數只是每局的除數，不是關卡上限。固定等份填相同數字；區間每輪隨機抽一次。每局依目前操作金加淨盈虧重新分切至整數，直到不能符合限紅或資金限制才停止。':code===66?'#66：4層，每層4～10格，每格填「每碼下注金額」，總注＝每碼×碼數。0／空白只能放在各層末尾，末尾整層也能停用。中獎進同層下一啟用關，末關中回上一層；掛跳下一啟用層，沒有下一層就暫停。':code===1?'#01：依目前可用操作金÷切分份數÷碼數逐局算起注。每次中獎自動鎖利指定比例，剩餘獲利繼續操作；連續達設定次數完成一週期、掛歸零。不使用最大關卡。':code===14?'#14：第一關按操作金÷份數起注；前段以起注總額＋本輪已獲淨利，衝刺階段僅用本輪獲利的固定或隨機百分比。掛回首關。':code===99?'#99：首關倍率必須為1；每關以固定起注×自訂倍率，中進、掛回首。倍率長度就是勝進關數，不會反推縮小第一關。':code===8?'#08：參考基額＝操作金÷份數÷碼數；首關按底線比例預先折減，中後依勝進倍率提升，掛後回首關並再折減一次。限紅、停損與資金不足時暫停。':s?.description||'此策略依原本 RUBY TG Chip V1.8.18 計算規則運作。';
   updateWinStartPreview();
   $('#current-summary').textContent=s?.description||'請選擇策略。';$('#summary-info').dataset.info=s?.description||'請選擇策略。';
 }
@@ -3829,7 +3852,7 @@ function readConfig(){
   if(config.strategy===6)config.dualSequence=parseSeq($('[name=dualSequence]').value);
   if(config.strategy===7){config.cooldownLossCount=Number($('[name=cooldownLossCount]').value);config.cooldownResumeWins=Number($('[name=cooldownResumeWins]').value);}
   if(config.strategy===8){config.givebackLockPercent=Number($('[name=givebackLockPercent]').value);config.givebackWinSteps=Number($('[name=givebackWinSteps]').value);config.givebackWinMultiplier=Number($('[name=givebackWinMultiplier]').value);}
-  if(config.strategy===10){config.consensusDrawdownPercent=Number($('[name=consensusDrawdownPercent]').value);config.consensusLockPercent=Number($('[name=consensusLockPercent]').value);}
+  if(config.strategy===10){config.consensusActivatePercent=Number($('[name=consensusActivatePercent]').value);config.consensusDrawdownPercent=Number($('[name=consensusDrawdownPercent]').value);config.consensusLockPercent=Number($('[name=consensusLockPercent]').value);}
   if(config.strategy===17)config.maxSteps=Math.min(config.maxSteps,5);
   if(config.strategy===14){
     config.sprintStart=Number($('[name=sprintStart]').value);
@@ -3877,7 +3900,7 @@ function firstQuoteConfigForStrategy(code){
   if(code===6){try{base.dualSequence=parseSeq($('[name=dualSequence]').value);}catch{base.dualSequence=[1,2];}}
   if(code===7){base.cooldownLossCount=Number($('[name=cooldownLossCount]').value);base.cooldownResumeWins=Number($('[name=cooldownResumeWins]').value);}
   if(code===8){base.givebackLockPercent=Number($('[name=givebackLockPercent]').value);base.givebackWinSteps=Number($('[name=givebackWinSteps]').value);base.givebackWinMultiplier=Number($('[name=givebackWinMultiplier]').value);}
-  if(code===10){base.consensusDrawdownPercent=Number($('[name=consensusDrawdownPercent]').value);base.consensusLockPercent=Number($('[name=consensusLockPercent]').value);}
+  if(code===10){base.consensusActivatePercent=Number($('[name=consensusActivatePercent]').value);base.consensusDrawdownPercent=Number($('[name=consensusDrawdownPercent]').value);base.consensusLockPercent=Number($('[name=consensusLockPercent]').value);}
   if(code===getCode()){try{return readConfig();}catch{}}
   return base;
 }
@@ -3969,12 +3992,25 @@ function render(){
   const risk=on&&s.strategy==='多因子防守共識法'?data.consensusBreakdown:null;
   $('#consensus-live').classList.toggle('hidden',!risk);
   if(risk){
-    for(const [i,id] of ['consensus-a','consensus-b','consensus-c'].entries())$('#'+id).textContent=fmt(risk.perCode[i],0)+' 元';
-    $('#consensus-final').textContent=q?fmt(q.per,0)+' 元':'暫停／不可下注';
+    const amounts=risk.perCode.map(v=>Math.max(0,Number(v)||0));
+    const highest=Math.max(1,...amounts);
+    const smallest=Math.min(...amounts);
+    for(const [i,key] of ['a','b','c'].entries()){
+      const id='consensus-'+key,fill=$('#consensus-bar-'+key);
+      $('#'+id).textContent=fmt(amounts[i],0)+' 元／碼';
+      fill.style.width=(100*amounts[i]/highest).toFixed(2)+'%';
+      const container=fill.closest('.consensus-factor');
+      container.classList.toggle('limiting',amounts[i]===smallest);
+      const track=fill.parentElement;
+      track.setAttribute('aria-valuenow',String(Math.round(100*amounts[i]/highest)));
+      track.setAttribute('aria-valuetext',fmt(amounts[i],0)+'元／碼；最大候選'+fmt(highest,0)+'元／碼');
+    }
+    $('#consensus-final').textContent=q?fmt(q.per,0)+' 元／碼':'暫停／不可下注';
+    const activation=Number(risk.activationThreshold||0);
     $('#consensus-status').textContent=(risk.peakProtectionActive?
-      '曾有正獲利高點 '+money(risk.peak)+'；當前回撤 '+money(risk.drawdown)+'／門檻 '+money(risk.drawdownLimit)+' 元。':
-      '尚無正獲利高點：不啟用高點回撤停機。')+
-      ' 停損上限 '+money(risk.initialLossLimit)+' 元（剩餘額度 '+money(Math.max(0,Number(risk.initialLossLimit)+Number(s.pnl||0)))+'）；累積鎖利 '+money(s.locked_profit||0)+' 元。';
+      '高點保護已啟動｜最高淨獲利 '+money(risk.peak)+'｜回撤 '+money(risk.drawdown)+'／停止門檻 '+money(risk.drawdownLimit)+'。':
+      '高點保護尚未啟動｜最高淨獲利 '+money(risk.peak)+'／啟動門檻 '+money(activation)+'。')+
+      ' A／B／C 條長按同一每碼元額尺度比較；最低金額決定配注，停損、限紅仍優先。累積鎖利 '+money(s.locked_profit||0)+' 元。';
   }
   $('#round-count').textContent=is66?`${batch.completed} 局`:`${batch.count} / ${batch.size} · #${batch.index}`;
   const is09=on&&s.strategy==='剩餘局數預算法'&&s.rounds_cycle_v2;
