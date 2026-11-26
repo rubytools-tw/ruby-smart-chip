@@ -2808,7 +2808,7 @@ def settle(outcome, action_id=None):
         s['session_status']='paused_strategy'
         s['strategy_pause_reason']='#27 負追末關全掛，已暫停本輪；可手動恢復第一關'
     if (s.get('strategy')=='逐關分層法' and s.get('twoleg_version') in (3,4)
-        and s.get('plan_state',{}).get('exhausted'
+        and s.get('plan_state',{}).get('exhausted')
         and s.get('session_status')=='active'):
         s['session_status']='paused_strategy'
         active_last=(s.get('layer_active_count',4) if s.get('twoleg_version')==4 else 4)
