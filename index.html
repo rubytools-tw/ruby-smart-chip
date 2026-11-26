@@ -692,7 +692,7 @@ body[data-font-size="large"]{
 <nav class="mobile-nav" aria-label="底部分頁"><button type="button" class="active" data-tab="calculator">▣<span>計算</span></button><button type="button" data-tab="strategies">▤<span>策略</span></button><button type="button" data-tab="history">◷<span>紀錄</span></button><button type="button" data-tab="settings">⚙<span>設定</span></button></nav>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.27.7/full/pyodide.js"></script>
-<script type="application/json" id="ruby-strategies-json">[{"id":"custom","name":"自訂關卡配注法","code":0,"kind":"負追","description":"依自訂倍率逐關下注；掛後進一關，中獎回第一關。","win":"回第一關，照自訂起注重新開始。","loss":"進入倍率表的下一關；走完後回第一關開新輪。","stop":"達總局數、停損或下注限額時暫停。"},{"id":"custom_win","name":"自訂關卡配注法（勝近）","code":99,"kind":"勝近","description":"自訂勝進倍率；中獎進下一關，掛後回第一關。","win":"依下一關倍率加注，最高關中獎後重新從第一關開始。","loss":"回第一關，使用原設定起注。","stop":"達總局數、停損或下注限額時暫停。"},{"id":"twoleg","name":"逐關分層法","code":66,"kind":"雙向","description":"每層自行填入每碼金額；中獎進關，掛後換層。","win":"往同層下一個有金額的關卡；末關中獎後回上一層。","loss":"換下一個啟用層，從該層第一關開始。","stop":"沒有下一層可用時暫停；也受總局數及資金限制。"},{"id":"peak","name":"高點獲利鎖定法","code":1,"kind":"中性","description":"依可用操作金分切下注；獲利按設定比例自動鎖利。","win":"鎖住指定比例的本局淨利，其餘繼續配注；累計連續鎖利次數。","loss":"連續鎖利次數歸零，下一注依剩餘金額重算。","stop":"連續鎖利達標會開新週期；總局數、停損或資金不足則暫停。"},{"id":"progress","name":"停利進度收斂法","code":2,"kind":"中性","description":"獲利越接近停利目標，下注金額越保守。","win":"依更新後的獲利進度重新計算，可能降低下一注。","loss":"依剩餘停損額與進度重新計算。","stop":"達停利、停損、總局數或限額條件時暫停。"},{"id":"drawdown","name":"高點回撤階梯法","code":3,"kind":"中性","description":"依最高獲利與目前回撤幅度調整下注。","win":"更新獲利高點，重新計算下一注。","loss":"高點回撤增加時降低下一注。","stop":"高點回撤達設定界線會暫停；也受停損與總局數限制。"},{"id":"volatility","name":"損益波動調節法","code":4,"kind":"中性","description":"依最近 10 局的盈虧波動調整下注。","win":"更新近期盈虧紀錄，重新評估下一注。","loss":"更新波動程度；波動增大時降低配注。","stop":"達總局數、停損、停利或限額時暫停。"},{"id":"shock","name":"最大虧損壓力法","code":5,"kind":"中性","description":"依最近 20 局最大虧損調整下一注。","win":"重新計算剩餘停損額與近期最大虧損。","loss":"若創下更大單局虧損，下一注會更保守。","stop":"達總局數、停損或限額時暫停。"},{"id":"dual","name":"本金獲利雙池法","code":6,"kind":"中性","description":"中獎按倍率勝進；本輪獲利達標後分配鎖利與滾利。","win":"進下一個勝進關；若本輪獲利達標，預設鎖利 70%、滾利 30%。","loss":"回勝進第一關，保留本輪實際盈虧。","stop":"達獲利目標後換輪；總局數、停損或資金不足則暫停。"},{"id":"cooldown","name":"連掛冷卻檢核法","code":7,"kind":"中性","description":"連掛達門檻先冷卻；觀察連中後再恢復配注。","win":"正式下注中獎後，連掛次數歸零。","loss":"連掛預設 3 局後暫停下注，改用手動觀察中／掛。","stop":"觀察連中預設 2 局才回第一關；若達停損或限額，不能恢復。"},{"id":"giveback","name":"獲利回吐底線法","code":8,"kind":"中性","description":"先按底線降低起注；中獎勝進，掛後再降起注。","win":"依設定倍率進下一關，預設每關乘 1.8 倍。","loss":"回第一關，起注基準每掛一次再降預設 20%。","stop":"最高關中後回第一關；達總局數、停損或資金限制時暫停。"},{"id":"rounds","name":"剩餘局數預算法","code":9,"kind":"中性","description":"把預算分到每輪固定局數，每局依本輪盈虧重算。","win":"依本輪獲利重新計算下一注。","loss":"依本輪虧損降低下一注。","stop":"每輪局數結束自動換輪；全程盈虧保留，停損或資金不足時暫停。"},{"id":"consensus","name":"多因子防守共識法","code":10,"kind":"中性","description":"A 獲利、B 回撤、C 波動各算一注，取最低金額。","win":"更新三種候選注額；獲利高點達門檻後才啟用保護與鎖利。","loss":"重新比較三種注額，採最低者；不因初期連掛直接啟動高點保護。","stop":"預設獲利高點達操作金 10% 才啟動保護，回撤達操作金 20% 時停機。"},{"id":"fixed","name":"動態固定注","code":11,"kind":"中性","description":"依目前操作預算與盈虧，重新計算每碼固定注。","win":"依最新盈虧重算；可選擇將可分配獲利鎖利或滾利。","loss":"依最新盈虧重新配注，不自動追倍。","stop":"達總局數、停損、停利或限額時暫停。"},{"id":"fraction","name":"固定比例法","code":12,"kind":"中性","description":"以自訂固定投入比例計算每碼金額。","win":"下一注仍依設定投入比例計算，不自動勝進。","loss":"下一注仍依設定投入比例計算，不自動翻倍。","stop":"可用預算不足或達總局數、停損、限額時暫停。"},{"id":"budget","name":"預算分配法","code":13,"kind":"中性","description":"先切出一份預算，再分成小份下注。","win":"照原本分份規則配注，不自動進關。","loss":"照原本分份規則配注，不自動加倍追損。","stop":"達總局數、停損、資金或限額條件時暫停。"},{"id":"winner","name":"有限連贏法","code":14,"kind":"勝進","description":"用本輪累積獲利勝進；衝刺時按獲利比例下注。","win":"前段以起注加本輪累積淨利配注，衝刺階段改用獲利比例。","loss":"回第一關，重新計算本輪起注。","stop":"達總局數、停損、限額或資金不足時暫停。"},{"id":"martingale","name":"標準馬丁法","code":16,"kind":"負追","description":"依 1、2、4、8 倍逐關下注；掛進、中回首。","win":"回第一關，恢復基本下注。","loss":"進下一個加倍關卡。","stop":"最後一關再掛就暫停，不會無限加倍。"},{"id":"tianmen","name":"天門打法","code":17,"kind":"負追","description":"使用 1、3、7、15、31 倍關卡；掛進、中回首。","win":"回第一關重新下注。","loss":"進下一個倍率關，最多五關。","stop":"第五關再掛就暫停，不能自動加到第六關。"},{"id":"dalembert","name":"達朗貝爾法","code":18,"kind":"負追","description":"掛後加一個下注單位，中獎減一個單位。","win":"退一關，最低回第一關。","loss":"進一關，每碼增加一個單位。","stop":"超過設定最大關卡就暫停。"},{"id":"fibonacci","name":"費波納契法","code":19,"kind":"負追","description":"按費波納契倍率配注；掛進一關、中退兩關。","win":"往前退兩關，最低回第一關。","loss":"往後進一關，依數列調整金額。","stop":"超過設定最大關卡就暫停。"},{"id":"attack","name":"攻擊／退守切換法","code":20,"kind":"雙向","description":"先測試一注，再依中掛切換攻擊或退守。","win":"測試中轉攻擊；攻擊中進關；退守中依條件退關。","loss":"測試掛轉退守；攻擊掛回測試；退守掛進關。","stop":"攻擊或退守關卡走完即暫停，另受總局數與停損限制。"},{"id":"recovery","name":"目標回補法","code":22,"kind":"負追","description":"依待回補虧損與目標金額，計算下一注。","win":"依本局收益扣減待回補虧損，再重新計算。","loss":"待回補虧損增加，重新計算下一注。","stop":"下一注超出資金、停損或關卡限制時暫停；不保證回補。"},{"id":"kelly","name":"凱利公式","code":23,"kind":"中性","description":"每期輸入預估中獎率，依凱利比例計算下注。","win":"結算後清除上期預估，下一期需重新輸入。","loss":"結算後同樣清除上期預估，下一期重新評估。","stop":"未填預估率、計算不利或超出資金限制時不下注。"},{"id":"labouchere","name":"清單消去法","code":24,"kind":"負追","description":"用清單首尾數字配注；中刪除，掛追加。","win":"刪掉清單首尾數字；只剩一項就刪該項。","loss":"將本局使用的首尾合計追加至清單尾端。","stop":"清單清空即完成本輪；另受總局數、停損與限額限制。"},{"id":"equal_reset","name":"等分倍盈歸本法","code":26,"kind":"等分","description":"每局依目前可用金重新等分，達歸本目標後鎖利。","win":"依結算結果重新配注；若使用等份區間，下輪重新抽取份數。","loss":"保留本輪等份數，依剩餘資金重算下一注。","stop":"週期獲利達原操作金 100% 會鎖利並重啟週期；不足最低注額或達總局數則暫停。"}]</script>
+<script type="application/json" id="ruby-strategies-json">[{"id":"custom","name":"自訂關卡配注法","code":0,"kind":"負追","description":"依自訂倍率逐關下注；掛後進一關，中獎回第一關。","win":"回第一關，照自訂起注重新開始。","loss":"進入倍率表的下一關；走完後回第一關開新輪。","stop":"達總局數、停損或下注限額時暫停。"},{"id":"custom_win","name":"自訂關卡配注法（勝近）","code":99,"kind":"勝近","description":"自訂勝進倍率；中獎進下一關，掛後回第一關。","win":"依下一關倍率加注，最高關中獎後重新從第一關開始。","loss":"回第一關，使用原設定起注。","stop":"達總局數、停損或下注限額時暫停。"},{"id":"win_loss_dual","name":"勝進負追雙軌法","code":27,"kind":"雙向","description":"勝進中進、途中掛回原點；第一關掛啟動1/2/4負追。","win":"勝進時進下一關；負追期間中獎立即回勝進第1關。","loss":"勝進第1關掛，進負追2倍；勝進途中掛回起點；負追掛則進下一負追關。","stop":"負追最後一關全掛暫停、可手動恢復；超額若第一關安全則回起點，其餘仍遵守停損、停利與限紅。"},{"id":"twoleg","name":"逐關分層法","code":66,"kind":"雙向","description":"每層自行填入每碼金額；中獎進關，掛後換層。","win":"往同層下一個有金額的關卡；末關中獎後回上一層。","loss":"換下一個啟用層，從該層第一關開始。","stop":"沒有下一層可用時暫停；也受總局數及資金限制。"},{"id":"peak","name":"高點獲利鎖定法","code":1,"kind":"中性","description":"依可用操作金分切下注；獲利按設定比例自動鎖利。","win":"鎖住指定比例的本局淨利，其餘繼續配注；累計連續鎖利次數。","loss":"連續鎖利次數歸零，下一注依剩餘金額重算。","stop":"連續鎖利達標會開新週期；總局數、停損或資金不足則暫停。"},{"id":"progress","name":"停利進度收斂法","code":2,"kind":"中性","description":"獲利越接近停利目標，下注金額越保守。","win":"依更新後的獲利進度重新計算，可能降低下一注。","loss":"依剩餘停損額與進度重新計算。","stop":"達停利、停損、總局數或限額條件時暫停。"},{"id":"drawdown","name":"高點回撤階梯法","code":3,"kind":"中性","description":"依最高獲利與目前回撤幅度調整下注。","win":"更新獲利高點，重新計算下一注。","loss":"高點回撤增加時降低下一注。","stop":"高點回撤達設定界線會暫停；也受停損與總局數限制。"},{"id":"volatility","name":"損益波動調節法","code":4,"kind":"中性","description":"依最近 10 局的盈虧波動調整下注。","win":"更新近期盈虧紀錄，重新評估下一注。","loss":"更新波動程度；波動增大時降低配注。","stop":"達總局數、停損、停利或限額時暫停。"},{"id":"shock","name":"最大虧損壓力法","code":5,"kind":"中性","description":"依最近 20 局最大虧損調整下一注。","win":"重新計算剩餘停損額與近期最大虧損。","loss":"若創下更大單局虧損，下一注會更保守。","stop":"達總局數、停損或限額時暫停。"},{"id":"dual","name":"本金獲利雙池法","code":6,"kind":"中性","description":"中獎按倍率勝進；本輪獲利達標後分配鎖利與滾利。","win":"進下一個勝進關；若本輪獲利達標，預設鎖利 70%、滾利 30%。","loss":"回勝進第一關，保留本輪實際盈虧。","stop":"達獲利目標後換輪；總局數、停損或資金不足則暫停。"},{"id":"cooldown","name":"連掛冷卻檢核法","code":7,"kind":"中性","description":"連掛達門檻先冷卻；觀察連中後再恢復配注。","win":"正式下注中獎後，連掛次數歸零。","loss":"連掛預設 3 局後暫停下注，改用手動觀察中／掛。","stop":"觀察連中預設 2 局才回第一關；若達停損或限額，不能恢復。"},{"id":"giveback","name":"獲利回吐底線法","code":8,"kind":"中性","description":"先按底線降低起注；中獎勝進，掛後再降起注。","win":"依設定倍率進下一關，預設每關乘 1.8 倍。","loss":"回第一關，起注基準每掛一次再降預設 20%。","stop":"最高關中後回第一關；達總局數、停損或資金限制時暫停。"},{"id":"rounds","name":"剩餘局數預算法","code":9,"kind":"中性","description":"把預算分到每輪固定局數，每局依本輪盈虧重算。","win":"依本輪獲利重新計算下一注。","loss":"依本輪虧損降低下一注。","stop":"每輪局數結束自動換輪；全程盈虧保留，停損或資金不足時暫停。"},{"id":"consensus","name":"多因子防守共識法","code":10,"kind":"中性","description":"A 獲利、B 回撤、C 波動各算一注，取最低金額。","win":"更新三種候選注額；獲利高點達門檻後才啟用保護與鎖利。","loss":"重新比較三種注額，採最低者；不因初期連掛直接啟動高點保護。","stop":"預設獲利高點達操作金 10% 才啟動保護，回撤達操作金 20% 時停機。"},{"id":"fixed","name":"動態固定注","code":11,"kind":"中性","description":"依目前操作預算與盈虧，重新計算每碼固定注。","win":"依最新盈虧重算；可選擇將可分配獲利鎖利或滾利。","loss":"依最新盈虧重新配注，不自動追倍。","stop":"達總局數、停損、停利或限額時暫停。"},{"id":"fraction","name":"固定比例法","code":12,"kind":"中性","description":"以自訂固定投入比例計算每碼金額。","win":"下一注仍依設定投入比例計算，不自動勝進。","loss":"下一注仍依設定投入比例計算，不自動翻倍。","stop":"可用預算不足或達總局數、停損、限額時暫停。"},{"id":"budget","name":"預算分配法","code":13,"kind":"中性","description":"先切出一份預算，再分成小份下注。","win":"照原本分份規則配注，不自動進關。","loss":"照原本分份規則配注，不自動加倍追損。","stop":"達總局數、停損、資金或限額條件時暫停。"},{"id":"winner","name":"有限連贏法","code":14,"kind":"勝進","description":"用本輪累積獲利勝進；衝刺時按獲利比例下注。","win":"前段以起注加本輪累積淨利配注，衝刺階段改用獲利比例。","loss":"回第一關，重新計算本輪起注。","stop":"達總局數、停損、限額或資金不足時暫停。"},{"id":"martingale","name":"標準馬丁法","code":16,"kind":"負追","description":"依 1、2、4、8 倍逐關下注；掛進、中回首。","win":"回第一關，恢復基本下注。","loss":"進下一個加倍關卡。","stop":"最後一關再掛就暫停，不會無限加倍。"},{"id":"tianmen","name":"天門打法","code":17,"kind":"負追","description":"使用 1、3、7、15、31 倍關卡；掛進、中回首。","win":"回第一關重新下注。","loss":"進下一個倍率關，最多五關。","stop":"第五關再掛就暫停，不能自動加到第六關。"},{"id":"dalembert","name":"達朗貝爾法","code":18,"kind":"負追","description":"掛後加一個下注單位，中獎減一個單位。","win":"退一關，最低回第一關。","loss":"進一關，每碼增加一個單位。","stop":"超過設定最大關卡就暫停。"},{"id":"fibonacci","name":"費波納契法","code":19,"kind":"負追","description":"按費波納契倍率配注；掛進一關、中退兩關。","win":"往前退兩關，最低回第一關。","loss":"往後進一關，依數列調整金額。","stop":"超過設定最大關卡就暫停。"},{"id":"attack","name":"攻擊／退守切換法","code":20,"kind":"雙向","description":"先測試一注，再依中掛切換攻擊或退守。","win":"測試中轉攻擊；攻擊中進關；退守中依條件退關。","loss":"測試掛轉退守；攻擊掛回測試；退守掛進關。","stop":"攻擊或退守關卡走完即暫停，另受總局數與停損限制。"},{"id":"recovery","name":"目標回補法","code":22,"kind":"負追","description":"依待回補虧損與目標金額，計算下一注。","win":"依本局收益扣減待回補虧損，再重新計算。","loss":"待回補虧損增加，重新計算下一注。","stop":"下一注超出資金、停損或關卡限制時暫停；不保證回補。"},{"id":"kelly","name":"凱利公式","code":23,"kind":"中性","description":"每期輸入預估中獎率，依凱利比例計算下注。","win":"結算後清除上期預估，下一期需重新輸入。","loss":"結算後同樣清除上期預估，下一期重新評估。","stop":"未填預估率、計算不利或超出資金限制時不下注。"},{"id":"labouchere","name":"清單消去法","code":24,"kind":"負追","description":"用清單首尾數字配注；中刪除，掛追加。","win":"刪掉清單首尾數字；只剩一項就刪該項。","loss":"將本局使用的首尾合計追加至清單尾端。","stop":"清單清空即完成本輪；另受總局數、停損與限額限制。"},{"id":"equal_reset","name":"等分倍盈歸本法","code":26,"kind":"等分","description":"每局依目前可用金重新等分，達歸本目標後鎖利。","win":"依結算結果重新配注；若使用等份區間，下輪重新抽取份數。","loss":"保留本輪等份數，依剩餘資金重算下一注。","stop":"週期獲利達原操作金 100% 會鎖利並重啟週期；不足最低注額或達總局數則暫停。"}]</script>
 <script type="text/plain" id="py-src-strategy_engine.py">
 """Deterministic budget controls, not predictions or validated profit systems."""
 from decimal import Decimal, ROUND_FLOOR
@@ -3160,7 +3160,7 @@ function fieldsFromLegacyState(state){
     fraction:state.stake_fraction,kellyFraction:state.kelly_fraction,
     probability:state.kelly_probability
   };
-  const seqByCode={0:'loss_sequence',99:'custom_win_sequence',20:'attack_sequence',24:'cancel_list'};
+  const seqByCode={0:'loss_sequence',99:'custom_win_sequence',27:'dual_win_sequence',20:'attack_sequence',24:'cancel_list'};
   const seq=state[seqByCode[selected?.code]];
   if(Array.isArray(seq)&&seq.length)fields.sequenceInput=seq.join(',');
   if(selected?.code===66&&state.twoleg_version===4&&Array.isArray(state.layer_stakes)){
@@ -3176,6 +3176,7 @@ function fieldsFromLegacyState(state){
     fields.peakLockCount=state.peak_lock_target;
   }
   if(selected?.code===20&&Array.isArray(state.retreat_sequence))fields.sequenceSecondary=state.retreat_sequence.join(',');
+  if(selected?.code===27&&Array.isArray(state.dual_loss_sequence))fields.sequenceSecondary=state.dual_loss_sequence.join(',');
   return Object.fromEntries(Object.entries(fields).filter(([,v])=>v!==undefined&&v!==null));
 }
 function applySavedFields(fields){
@@ -3766,7 +3767,7 @@ function changeStrategyFields(){
   $('#planned-field span').textContent=code===9?'每輪計畫局數':'計畫總局數';
   for(const input of $$('#giveback-preview input[name]'))input.disabled=code!==8;
   for(const input of $$('#high-preview input[name]'))input.disabled=code!==3;
-  const fieldMap={0:['loss_sequence','自訂關卡倍率','1,2'],99:['custom_win_sequence','勝進倍率','1,1'],20:['attack_sequence','攻擊倍率','1,1.6,2,2.6,3.2,4,5,6'],24:['cancel_list','清單數值','1,1']};
+  const fieldMap={0:['loss_sequence','自訂關卡倍率','1,2'],99:['custom_win_sequence','勝進倍率','1,1'],27:['dual_win_sequence','勝進倍率','1,1,2,4,2,4,8,4,8,16,8,16,32'],20:['attack_sequence','攻擊倍率','1,1.6,2,2.6,3.2,4,5,6'],24:['cancel_list','清單數值','1,1']};
   for(const id of ['fraction-field','kelly-field','probability-field','sequence-field','sequence-secondary-field','twoleg-layers-field','peak-lock-fields'])$('#'+id).classList.add('hidden');
   if(code===66)$('#twoleg-layers-field').classList.remove('hidden');
   if(code===1)$('#peak-lock-fields').classList.remove('hidden');
@@ -3778,7 +3779,15 @@ function changeStrategyFields(){
     const input=$('[name=sequenceInput]');input.placeholder=fieldMap[code][2];
     if(!input.value||input.dataset.strategy!==String(code))input.value=fieldMap[code][2];
     input.dataset.strategy=String(code);
-    if(code===20){$('#sequence-secondary-field').classList.remove('hidden');$('[name=sequenceSecondary]').value='2,3,5,8,13,20,30';}
+    if(code===20||code===27){
+      $('#sequence-secondary-field').classList.remove('hidden');
+      $('#sequence-secondary-label').textContent=code===27?'首掛負追倍率':'退守倍率';
+      const secondary=$('[name=sequenceSecondary]');
+      const preset=code===27?'1,2,4':'2,3,5,8,13,20,30';
+      secondary.placeholder=preset;
+      if(secondary.dataset.strategy!==String(code))secondary.value=preset;
+      secondary.dataset.strategy=String(code);
+    }
   }
   for(const field of $$('.special-param')){
     const hidden=field.classList.contains('hidden');
@@ -3827,10 +3836,10 @@ function readConfig(){
     profitPct:Number(f.get('profitPct')),lossPct:Number(f.get('lossPct')),
     fraction:Number(f.get('fraction')||20),kellyFraction:Number(f.get('kellyFraction')||25)};
   if(config.strategy===26){config.parts=config.partsMin;config.maxSteps=config.partsMax;}
-  const codes={0:'loss_sequence',99:'custom_win_sequence',20:'attack_sequence',24:'cancel_list'};
+  const codes={0:'loss_sequence',99:'custom_win_sequence',27:'dual_win_sequence',20:'attack_sequence',24:'cancel_list'};
   if(codes[config.strategy])config[codes[config.strategy]]=parseSeq(f.get('sequenceInput')||'');
-  if([0,99].includes(config.strategy))
-    config.maxSteps=config[{0:'loss_sequence',99:'custom_win_sequence'}[config.strategy]].length;
+  if([0,99,27].includes(config.strategy))
+    config.maxSteps=config[{0:'loss_sequence',99:'custom_win_sequence',27:'dual_win_sequence'}[config.strategy]].length;
   if(config.strategy===66){
     config.layerStakes=readLayerGrid().map(row=>row.map(v=>v===''?0:Number(v)));
     config.maxSteps=config.layerStakes.length;
@@ -3850,6 +3859,7 @@ function readConfig(){
     config.sprintMaxPct=Number($('[name=sprintMaxPct]').value);
   }
   if(config.strategy===20)config.retreat_sequence=parseSeq(f.get('sequenceSecondary')||'');
+  if(config.strategy===27)config.dual_loss_sequence=parseSeq(f.get('sequenceSecondary')||'');
   if(config.strategy===23)config.probability=Number(f.get('probability'));
   return config;
 }
@@ -3882,6 +3892,11 @@ function firstQuoteConfigForStrategy(code){
   if(code===23)base.probability=Number($('[name=probability]').value);
   if(code===0)base.loss_sequence=[1,2];
   if(code===99)base.custom_win_sequence=[1,1];
+  if(code===27){
+    base.dual_win_sequence=[1,1,2,4,2,4,8,4,8,16,8,16,32];
+    base.dual_loss_sequence=[1,2,4];
+    base.maxSteps=base.dual_win_sequence.length;
+  }
   if(code===20){
     base.attack_sequence=[1,1.6,2,2.6,3.2,4,5,6];
     base.retreat_sequence=[2,3,5,8,13,20,30];
@@ -4286,7 +4301,7 @@ async function initialize(){
   document.documentElement.style.setProperty('--ruby-bg-art',getComputedStyle($('.hero')).backgroundImage);
   try{
     strategies=JSON.parse(document.getElementById('ruby-strategies-json').textContent);
-    if(strategies.length!==26)throw Error('策略數量不正確，請重新部署');
+    if(strategies.length!==27)throw Error('策略數量不正確，請重新部署');
     const select=$('#strategy-select');
     for(const item of strategies){const option=document.createElement('option');option.value=item.code;option.textContent=`#${String(item.code).padStart(2,'0')} ${displayStrategyName(item.name)}`;select.append(option);}
     select.value='26';changeStrategyFields();displayStrategyLibrary();
