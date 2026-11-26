@@ -1,0 +1,249 @@
+name: Temporary #99 Plus #27 Regression
+on:
+  push:
+    branches:
+      - feat/smart-chip-99-27-20261126
+jobs:
+  regression:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: All strategy and payout safety regression
+        shell: bash
+        run: |
+          python - <<'PY_TEST'
+          from pathlib import Path
+          import re,sys,py_compile,json,copy,itertools
+          html=Path("index.html").read_text(encoding="utf-8")
+          mods=re.findall(r'<script type="text/plain" id="py-src-([^"]+)">([\s\S]*?)</script>',html)
+          assert len(mods)==8,len(mods)
+          for name,source in mods:
+              Path(name).write_text(source,encoding="utf-8")
+              py_compile.compile(name,doraise=True)
+          sys.path.insert(0,str(Path.cwd()))
+          import strategy_engine,progression,web_engine,sizing_v180 as sizing,release_rules
+          assert len(strategy_engine.MENU_CODES)==27
+          assert len(set(strategy_engine.MENU_CODES))==27
+          assert strategy_engine.BY_CODE[27]['name']=='勝進負追雙軌法'
+          assert [int(x) for x in strategy_engine.MENU_CODES if x!=27] == [0,99,66]+list(range(1,15))+list(range(16,21))+[22,23,24,26]
+          assert "1/2/4" in release_rules.describe(27)
+          assert len(json.loads(re.search(r'<script type="application/json" id="ruby-strategies-json">([\s\S]*?)</script>',html).group(1)))==27
+          checks=0
+          counter=itertools.count(1)
+          def check(pred,msg):
+              global checks
+              checks+=1
+              if not pred:raise AssertionError(msg)
+          def call(action,payload=None):
+              r=json.loads(web_engine.web_call(action,json.dumps(payload or {},ensure_ascii=False)))
+              if not r.get('ok'):raise AssertionError(f'{action}: {r.get("error")}')
+              return r['result']
+          def cfg(code,operation=10000,parts=20,count=5,planned=35,**opts):
+              c=dict(strategy=code,operation=operation,parts=parts,count=count,maxSteps=13,planned=planned,
+                     market='單球',profitPct=10000,lossPct=100,minBet=1,maxBet=20000)
+              if code==66:c['layerStakes']=[[6,12,0,0],[12,36,0,0],[36,180,0,0],[0,0,0,0]]
+              if code==99:c['custom_win_sequence']=[1,1]
+              if code==14:c.update(sprintStart=3,sprintMinPct=80,sprintMaxPct=80)
+              if code==23:c['probability']=90
+              c.update(opts)
+              return c
+          def settle(v):
+              return call('settle',dict(outcome=v,actionId='run-'+str(next(counter))))
+          # All old 26 and new 27 must create, calculate and undo without mutation.
+          for code in strategy_engine.MENU_CODES:
+              state=web_engine.new_state(cfg(code))
+              check(state['strategy'] in strategy_engine.BY_NAME,f'#{code} cannot instantiate')
+              check(sizing.plan_round_cap(state)==35,f'#{code} wrong 35')
+              snapshot=call('load',dict(state=copy.deepcopy(state)))
+              check(snapshot['state']['strategy']==state['strategy'],f'#{code} cannot restore')
+              # Quote can be unavailable due to individual strategy-specific constraints.
+              if snapshot['quote']:
+                  one=settle('win')
+                  check(one['state']['wins']==1,f'#{code} win failed')
+                  undo=call('undo')
+                  check(undo['state']['wins']==0 and undo['state']['total_bet']==0,f'#{code} undo failed')
+          print('27 STRATEGIES CREATION/UNDO COMPATIBILITY: PASS')
+          # #99: stage x100 impossible, safe reset after a win to first x1.
+          r=call('start',cfg(99,operation=1000,parts=5,count=5,custom_win_sequence=[1,100]))
+          check(r['quote']['per']==40,'#99 first stake')
+          r=settle('win')
+          check(r['state']['plan_state']['step']==0 and r['quote']['per']==40,'#99 did not reset unsafe stage')
+          check(r['state']['wins']==1 and r['state']['pnl']>0 and len(r['state']['ledger'])==1,'#99 altered history')
+          check('#99' in r['status'] and '超額' in r['status'],'#99 missing explanation')
+          check(r['state']['round_id']>=2,'#99 did not change round')
+          r=call('undo')
+          check(r['state']['wins']==0 and r['state']['plan_state']['step']==0,'#99 undo state')
+          r=settle('win')
+          check(r['state']['plan_state']['step']==0,'#99 replay')
+          # Original snapshot with 10/35 and positive PnL must recover at load, preserving totals.
+          old=copy.deepcopy(r['state'])
+          old.update(wins=5,losses=5,pnl=2078.8,total_bet=12345.0,session_status='active')
+          old['plan_state']['step']=1
+          snapshot=call('load',dict(state=old))
+          check(snapshot['state']['wins']==5 and snapshot['state']['losses']==5,'#99 old counters')
+          check(snapshot['state']['pnl']==2078.8 and snapshot['state']['total_bet']==12345,'#99 old wallet')
+          check(snapshot['state']['plan_state']['step']==0 and snapshot['quote']['per']==40,'#99 legacy fallback')
+          # No bypass if 1st stake cannot fit the unprotected wallet.
+          unsafe=copy.deepcopy(old)
+          unsafe['locked_profit']=unsafe['operation_base']+unsafe['pnl']-25
+          snapshot=call('load',dict(state=unsafe))
+          check(snapshot['state']['plan_state']['step']==1 and snapshot['quote'] is None,'#99 should still block all stages when first stake unaffordable')
+          # Real 35 then #2 with fallback and original count.
+          r=call('start',cfg(99,operation=1000,parts=5,count=5,custom_win_sequence=[1,100]))
+          for i in range(35):
+              check(r['quote'] is not None,f'#99 no quote before #{i+1}')
+              r=settle('win')
+          check(r['state']['web_batch_total_cap']==70 and r['state']['wins']==35,'#99 auto batch #2')
+          check(r['quote'] is not None and r['state']['session_status']=='active','#99 36th quote not ready')
+          r=settle('win')
+          check(r['state']['wins']==36,'#99 36th result')
+          print('#99 OVERLIMIT + UNDO + LEGACY BACKUP + #2: PASS')
+          # #27 defaults and win-on-win / win-then-loss return.
+          r=call('start',cfg(27))
+          check(r['quote']['per']==100 and r['state']['plan_state']['mode']=='win','#27 first stake wrong')
+          check(r['state']['dual_win_sequence']==[1,1,2,4,2,4,8,4,8,16,8,16,32],'#27 default A')
+          check(r['state']['dual_loss_sequence']==[1,2,4],'#27 chase default')
+          r=settle('win')
+          check(r['state']['plan_state']['mode']=='win' and r['state']['plan_state']['step']==1,'#27 win stage2')
+          check(r['quote']['per']==100,'#27 second win stage x1')
+          r=settle('win')
+          check(r['state']['plan_state']['step']==2 and r['quote']['per']==200,'#27 third win stage x2')
+          r=settle('loss')
+          check(r['state']['plan_state']['mode']=='win' and r['state']['plan_state']['step']==0,'#27 midwin loss not returned first')
+          check('勝進' in r['position'] and '1/13' in r['position'],'#27 display after loss')
+          check(r['quote'] is not None and r['quote']['per']==100,'#27 restart after midwin loss')
+          print('#27 WIN PATH AND MIDDLE LOSS RESET: PASS')
+          # #27 first loss consumes chase 1x; second is 2x; third is 4x; 3 losses pause.
+          r=call('start',cfg(27))
+          r=settle('loss')
+          check(r['state']['plan_state']['mode']=='chase' and r['state']['plan_state']['step']==1,'#27 first loss must enter chase x2')
+          check(r['quote']['per']==200 and '負追' in r['position'],'#27 chase 2x')
+          r=settle('loss')
+          check(r['state']['plan_state']['step']==2 and r['quote']['per']==400,'#27 chase 4x')
+          r=settle('loss')
+          check(r['state']['plan_state']['exhausted'] and r['state']['session_status']=='paused_strategy','#27 3loss pause')
+          check(r['quote'] is None and r['canResume'],'#27 3loss resume control')
+          check(len(r['state']['ledger'])==3 and r['state']['losses']==3,'#27 ledger lost on pause')
+          r=call('resume')
+          check(r['state']['session_status']=='active' and r['state']['losses']==3,'#27 resume erased losses')
+          check(r['quote'] is not None and r['quote']['per']==100 and '勝進' in r['position'],'#27 resume first stage')
+          r=call('undo')
+          check(r['state']['losses']==2 and r['state']['plan_state']['mode']=='chase' and r['state']['plan_state']['step']==2,'#27 undo last loss after resume')
+          print('#27 1/2/4 THREE LOSSES PAUSE/RESUME/UNDO: PASS')
+          # #27 first loss then a win -> victory progression index0, not win index1.
+          r=call('start',cfg(27))
+          r=settle('loss')
+          r=settle('win')
+          check(r['state']['plan_state']['mode']=='win' and r['state']['plan_state']['step']==0,'#27 chase win resets')
+          check(r['quote']['per']==100,'#27 chase win quote')
+          # #27 win x100 beyond budget -> restart, negative chase x100 beyond budget -> restart.
+          r=call('start',cfg(27,dual_win_sequence=[1,100,1]))
+          r=settle('win')
+          check(r['state']['plan_state']['step']==0 and r['quote']['per']==100,'#27 huge win stage fallback')
+          r=call('start',cfg(27,dual_loss_sequence=[1,100,4]))
+          r=settle('loss')
+          check(r['state']['plan_state']['mode']=='win' and r['state']['plan_state']['step']==0,'#27 huge chase fallback')
+          check(r['quote']['per']==100,'#27 safe first quote after chase fallback')
+          print('#27 CHASE WIN + OVERLIMIT FALLBACK: PASS')
+          # All 13 win stages and final reset: simulate high available profit without altering stage arithmetic.
+          r=call('start',cfg(27,operation=1000000,parts=20,maxBet=1000000))
+          sample=copy.deepcopy(r['state'])
+          sample['plan_state'].update(mode='win',step=12)
+          sample['pnl']=1500000.0
+          sample['profit_target']=10000000.0
+          sample['wins']=12
+          r=call('load',dict(state=sample))
+          check(r['quote'] is not None and r['quote']['per']==32000,'#27 final win stage 32x')
+          r=settle('win')
+          check(r['state']['plan_state']['mode']=='win' and r['state']['plan_state']['step']==0,'#27 win stage 13 end')
+          check(r['state']['wins']==13 and r['quote']['per']==1000,'#27 win13 returns base')
+          # Invalid sequence rejects; old #26 still correct.
+          for c in (dict(dual_win_sequence=[2,2]),dict(dual_loss_sequence=[2,4]),dict(dual_loss_sequence=[1]),dict(dual_win_sequence=[1]*51)):
+              try: web_engine.new_state(cfg(27,**c))
+              except ValueError:checks+=1
+              else:raise AssertionError(f'Invalid #27 accepted {c}')
+          print('#27 MAX STAGE + INVALID INPUT: PASS')
+          print('ALL CORE REGRESSION CHECKS PASS:',checks)
+          PY_TEST
+      - name: Browser prerequisites
+        shell: bash
+        run: |
+          python -m pip install --quiet playwright==1.56.0
+          python -m playwright install --with-deps chromium
+      - name: Chromium mobile actual Pyodide and button tests
+        shell: bash
+        run: |
+          python - <<'PY_BROWSER'
+          import re, json, threading
+          from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
+          from playwright.sync_api import sync_playwright
+          server=ThreadingHTTPServer(('127.0.0.1',0),SimpleHTTPRequestHandler)
+          threading.Thread(target=server.serve_forever,daemon=True).start()
+          url=f'http://127.0.0.1:{server.server_address[1]}/index.html'
+          with sync_playwright() as playwright:
+              browser=playwright.chromium.launch(headless=True,args=['--no-sandbox'])
+              # First browser: #99 user-visible 35->#2 and safe fallback.
+              page=browser.new_page(viewport={'width':390,'height':844},device_scale_factor=1)
+              page.goto(url,wait_until='domcontentloaded')
+              page.wait_for_function("document.querySelector('#engine-status')?.textContent?.includes('計算核心已就緒')",timeout=120000)
+              assert page.locator('#strategy-select option').count()==27
+              page.locator('#create-plan').click()
+              page.locator('#strategy-select').select_option('99')
+              page.locator('[name=operation]').fill('1000')
+              page.locator('[name=parts]').fill('5')
+              page.locator('[name=count]').fill('5')
+              page.locator('[name=planned]').fill('35')
+              page.locator('[name=profitPct]').fill('10000')
+              page.locator('[name=sequenceInput]').fill('1,100')
+              page.locator('#start-button').click()
+              page.wait_for_function("!document.querySelector('#win-button').disabled")
+              page.locator('#win-button').click()
+              assert '第1關' in page.locator('#stage-label').inner_text()
+              assert not page.locator('#win-button').is_disabled()
+              assert page.locator('#per-code').inner_text()=='40'
+              for i in range(34):
+                  page.locator('#win-button').click()
+              msg=page.locator('#round-count').inner_text()
+              assert '#2' in msg and '0 / 35' in msg,msg
+              assert not page.locator('#loss-button').is_disabled()
+              print('MOBILE #99: 35/35 -> #2 0/35 AND SAFE RESTART: PASS')
+              page.close()
+              # Second browser: #27 actual UI choices + three-loss pause and resume.
+              page=browser.new_page(viewport={'width':390,'height':844},device_scale_factor=1)
+              page.goto(url,wait_until='domcontentloaded')
+              page.wait_for_function("document.querySelector('#engine-status')?.textContent?.includes('計算核心已就緒')",timeout=120000)
+              page.locator('#create-plan').click()
+              page.locator('#strategy-select').select_option('27')
+              assert page.locator('[name=sequenceInput]').input_value()=='1,1,2,4,2,4,8,4,8,16,8,16,32'
+              assert page.locator('[name=sequenceSecondary]').input_value()=='1,2,4'
+              page.locator('[name=operation]').fill('10000')
+              page.locator('[name=parts]').fill('20')
+              page.locator('[name=count]').fill('5')
+              page.locator('[name=profitPct]').fill('10000')
+              page.locator('#start-button').click()
+              page.wait_for_function("!document.querySelector('#loss-button').disabled")
+              assert page.locator('#per-code').inner_text()=='100'
+              page.locator('#loss-button').click()
+              assert '負追第2/3關' in page.locator('#stage-label').inner_text()
+              assert page.locator('#per-code').inner_text()=='200'
+              page.locator('#loss-button').click()
+              assert '負追第3/3關' in page.locator('#stage-label').inner_text()
+              assert page.locator('#per-code').inner_text()=='400'
+              page.locator('#loss-button').click()
+              assert page.locator('#loss-button').is_disabled()
+              assert page.locator('#win-button').is_disabled()
+              assert not page.locator('#resume-button').is_disabled()
+              page.locator('#resume-button').click()
+              assert '勝進第1/13關' in page.locator('#stage-label').inner_text()
+              assert page.locator('#per-code').inner_text()=='100'
+              assert not page.locator('#win-button').is_disabled()
+              print('MOBILE #27: DEFAULTS, 1/2/4 CHASE, HALT, MANUAL RESUME: PASS')
+              browser.close()
+          server.shutdown()
+          print('ALL BROWSER PYODIDE TESTS PASS')
+          PY_BROWSER
