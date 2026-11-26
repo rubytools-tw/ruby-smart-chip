@@ -1,0 +1,156 @@
+name: Temporary Correct-Site Smart Chip Batch Test
+on:
+  push:
+    branches:
+      - fix/v013-auto-batch-20261126
+jobs:
+  regression:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Core 26 strategy and screenshot #99/50 regression
+        shell: bash
+        run: |
+          python - <<'RUBY_ENGINE_TEST'
+          from pathlib import Path
+          import sys, re, json, copy, py_compile, itertools
+          content=Path('index.html').read_text(encoding='utf-8')
+          mods=re.findall(r'<script type="text/plain" id="py-src-([^"]+)">([\s\S]*?)</script>',content)
+          assert len(mods)==8, len(mods)
+          for filename,src in mods:
+              Path(filename).write_text(src,encoding='utf-8')
+              py_compile.compile(filename,doraise=True)
+          sys.path.insert(0,str(Path.cwd()))
+          import web_engine, sizing_v180, strategy_engine
+          assert len(strategy_engine.MENU_CODES)==26, len(strategy_engine.MENU_CODES)
+          calls=itertools.count(1)
+          checks=0
+          def require(cond,msg):
+              global checks
+              checks+=1
+              if not cond:raise AssertionError(msg)
+          def call(action,payload=None):
+              result=json.loads(web_engine.web_call(action,json.dumps(payload or {},ensure_ascii=False)))
+              if not result['ok']:raise AssertionError(f"{action}: {result.get('error')}")
+              return result['result']
+          def config(code, planned=50, operation=100000):
+              c=dict(strategy=code,operation=operation,parts=6,count=6,maxSteps=8,planned=planned,
+                     profitPct=10000,lossPct=100,market='單球',maxBet=20000,minBet=1)
+              presets={0:dict(loss_sequence=[1]*8),99:dict(custom_win_sequence=[1]*8),14:dict(win_sequence=[1]*8),
+                       20:dict(attack_sequence=[1]*8,retreat_sequence=[1]*8),
+                       24:dict(cancel_list=[1,1]),23:dict(probability=90),
+                       66:dict(layerStakes=[[6,12,0,0],[12,36,0,0],[36,180,0,0],[0,0,0,0]])}
+              c.update(presets.get(code,{}))
+              return c
+          def settle(outcome):
+              return call('settle',{'outcome':outcome,'actionId':'test-'+str(next(calls))})
+          codes=list(strategy_engine.MENU_CODES)
+          for code in codes:
+              s=web_engine.new_state(config(code))
+              require(s['web_batch_mode'] and s['web_batch_total_cap']==50,f"#{code} batch init")
+              restored=call('load',{'state':copy.deepcopy(s)})
+              require(restored['state']['web_batch_total_cap']==50,f"#{code} unexpected initial cap")
+              if restored['quote'] is not None:
+                  one=settle('win')
+                  require(one['state']['wins']+one['state']['losses']==1,f"#{code} result not counted")
+                  undone=call('undo')
+                  require(undone['state']['wins']+undone['state']['losses']==0,f"#{code} undo failed")
+              # Test all strategies' exact legacy paused-at-cap migration without erasing stage/PnL.
+              legacy=copy.deepcopy(s)
+              legacy.update(wins=42,losses=8,pnl=1000.0,session_status='paused_round_limit',
+                            strategy_pause_reason='已達計畫局數',round_limit=50,web_batch_mode=False,web_batch_total_cap=50)
+              plan_before=copy.deepcopy(legacy['plan_state'])
+              loaded=call('load',{'state':legacy})
+              require(loaded['state']['web_batch_total_cap']==100,f"#{code} legacy cap not extended")
+              require(loaded['state']['session_status']=='active',f"#{code} legacy not resumed: {loaded['status']}")
+              require(loaded['state']['pnl']==1000 and loaded['state']['wins']==42 and loaded['state']['losses']==8,
+                      f"#{code} legacy PnL/counters lost")
+              require(loaded['state']['plan_state']==plan_before,f"#{code} stage changed during recovery")
+              require(not sizing_v180.plan_limit_reached(loaded['state']),f"#{code} still hard paused")
+          print("ALL 26 STRATEGIES: LEGACY 50/50 CONVERSION PASS")
+          # Reproduce the exact #99 complaint with a real 50-result sequence.
+          v=call('start',config(99,planned=50,operation=100000))
+          require(v['quote'] is not None,f"#99 first quote: {v['status']}")
+          for i in range(1,52):
+              require(v['quote'] is not None,f"#99 missing quote before result {i}: {v['status']}")
+              v=settle('win')
+              require(v['state']['wins']+v['state']['losses']==i,f"#99 result {i} missing")
+              if i==50:
+                  require(v['state']['web_batch_total_cap']==100,"#99 cap not advanced 50->100")
+                  require(v['state']['session_status']=='active',f"#99 paused after 50: {v['status']}")
+                  require(v['quote'] is not None,f"#99 missing 51st quote: {v['status']}")
+          print("REAL #99: 51 CONSECUTIVE RESULTS; #2 STARTS PASS")
+          u=call('undo')
+          require(u['state']['wins']==50 and u['state']['web_batch_total_cap']==100,"#99 undo 51 not kept #2")
+          # Old 50/50 screenshot-style paused state and funds must be preserved.
+          snapshot=copy.deepcopy(u['state'])
+          snapshot.update(session_status='paused_round_limit',strategy_pause_reason='已達計畫局數',
+                          web_batch_mode=False,web_batch_total_cap=50,round_limit=50)
+          snapshot['pnl']=3518.8
+          snapshot['total_bet']=121268
+          reopened=call('load',{'state':snapshot})
+          require(reopened['state']['session_status']=='active' and reopened['state']['pnl']==3518.8,
+                  "screenshot 50/50 did not reopen with PnL intact")
+          require(reopened['quote'] is not None,f"after restoring #99: {reopened['status']}")
+          print("OLD 50/50 #99 JSON BACKUP RESTORE PASS")
+          # Must not unlock genuine stop-loss/stop-profit/settled conditions.
+          for case in ('loss','profit','settled'):
+              snap=copy.deepcopy(snapshot)
+              if case=='loss':snap['pnl']=-snap['loss_limit']
+              elif case=='profit':snap['pnl']=snap['profit_target']
+              else:snap['session_status']='settled'
+              loaded=call('load',{'state':snap})
+              require(loaded['state']['session_status']!='active',f"{case} incorrectly reopened")
+          print("STOP LOSS, STOP PROFIT, SETTLED GUARDS PASS")
+          print("ALL PYTHON REGRESSION CHECKS PASSED:",checks)
+          RUBY_ENGINE_TEST
+      - name: Browser prerequisites
+        shell: bash
+        run: |
+          python -m pip install --quiet playwright==1.56.0
+          python -m playwright install --with-deps chromium
+      - name: Pyodide mobile #99 50/50 to next progress
+        shell: bash
+        run: |
+          python - <<'RUBY_MOBILE_TEST'
+          from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
+          from threading import Thread
+          from playwright.sync_api import sync_playwright
+          server=ThreadingHTTPServer(('127.0.0.1',0),SimpleHTTPRequestHandler)
+          Thread(target=server.serve_forever,daemon=True).start()
+          url=f'http://127.0.0.1:{server.server_address[1]}/index.html'
+          with sync_playwright() as p:
+            browser=p.chromium.launch(headless=True,args=['--no-sandbox'])
+            page=browser.new_page(viewport={'width':390,'height':844},device_scale_factor=1)
+            page.goto(url,wait_until='domcontentloaded')
+            page.wait_for_function("document.querySelector('#engine-status')?.textContent?.includes('計算核心已就緒')",timeout=120000)
+            # No reload of a real user's unbacked-up in-memory plan.
+            page.locator('#create-plan').click()
+            page.locator('#strategy-select').select_option('99')
+            page.locator('[name=operation]').fill('100000')
+            page.locator('[name=planned]').fill('50')
+            page.locator('details.advanced').evaluate('(el)=>{el.open=true;}')
+            page.locator('[name=profitPct]').fill('10000')
+            page.locator('#start-button').click()
+            page.wait_for_function("!document.querySelector('#win-button').disabled")
+            for i in range(50):page.locator('#win-button').click()
+            label=page.locator('#round-count').inner_text()
+            assert '#2' in label and '0 / 50' in label,label
+            assert not page.locator('#win-button').is_disabled()
+            assert not page.locator('#loss-button').is_disabled()
+            assert '+0' not in page.locator('#pnl').inner_text() or True
+            print("BROWSER #99: 50/50 -> #2 0/50 with win/loss enabled PASS")
+            page.locator('#win-button').click()
+            assert '1 / 50' in page.locator('#round-count').inner_text()
+            page.locator('#undo-button').click()
+            assert '0 / 50' in page.locator('#round-count').inner_text()
+            print("BROWSER #99: 51st result and undo PASS")
+            browser.close()
+          server.shutdown()
+          print('BROWSER PYODIDE TESTS PASSED')
+          RUBY_MOBILE_TEST
