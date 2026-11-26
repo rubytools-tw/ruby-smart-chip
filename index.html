@@ -455,7 +455,7 @@ body[data-font-size="large"]{
     <div class="drawer-head"><div class="brand-mini"><span class="brand-symbol">R</span><div><strong>RUBY Smart Chip</strong><small>霓虹直立版 · V0.1.15</small></div></div><button class="icon-btn close-drawer" aria-label="關閉主選單" type="button">×</button></div>
     <div class="drawer-nav">
       <button type="button" class="nav-item active" data-tab="calculator"><span>▣</span> 籌碼計算機</button>
-      <button type="button" class="nav-item" data-tab="strategies"><span>▤</span> 26 套策略中心</button>
+      <button type="button" class="nav-item" data-tab="strategies"><span>▤</span> 27 套策略中心</button>
       <button type="button" class="nav-item" data-tab="history"><span>◷</span> 結算紀錄</button>
       <button type="button" class="nav-item" data-tab="settings"><span>⚙</span> 系統設定</button>
     </div>
@@ -684,7 +684,7 @@ body[data-font-size="large"]{
       <div class="form-note info-row"><span>策略使用說明</span><button type="button" id="strategy-hint" class="info-btn" data-info="#26：依切分份數固定等額配置。" aria-label="查看策略規則">ⓘ</button></div><div class="drawer-form-actions"><button type="button" class="button subtle close-drawer">取消修改</button><button id="start-button" type="submit" class="button primary" disabled>確認設定／開始新計畫</button></div>
     </form></div>
   </aside>
-  <section class="view drawer drawer-left drawer-wide" id="view-strategies" role="dialog" aria-modal="true" aria-hidden="true" aria-label="策略中心"><div class="drawer-head"><div><strong>26 套策略中心</strong><button type="button" class="info-btn" data-info="可搜尋策略名稱與編號，點擊選用不會立即更改進行中的計畫。" aria-label="策略中心說明">ⓘ</button></div><button class="icon-btn close-drawer" type="button" aria-label="關閉策略中心">×</button></div><div class="drawer-scroll"><div class="search-wrap"><input id="strategy-search" type="search" placeholder="搜尋策略名稱或編號，例如 #26、馬丁"></div><p class="strategy-general-note">共通限制：達停損、停利、總局數或資金／限額不足即暫停；#09 依每輪局數循環。舊計畫可能保留當時的計算規則。</p><div class="strategy-grid" id="strategy-grid"></div></div></section>
+  <section class="view drawer drawer-left drawer-wide" id="view-strategies" role="dialog" aria-modal="true" aria-hidden="true" aria-label="策略中心"><div class="drawer-head"><div><strong>27 套策略中心</strong><button type="button" class="info-btn" data-info="可搜尋策略名稱與編號，點擊選用不會立即更改進行中的計畫。" aria-label="策略中心說明">ⓘ</button></div><button class="icon-btn close-drawer" type="button" aria-label="關閉策略中心">×</button></div><div class="drawer-scroll"><div class="search-wrap"><input id="strategy-search" type="search" placeholder="搜尋策略名稱或編號，例如 #26、馬丁"></div><p class="strategy-general-note">共通限制：達停損、停利、總局數或資金／限額不足即暫停；#09 依每輪局數循環。舊計畫可能保留當時的計算規則。</p><div class="strategy-grid" id="strategy-grid"></div></div></section>
   <section class="view drawer drawer-bottom" id="view-history" role="dialog" aria-modal="true" aria-hidden="true" aria-label="結算紀錄"><div class="drawer-handle" aria-hidden="true"></div><div class="drawer-head"><div><strong>本次與歷史結算</strong><small id="history-count">0 筆</small></div><button class="icon-btn close-drawer" type="button" aria-label="關閉歷史紀錄">×</button></div><div class="drawer-scroll"><div class="history-summary"><div class="mini-panel"><small>累積投注</small><strong id="sum-cost">—</strong></div><div class="mini-panel"><small>累積盈虧</small><strong id="sum-pnl">—</strong></div><div class="mini-panel"><small>已鎖利</small><strong id="sum-locked">—</strong></div></div><div class="panel history-panel"><div class="panel-head"><h3>結算明細</h3><button id="export-csv" type="button" class="button subtle">匯出 CSV</button></div><div class="table-wrap"><table><thead><tr><th>局數</th><th>策略</th><th>中／掛</th><th>每碼</th><th>投注</th><th>本局損益</th></tr></thead><tbody id="history-rows"><tr><td colspan="6" class="empty">目前沒有紀錄</td></tr></tbody></table></div></div></div></section>
   <section class="view drawer drawer-left drawer-wide" id="view-settings" role="dialog" aria-modal="true" aria-hidden="true" aria-label="網站設定"><div class="drawer-head"><div><strong>系統設定</strong><small>字體及本機資料管理</small></div><button class="icon-btn close-drawer" type="button" aria-label="關閉設定">×</button></div><div class="drawer-scroll"><section class="panel plan-management"><div class="panel-head"><h3>計畫管理</h3></div><div class="secondary-actions more-actions" id="more-actions"><button id="resume-button" type="button" class="button subtle hidden" disabled>下一輪</button><button id="finish-button" type="button" class="button subtle" disabled>結算本次</button></div></section><div class="settings-grid"><section class="panel"><div class="panel-head"><h3>文字大小</h3><button type="button" class="info-btn" data-info="調整網站標題、卡片、按鈕、說明的字體大小；變更後會記住設定。" aria-label="文字大小說明">ⓘ</button></div><div class="font-controls" role="group" aria-label="文字大小"><button type="button" data-font="small">小</button><button type="button" data-font="medium">中</button><button type="button" data-font="large">大</button></div></section><section class="panel"><h3>本機資料備份</h3><button type="button" class="info-btn" data-info="歷史明細只保留最近 24 小時，超過期限會在開啟或操作時移除。策略、操作金及其他設定會保留；重新開啟網頁會從新計畫開始，不自動接續上一個計畫。資料只存於本機瀏覽器，清除瀏覽資料可能遺失。" aria-label="歷史保存說明">ⓘ</button><div class="button-row"><button id="backup-button" type="button" class="button subtle">匯出 JSON</button><button id="restore-button" type="button" class="button subtle">還原 JSON</button><input id="restore-file" type="file" accept=".json,application/json" hidden></div></section><section class="panel"><h3>版本資訊</h3><p>RUBY Smart Chip V0.1.16 Neon Portrait · 26 套策略 Python 引擎沿用原版；只作本機籌碼試算，不會送出訂單或 Telegram 訊息。</p></section></div></div></section>
 </div>
@@ -692,7 +692,7 @@ body[data-font-size="large"]{
 <nav class="mobile-nav" aria-label="底部分頁"><button type="button" class="active" data-tab="calculator">▣<span>計算</span></button><button type="button" data-tab="strategies">▤<span>策略</span></button><button type="button" data-tab="history">◷<span>紀錄</span></button><button type="button" data-tab="settings">⚙<span>設定</span></button></nav>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.27.7/full/pyodide.js"></script>
-<script type="application/json" id="ruby-strategies-json">[{"id":"custom","name":"自訂關卡配注法","code":0,"kind":"負追","description":"依自訂倍率逐關下注；掛後進一關，中獎回第一關。","win":"回第一關，照自訂起注重新開始。","loss":"進入倍率表的下一關；走完後回第一關開新輪。","stop":"達總局數、停損或下注限額時暫停。"},{"id":"custom_win","name":"自訂關卡配注法（勝近）","code":99,"kind":"勝近","description":"自訂勝進倍率；中獎進下一關，掛後回第一關。","win":"依下一關倍率加注，最高關中獎後重新從第一關開始。","loss":"回第一關，使用原設定起注。","stop":"達總局數、停損或下注限額時暫停。"},{"id":"win_loss_dual","name":"勝進負追雙軌法","code":27,"kind":"雙向","description":"勝進中進、途中掛回原點；第一關掛啟動1/2/4負追。","win":"勝進時進下一關；負追期間中獎立即回勝進第1關。","loss":"勝進第1關掛，進負追2倍；勝進途中掛回起點；負追掛則進下一負追關。","stop":"負追最後一關全掛暫停、可手動恢復；超額若第一關安全則回起點，其餘仍遵守停損、停利與限紅。"},{"id":"twoleg","name":"逐關分層法","code":66,"kind":"雙向","description":"每層自行填入每碼金額；中獎進關，掛後換層。","win":"往同層下一個有金額的關卡；末關中獎後回上一層。","loss":"換下一個啟用層，從該層第一關開始。","stop":"沒有下一層可用時暫停；也受總局數及資金限制。"},{"id":"peak","name":"高點獲利鎖定法","code":1,"kind":"中性","description":"依可用操作金分切下注；獲利按設定比例自動鎖利。","win":"鎖住指定比例的本局淨利，其餘繼續配注；累計連續鎖利次數。","loss":"連續鎖利次數歸零，下一注依剩餘金額重算。","stop":"連續鎖利達標會開新週期；總局數、停損或資金不足則暫停。"},{"id":"progress","name":"停利進度收斂法","code":2,"kind":"中性","description":"獲利越接近停利目標，下注金額越保守。","win":"依更新後的獲利進度重新計算，可能降低下一注。","loss":"依剩餘停損額與進度重新計算。","stop":"達停利、停損、總局數或限額條件時暫停。"},{"id":"drawdown","name":"高點回撤階梯法","code":3,"kind":"中性","description":"依最高獲利與目前回撤幅度調整下注。","win":"更新獲利高點，重新計算下一注。","loss":"高點回撤增加時降低下一注。","stop":"高點回撤達設定界線會暫停；也受停損與總局數限制。"},{"id":"volatility","name":"損益波動調節法","code":4,"kind":"中性","description":"依最近 10 局的盈虧波動調整下注。","win":"更新近期盈虧紀錄，重新評估下一注。","loss":"更新波動程度；波動增大時降低配注。","stop":"達總局數、停損、停利或限額時暫停。"},{"id":"shock","name":"最大虧損壓力法","code":5,"kind":"中性","description":"依最近 20 局最大虧損調整下一注。","win":"重新計算剩餘停損額與近期最大虧損。","loss":"若創下更大單局虧損，下一注會更保守。","stop":"達總局數、停損或限額時暫停。"},{"id":"dual","name":"本金獲利雙池法","code":6,"kind":"中性","description":"中獎按倍率勝進；本輪獲利達標後分配鎖利與滾利。","win":"進下一個勝進關；若本輪獲利達標，預設鎖利 70%、滾利 30%。","loss":"回勝進第一關，保留本輪實際盈虧。","stop":"達獲利目標後換輪；總局數、停損或資金不足則暫停。"},{"id":"cooldown","name":"連掛冷卻檢核法","code":7,"kind":"中性","description":"連掛達門檻先冷卻；觀察連中後再恢復配注。","win":"正式下注中獎後，連掛次數歸零。","loss":"連掛預設 3 局後暫停下注，改用手動觀察中／掛。","stop":"觀察連中預設 2 局才回第一關；若達停損或限額，不能恢復。"},{"id":"giveback","name":"獲利回吐底線法","code":8,"kind":"中性","description":"先按底線降低起注；中獎勝進，掛後再降起注。","win":"依設定倍率進下一關，預設每關乘 1.8 倍。","loss":"回第一關，起注基準每掛一次再降預設 20%。","stop":"最高關中後回第一關；達總局數、停損或資金限制時暫停。"},{"id":"rounds","name":"剩餘局數預算法","code":9,"kind":"中性","description":"把預算分到每輪固定局數，每局依本輪盈虧重算。","win":"依本輪獲利重新計算下一注。","loss":"依本輪虧損降低下一注。","stop":"每輪局數結束自動換輪；全程盈虧保留，停損或資金不足時暫停。"},{"id":"consensus","name":"多因子防守共識法","code":10,"kind":"中性","description":"A 獲利、B 回撤、C 波動各算一注，取最低金額。","win":"更新三種候選注額；獲利高點達門檻後才啟用保護與鎖利。","loss":"重新比較三種注額，採最低者；不因初期連掛直接啟動高點保護。","stop":"預設獲利高點達操作金 10% 才啟動保護，回撤達操作金 20% 時停機。"},{"id":"fixed","name":"動態固定注","code":11,"kind":"中性","description":"依目前操作預算與盈虧，重新計算每碼固定注。","win":"依最新盈虧重算；可選擇將可分配獲利鎖利或滾利。","loss":"依最新盈虧重新配注，不自動追倍。","stop":"達總局數、停損、停利或限額時暫停。"},{"id":"fraction","name":"固定比例法","code":12,"kind":"中性","description":"以自訂固定投入比例計算每碼金額。","win":"下一注仍依設定投入比例計算，不自動勝進。","loss":"下一注仍依設定投入比例計算，不自動翻倍。","stop":"可用預算不足或達總局數、停損、限額時暫停。"},{"id":"budget","name":"預算分配法","code":13,"kind":"中性","description":"先切出一份預算，再分成小份下注。","win":"照原本分份規則配注，不自動進關。","loss":"照原本分份規則配注，不自動加倍追損。","stop":"達總局數、停損、資金或限額條件時暫停。"},{"id":"winner","name":"有限連贏法","code":14,"kind":"勝進","description":"用本輪累積獲利勝進；衝刺時按獲利比例下注。","win":"前段以起注加本輪累積淨利配注，衝刺階段改用獲利比例。","loss":"回第一關，重新計算本輪起注。","stop":"達總局數、停損、限額或資金不足時暫停。"},{"id":"martingale","name":"標準馬丁法","code":16,"kind":"負追","description":"依 1、2、4、8 倍逐關下注；掛進、中回首。","win":"回第一關，恢復基本下注。","loss":"進下一個加倍關卡。","stop":"最後一關再掛就暫停，不會無限加倍。"},{"id":"tianmen","name":"天門打法","code":17,"kind":"負追","description":"使用 1、3、7、15、31 倍關卡；掛進、中回首。","win":"回第一關重新下注。","loss":"進下一個倍率關，最多五關。","stop":"第五關再掛就暫停，不能自動加到第六關。"},{"id":"dalembert","name":"達朗貝爾法","code":18,"kind":"負追","description":"掛後加一個下注單位，中獎減一個單位。","win":"退一關，最低回第一關。","loss":"進一關，每碼增加一個單位。","stop":"超過設定最大關卡就暫停。"},{"id":"fibonacci","name":"費波納契法","code":19,"kind":"負追","description":"按費波納契倍率配注；掛進一關、中退兩關。","win":"往前退兩關，最低回第一關。","loss":"往後進一關，依數列調整金額。","stop":"超過設定最大關卡就暫停。"},{"id":"attack","name":"攻擊／退守切換法","code":20,"kind":"雙向","description":"先測試一注，再依中掛切換攻擊或退守。","win":"測試中轉攻擊；攻擊中進關；退守中依條件退關。","loss":"測試掛轉退守；攻擊掛回測試；退守掛進關。","stop":"攻擊或退守關卡走完即暫停，另受總局數與停損限制。"},{"id":"recovery","name":"目標回補法","code":22,"kind":"負追","description":"依待回補虧損與目標金額，計算下一注。","win":"依本局收益扣減待回補虧損，再重新計算。","loss":"待回補虧損增加，重新計算下一注。","stop":"下一注超出資金、停損或關卡限制時暫停；不保證回補。"},{"id":"kelly","name":"凱利公式","code":23,"kind":"中性","description":"每期輸入預估中獎率，依凱利比例計算下注。","win":"結算後清除上期預估，下一期需重新輸入。","loss":"結算後同樣清除上期預估，下一期重新評估。","stop":"未填預估率、計算不利或超出資金限制時不下注。"},{"id":"labouchere","name":"清單消去法","code":24,"kind":"負追","description":"用清單首尾數字配注；中刪除，掛追加。","win":"刪掉清單首尾數字；只剩一項就刪該項。","loss":"將本局使用的首尾合計追加至清單尾端。","stop":"清單清空即完成本輪；另受總局數、停損與限額限制。"},{"id":"equal_reset","name":"等分倍盈歸本法","code":26,"kind":"等分","description":"每局依目前可用金重新等分，達歸本目標後鎖利。","win":"依結算結果重新配注；若使用等份區間，下輪重新抽取份數。","loss":"保留本輪等份數，依剩餘資金重算下一注。","stop":"週期獲利達原操作金 100% 會鎖利並重啟週期；不足最低注額或達總局數則暫停。"}]</script>
+<script type="application/json" id="ruby-strategies-json">[{"id":"custom","name":"自訂關卡配注法","code":0,"kind":"負追","description":"依自訂倍率逐關下注；掛後進一關，中獎回第一關。","win":"回第一關，照自訂起注重新開始。","loss":"進入倍率表的下一關；走完後回第一關開新輪。","stop":"達總局數、停損或下注限額時暫停。"},{"id":"custom_win","name":"自訂關卡配注法（勝近）","code":99,"kind":"勝近","description":"自訂勝進倍率；中獎進下一關，掛後回第一關。","win":"依下一關倍率加注，最高關中獎後重新從第一關開始。","loss":"回第一關，使用原設定起注。","stop":"達總局數、停損或下注限額時暫停。"},{"id":"twoleg","name":"逐關分層法","code":66,"kind":"雙向","description":"每層自行填入每碼金額；中獎進關，掛後換層。","win":"往同層下一個有金額的關卡；末關中獎後回上一層。","loss":"換下一個啟用層，從該層第一關開始。","stop":"沒有下一層可用時暫停；也受總局數及資金限制。"},{"id":"peak","name":"高點獲利鎖定法","code":1,"kind":"中性","description":"依可用操作金分切下注；獲利按設定比例自動鎖利。","win":"鎖住指定比例的本局淨利，其餘繼續配注；累計連續鎖利次數。","loss":"連續鎖利次數歸零，下一注依剩餘金額重算。","stop":"連續鎖利達標會開新週期；總局數、停損或資金不足則暫停。"},{"id":"progress","name":"停利進度收斂法","code":2,"kind":"中性","description":"獲利越接近停利目標，下注金額越保守。","win":"依更新後的獲利進度重新計算，可能降低下一注。","loss":"依剩餘停損額與進度重新計算。","stop":"達停利、停損、總局數或限額條件時暫停。"},{"id":"drawdown","name":"高點回撤階梯法","code":3,"kind":"中性","description":"依最高獲利與目前回撤幅度調整下注。","win":"更新獲利高點，重新計算下一注。","loss":"高點回撤增加時降低下一注。","stop":"高點回撤達設定界線會暫停；也受停損與總局數限制。"},{"id":"volatility","name":"損益波動調節法","code":4,"kind":"中性","description":"依最近 10 局的盈虧波動調整下注。","win":"更新近期盈虧紀錄，重新評估下一注。","loss":"更新波動程度；波動增大時降低配注。","stop":"達總局數、停損、停利或限額時暫停。"},{"id":"shock","name":"最大虧損壓力法","code":5,"kind":"中性","description":"依最近 20 局最大虧損調整下一注。","win":"重新計算剩餘停損額與近期最大虧損。","loss":"若創下更大單局虧損，下一注會更保守。","stop":"達總局數、停損或限額時暫停。"},{"id":"dual","name":"本金獲利雙池法","code":6,"kind":"中性","description":"中獎按倍率勝進；本輪獲利達標後分配鎖利與滾利。","win":"進下一個勝進關；若本輪獲利達標，預設鎖利 70%、滾利 30%。","loss":"回勝進第一關，保留本輪實際盈虧。","stop":"達獲利目標後換輪；總局數、停損或資金不足則暫停。"},{"id":"cooldown","name":"連掛冷卻檢核法","code":7,"kind":"中性","description":"連掛達門檻先冷卻；觀察連中後再恢復配注。","win":"正式下注中獎後，連掛次數歸零。","loss":"連掛預設 3 局後暫停下注，改用手動觀察中／掛。","stop":"觀察連中預設 2 局才回第一關；若達停損或限額，不能恢復。"},{"id":"giveback","name":"獲利回吐底線法","code":8,"kind":"中性","description":"先按底線降低起注；中獎勝進，掛後再降起注。","win":"依設定倍率進下一關，預設每關乘 1.8 倍。","loss":"回第一關，起注基準每掛一次再降預設 20%。","stop":"最高關中後回第一關；達總局數、停損或資金限制時暫停。"},{"id":"rounds","name":"剩餘局數預算法","code":9,"kind":"中性","description":"把預算分到每輪固定局數，每局依本輪盈虧重算。","win":"依本輪獲利重新計算下一注。","loss":"依本輪虧損降低下一注。","stop":"每輪局數結束自動換輪；全程盈虧保留，停損或資金不足時暫停。"},{"id":"consensus","name":"多因子防守共識法","code":10,"kind":"中性","description":"A 獲利、B 回撤、C 波動各算一注，取最低金額。","win":"更新三種候選注額；獲利高點達門檻後才啟用保護與鎖利。","loss":"重新比較三種注額，採最低者；不因初期連掛直接啟動高點保護。","stop":"預設獲利高點達操作金 10% 才啟動保護，回撤達操作金 20% 時停機。"},{"id":"fixed","name":"動態固定注","code":11,"kind":"中性","description":"依目前操作預算與盈虧，重新計算每碼固定注。","win":"依最新盈虧重算；可選擇將可分配獲利鎖利或滾利。","loss":"依最新盈虧重新配注，不自動追倍。","stop":"達總局數、停損、停利或限額時暫停。"},{"id":"fraction","name":"固定比例法","code":12,"kind":"中性","description":"以自訂固定投入比例計算每碼金額。","win":"下一注仍依設定投入比例計算，不自動勝進。","loss":"下一注仍依設定投入比例計算，不自動翻倍。","stop":"可用預算不足或達總局數、停損、限額時暫停。"},{"id":"budget","name":"預算分配法","code":13,"kind":"中性","description":"先切出一份預算，再分成小份下注。","win":"照原本分份規則配注，不自動進關。","loss":"照原本分份規則配注，不自動加倍追損。","stop":"達總局數、停損、資金或限額條件時暫停。"},{"id":"winner","name":"有限連贏法","code":14,"kind":"勝進","description":"用本輪累積獲利勝進；衝刺時按獲利比例下注。","win":"前段以起注加本輪累積淨利配注，衝刺階段改用獲利比例。","loss":"回第一關，重新計算本輪起注。","stop":"達總局數、停損、限額或資金不足時暫停。"},{"id":"martingale","name":"標準馬丁法","code":16,"kind":"負追","description":"依 1、2、4、8 倍逐關下注；掛進、中回首。","win":"回第一關，恢復基本下注。","loss":"進下一個加倍關卡。","stop":"最後一關再掛就暫停，不會無限加倍。"},{"id":"tianmen","name":"天門打法","code":17,"kind":"負追","description":"使用 1、3、7、15、31 倍關卡；掛進、中回首。","win":"回第一關重新下注。","loss":"進下一個倍率關，最多五關。","stop":"第五關再掛就暫停，不能自動加到第六關。"},{"id":"dalembert","name":"達朗貝爾法","code":18,"kind":"負追","description":"掛後加一個下注單位，中獎減一個單位。","win":"退一關，最低回第一關。","loss":"進一關，每碼增加一個單位。","stop":"超過設定最大關卡就暫停。"},{"id":"fibonacci","name":"費波納契法","code":19,"kind":"負追","description":"按費波納契倍率配注；掛進一關、中退兩關。","win":"往前退兩關，最低回第一關。","loss":"往後進一關，依數列調整金額。","stop":"超過設定最大關卡就暫停。"},{"id":"attack","name":"攻擊／退守切換法","code":20,"kind":"雙向","description":"先測試一注，再依中掛切換攻擊或退守。","win":"測試中轉攻擊；攻擊中進關；退守中依條件退關。","loss":"測試掛轉退守；攻擊掛回測試；退守掛進關。","stop":"攻擊或退守關卡走完即暫停，另受總局數與停損限制。"},{"id":"recovery","name":"目標回補法","code":22,"kind":"負追","description":"依待回補虧損與目標金額，計算下一注。","win":"依本局收益扣減待回補虧損，再重新計算。","loss":"待回補虧損增加，重新計算下一注。","stop":"下一注超出資金、停損或關卡限制時暫停；不保證回補。"},{"id":"kelly","name":"凱利公式","code":23,"kind":"中性","description":"每期輸入預估中獎率，依凱利比例計算下注。","win":"結算後清除上期預估，下一期需重新輸入。","loss":"結算後同樣清除上期預估，下一期重新評估。","stop":"未填預估率、計算不利或超出資金限制時不下注。"},{"id":"labouchere","name":"清單消去法","code":24,"kind":"負追","description":"用清單首尾數字配注；中刪除，掛追加。","win":"刪掉清單首尾數字；只剩一項就刪該項。","loss":"將本局使用的首尾合計追加至清單尾端。","stop":"清單清空即完成本輪；另受總局數、停損與限額限制。"},{"id":"equal_reset","name":"等分倍盈歸本法","code":26,"kind":"等分","description":"每局依目前可用金重新等分，達歸本目標後鎖利。","win":"依結算結果重新配注；若使用等份區間，下輪重新抽取份數。","loss":"保留本輪等份數，依剩餘資金重算下一注。","stop":"週期獲利達原操作金 100% 會鎖利並重啟週期；不足最低注額或達總局數則暫停。"},{"id":"win_loss_dual","name":"勝進負追雙軌法","code":27,"kind":"雙向","description":"自訂勝進與負追倍率；勝進以首注本金＋本循環可用淨獲利設定最高總注，超額縮注。首關掛進負追。","win":"勝進中獎進下一關，按當輪獲利縮注；負追中獎回勝進首關，重新計算保本額度。","loss":"勝進首關掛轉負追第2關；勝進途中掛回第一關重開循環；負追掛進下一關。","stop":"勝進可用保本額度不足整數最低注額時暫停；負追末關掛暫停。保留停利、停損、限紅及可用金檢查。"}]</script>
 <script type="text/plain" id="py-src-strategy_engine.py">
 """Deterministic budget controls, not predictions or validated profit systems."""
 from decimal import Decimal, ROUND_FLOOR
@@ -739,7 +739,7 @@ for d in CATALOG:
 CATALOG += progression.CATALOG
 for i,d in enumerate(CATALOG,1):
     d['code']=0 if d['id']=='custom' else 99 if d['id']=='custom_win' else 27 if d['id']=='win_loss_dual' else 66 if d['id']=='twoleg' else 26 if d['id']=='equal_reset' else i
-MENU_CODES=[0,99,27,66]+list(range(1,15))+list(range(16,21))+[22,23,24,26]
+MENU_CODES=[0,99,66]+list(range(1,15))+list(range(16,21))+[22,23,24,26,27]
 BY_CODE={d['code']:d for d in CATALOG}
 MENU_CATALOG=[BY_CODE[code] for code in MENU_CODES]
 BY_ID={x['id']:x for x in CATALOG}
@@ -896,6 +896,8 @@ def init(s):
     s['plan_state']=dict(step=0,mode='trigger',leg=0,recent=[],debt=0.0,exhausted=False,done=False)
     if BY_NAME.get(s.get('strategy'),{}).get('id') == 'win_loss_dual':
         s['plan_state']['mode']='win'
+        s['plan_state']['dual_cycle_start_pnl']=s.get('pnl',0.0)
+        s['plan_state']['dual_cycle_start_locked']=s.get('locked_profit',0.0)
     if BY_NAME.get(s.get('strategy'),{}).get('id') == 'labouchere':
         s['plan_state']['list']=copy.deepcopy(s['cancel_list'])
     # Original 1.6.6 guard would change the definition of these strategies.
@@ -1036,9 +1038,9 @@ legacy_after_result=after_result
 _custom_win=dict(CATALOG[4],id='custom_win',name='自訂關卡配注法（勝近）',kind='勝近',principle='固定首關基額，依1起頭的自訂倍率中進、掛回第一階；不再用序列倍數和縮小起注。')
 CATALOG.append(_custom_win)
 CATALOG.append(dict(id='win_loss_dual',name='勝進負追雙軌法',kind='雙向',
-    principle='勝進中進；第一局掛進負追1/2/4；勝進中途掛回第一關。',
-    formula='每碼起注=floor(操作金÷切分份數÷碼數)，再乘以當前倍率。',
-    trigger='首關掛啟動負追；負追中回首，三關全掛暫停。',
+    principle='勝進按自訂倍率前進，首注本金＋本輪可用已實現淨獲利是每關總下注上限，超額縮注；首關掛進負追。',
+    formula='勝進每碼=floor(min(倍率要求總注,首注總額＋本循環淨獲利－新增鎖利,可用金,剩餘停損與限紅)÷碼數)。',
+    trigger='勝進途中掛回首關；首關掛進負追，負追中回首，末關全掛暫停。',
     limit='不得突破停損、停利、限紅與可用金限制；保留全部累計紀錄。',
     group='new'))
 BY_NAME={x['name']:x for x in CATALOG}
@@ -1345,7 +1347,7 @@ def quote(s):
             limit=dec(s['operation_base'])*dec(s.get('consensus_drawdown_pct',20))/dec(100)
             if decline+dec('0.00000001')>=limit:
                 return None,f'#10 高點保護已啟動，回撤 {cents(decline):g} 元達設定門檻 {cents(limit):g} 元，已暫停；盈虧與鎖利保留'
-    if s.get('open_quote'):
+    if s.get('open_quote') and sid(s)!='win_loss_dual':
         existing=s['open_quote']
         if dec(existing['total']) > max(dec(0),dec(s['loss_limit'])+dec(s['pnl'])):
             return None,'下局總注超過剩餘停損額度，不得執行'
@@ -1492,7 +1494,31 @@ def quote(s):
         chosen_pct=None
     if s['strategy']=='損益波動調節法' and s.get('volatility_split_v2') and per>0:
         per=min(per,int(s.get('table_max_bet',per)))
+    dual_protection=None
+    if k=='win_loss_dual' and s.get('win_mode_version')==2 and p.get('mode','win')=='win':
+        # A single winning cycle may lose no more than its own first wager.
+        # Previous winning cycles and chase PnL do not inflate the limit.
+        first_total=dec(floor(base_raw(s))*n)
+        start_pnl=dec(p.get('dual_cycle_start_pnl',s.get('round_start_pnl',s['pnl'])))
+        start_locked=dec(p.get('dual_cycle_start_locked',s.get('locked_profit',0)))
+        newly_locked=max(dec(0),dec(s.get('locked_profit',0))-start_locked)
+        usable_gain=dec(s['pnl'])-start_pnl-newly_locked
+        winning_cap=max(dec(0),first_total+usable_gain)
+        requested_total=dec(per*n)
+        caps=[dec(per),winning_cap/dec(n),
+              max(dec(0),dec(available(s)))/dec(n),
+              max(dec(0),dec(s['loss_limit'])+dec(s['pnl']))/dec(n)]
+        table_cap=dec(s.get('table_max_bet',10**10))
+        caps.append(table_cap if s.get('market','單球')=='單球' else table_cap/dec(n))
+        if s.get('extra_caps_enabled'):
+            caps.extend([dec(s['stake_cap']),dec(s['total_cap'])/dec(n)])
+        per=floor(max(dec(0),min(caps)))
+        dual_protection=dict(firstTotal=int(first_total),usableGain=cents(usable_gain),
+                             maxTotal=cents(winning_cap),requestedTotal=int(requested_total),
+                             actualTotal=per*n,trimmed=per*n<requested_total)
     total=per*n
+    if per<1 and dual_protection is not None:
+        return None,'#27 勝進保本額度、可用金、停損或限紅不足每碼1元，已暫停'
     if per<1:
         if layer_v3:
             return None,'#66 本格總下注金額不足分配成整數每碼注額，請提高此格金額'
@@ -1516,12 +1542,14 @@ def quote(s):
                round_id=s['round_id'],config_revision=s.get('config_revision',0))
     if k=='winner' and s.get('win_mode_version')==2 and chosen_pct is not None:
         quote['sprint_percent']=chosen_pct
+    if dual_protection is not None:
+        quote['dualProtection']=dual_protection
     return quote,''
 
 def recover_overlimit_win_stage(s):
-    """Auto-return #99/#27 to a legal first stake without relaxing safety caps."""
+    """Auto-return #99 to a legal first stake; #27 reduces win stakes in place."""
     k=sid(s)
-    if k not in ('custom_win','win_loss_dual') or s.get('win_mode_version')!=2:
+    if k!='custom_win' or s.get('win_mode_version')!=2:
         return False
     status=s.get('session_status','active')
     if status not in ('active','paused_funds'):
@@ -1556,8 +1584,7 @@ def recover_overlimit_win_stage(s):
     next_round(s,refresh=True)
     s['session_status']='active'
     s['strategy_pause_reason']=''
-    s['round_notice']=('#27 下關超額，安全回勝進第1關；累計紀錄保留'
-                       if k=='win_loss_dual' else '#99 下關超額，安全回勝進第1關；累計紀錄保留')
+    s['round_notice']='#99 下關超額，安全回勝進第1關；累計紀錄保留'
     return True
 
 def evaluate(s):
@@ -2339,7 +2366,7 @@ FORMULAS={
 23:'每期先提供本期預估中獎率p。b＝含本金賠率÷碼數－1；f＝(b×p－(1－p))÷b。每碼＝floor(一份×f×凱利折數÷碼數)；未提供p、b≤0或f≤0不進場。',
 24:'新輪未取整每碼基額＝(一份÷初始清單和÷碼數)，同輪固定。倍數取首尾和，單項僅一次；掛追加、中刪首尾。清空才完成；不受連掛或關卡上限重置。新輪基額依當前操作預算重新算；鎖利扣預算，滾利加當次可滾獲利。',
 26:'每碼=floor((原操作金＋當前淨盈虧－已鎖利)÷本輪等份÷下注碼數)；每局都依剩餘可用金重算注碼。固定輸入相同等份，區間在每輪開始時均勻隨機抽一個整數；掛沿用本輪等份、中則下輪重新抽。等份數不是關卡上限，無法再分切出符合限紅的整數注碼才停止（仍遵守停損等安全設定）。累計已結算週期淨獲利達起始操作金100%時，已鎖金額不重複計入，超額獲利全鎖，操作預算歸回起始值，開始下一週期。',
-27:'勝進預設13關：1/1/2/4/2/4/8/4/8/16/8/16/32；起點掛後，負追1/2/4的第一注1倍已用，下一注2倍；負追中回勝進第1關，勝進中途掛一律回首關，負追末關全掛暫停，可手動開新輪。每碼=floor(操作金÷切分份數÷碼數)×當關倍率；超額且首關合法才回首關，保留累計紀錄。'
+27:'勝進與負追倍率和關數皆可自訂；勝進13關僅為預設值。勝進原定每碼=floor(操作金÷切分份數÷碼數)×當關倍率；實際單局總注不得超過「首注本金＋本次勝進循環已實現淨獲利－本循環新增鎖利」，超出就在原關縮注，每碼向下取整。可用金、剩餘停損與限紅同時縮注控管，低於最低注額暫停。中途掛或最高關中後從第一關開始新勝進循環，舊循環獲利不可再使用；首關掛則視為負追首關1倍已掛，下一關進自訂負追第2關。負追維持獨立倍率、受整體限額約束，末關掛暫停，累計盈虧與計畫局數保留。'
 }
 
 def describe(code):
@@ -2773,10 +2800,9 @@ def settle(outcome, action_id=None):
             s['round_limit']=new_cap
             if not s.get('round_offer') and s.get('session_status')=='active' and not s.get('strategy_pause_reason'):
                 s['round_notice']=f'進度 #{count//batch+1} 已開始；累計紀錄與資金保留'
-            # At the exact batch boundary, the stage quote was evaluated
-            # before the new cap was installed. Re-evaluate #99/#27 ONLY
-            # after advancing the count, without loosening risk limits.
-            if s['strategy'] in ('自訂關卡配注法（勝近）','勝進負追雙軌法'):
+            # On a display batch boundary only #99 needs first-stage recovery;
+            # #27 keeps its stage and recalculates its win-only cap per quote.
+            if s['strategy']=='自訂關卡配注法（勝近）':
                 sizing.recover_overlimit_win_stage(s)
     added=cash(max(0,s['locked_profit']-old_lock))
     if added>0:record['automatic_lock']=added
@@ -2797,8 +2823,8 @@ def settle(outcome, action_id=None):
         (s['strategy']=='獲利回吐底線法' and s.get('giveback_roll_v2')) or
         (s['strategy']=='剩餘局數預算法' and s.get('rounds_cycle_v2')) or
         s['strategy']=='多因子防守共識法' or
-        layer4
-        ) and s.get('session_status')=='active' and not (layer4 and exhausted):
+        layer4 or s['strategy']=='勝進負追雙軌法'
+        ) and s.get('session_status')=='active' and not ((layer4 or s['strategy']=='勝進負追雙軌法') and exhausted):
         # After settlement, stop if no next whole-number stake meets funds,
         # configured stop loss and table limits. Never silently auto-top-up.
         next_quote,reason=sizing.quote(s)
@@ -2977,7 +3003,8 @@ def web_call(action, payload_json='{}'):
                     if isinstance(STATE.get('plan_state'),dict):
                         STATE['plan_state']['exhausted']=False
                 STATE['round_offer']=False
-                # Recover old #99 stalled stages without resetting PnL/ledger.
+                # Recover old #99 stalled stages without resetting PnL/ledger;
+                # #27 quote is recalculated without a stage reset.
                 sizing.recover_overlimit_win_stage(STATE)
             UNDO=p.get('undo') if isinstance(p.get('undo'),dict) else None
             if UNDO is not None and UNDO.get('strategy')=='兩關分層法':
@@ -4072,7 +4099,15 @@ function render(){
     $('#dual-live').textContent='#06 第'+String(s.round_id||1)+'輪 · 本輪操作金 '+money(budget)+' · 本輪盈虧 '+money(gain)+'／'+money(target)+'（'+fmt(progress,1)+'%） · 累積鎖利 '+money(s.locked_profit||0)+' · 已達標 '+Number(s.dual_cycle_count||0)+' 輪';
   }
   $('#notice').textContent=(data?.status||'')||(!on?'請先設定並開始新計畫。':q?(dualLive?'中／掛後依 #06 規則自動結算鎖利與滾利。':givebackLive?(s.giveback_step_v3?'#08 中獎依倍率進階，掛後回首關且逐次降低起注。':'#08 按實際淨利自動鎖利；掛回原始起注。'):'中／掛後自動更新下一局；鎖利／滾利為自主選擇。'):'目前沒有下一局的建議金額。');
-  $('#notice').classList.toggle('hidden',on&&s.session_status==='active'&&!!q&&!(data?.status||'').trim());
+  if(on&&s.strategy==='勝進負追雙軌法'&&q?.dualProtection){
+    const protection=q.dualProtection;
+    const summary='勝進保本｜首注 '+fmt(protection.firstTotal,0)+' 元 · 本循環可用淨獲利 '+
+      money(protection.usableGain)+' 元 · 最高總注 '+money(protection.maxTotal)+
+      ' 元 · 倍率預計 '+fmt(protection.requestedTotal,0)+' 元 · 本局實投 '+fmt(q.total,0)+
+      ' 元'+(protection.trimmed?'（已縮注）':'');
+    $('#notice').textContent=($('#notice').textContent.trim()?$('#notice').textContent+'\n':'')+summary;
+  }
+  $('#notice').classList.toggle('hidden',on&&s.session_status==='active'&&!!q&&!(data?.status||'').trim()&&!q?.dualProtection);
   $('#win-button').disabled=!valid;$('#loss-button').disabled=!valid;
   $('#undo-button').disabled=busy||!data?.undoAvailable;
   $('#finish-button').disabled=busy||!on||s?.session_status==='settled';
