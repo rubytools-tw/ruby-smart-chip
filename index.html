@@ -692,7 +692,7 @@ body[data-font-size="large"]{
 <nav class="mobile-nav" aria-label="底部分頁"><button type="button" class="active" data-tab="calculator">▣<span>計算</span></button><button type="button" data-tab="strategies">▤<span>策略</span></button><button type="button" data-tab="history">◷<span>紀錄</span></button><button type="button" data-tab="settings">⚙<span>設定</span></button></nav>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.27.7/full/pyodide.js"></script>
-<script type="application/json" id="ruby-strategies-json">[{"id":"custom","name":"自訂關卡配注法","code":0,"kind":"負追","description":"依自訂倍率逐關下注；掛後進一關，中獎回第一關。","win":"回第一關，照自訂起注重新開始。","loss":"進入倍率表的下一關；走完後回第一關開新輪。","stop":"達總局數、停損或下注限額時暫停。"},{"id":"custom_win","name":"自訂關卡配注法（勝近）","code":99,"kind":"勝近","description":"自訂勝進倍率；中獎進下一關，掛後回第一關。","win":"依下一關倍率加注，最高關中獎後重新從第一關開始。","loss":"回第一關，使用原設定起注。","stop":"達總局數、停損或下注限額時暫停。"},{"id":"twoleg","name":"逐關分層法","code":66,"kind":"雙向","description":"每層自行填入每碼金額；中獎進關，掛後換層。","win":"往同層下一個有金額的關卡；末關中獎後回上一層。","loss":"換下一個啟用層，從該層第一關開始。","stop":"沒有下一層可用時暫停；也受總局數及資金限制。"},{"id":"peak","name":"高點獲利鎖定法","code":1,"kind":"中性","description":"依可用操作金分切下注；獲利按設定比例自動鎖利。","win":"鎖住指定比例的本局淨利，其餘繼續配注；累計連續鎖利次數。","loss":"連續鎖利次數歸零，下一注依剩餘金額重算。","stop":"連續鎖利達標會開新週期；總局數、停損或資金不足則暫停。"},{"id":"progress","name":"停利進度收斂法","code":2,"kind":"中性","description":"獲利越接近停利目標，下注金額越保守。","win":"依更新後的獲利進度重新計算，可能降低下一注。","loss":"依剩餘停損額與進度重新計算。","stop":"達停利、停損、總局數或限額條件時暫停。"},{"id":"drawdown","name":"高點回撤階梯法","code":3,"kind":"中性","description":"依最高獲利與目前回撤幅度調整下注。","win":"更新獲利高點，重新計算下一注。","loss":"高點回撤增加時降低下一注。","stop":"高點回撤達設定界線會暫停；也受停損與總局數限制。"},{"id":"volatility","name":"損益波動調節法","code":4,"kind":"中性","description":"依最近 10 局的盈虧波動調整下注。","win":"更新近期盈虧紀錄，重新評估下一注。","loss":"更新波動程度；波動增大時降低配注。","stop":"達總局數、停損、停利或限額時暫停。"},{"id":"shock","name":"最大虧損壓力法","code":5,"kind":"中性","description":"依最近 20 局最大虧損調整下一注。","win":"重新計算剩餘停損額與近期最大虧損。","loss":"若創下更大單局虧損，下一注會更保守。","stop":"達總局數、停損或限額時暫停。"},{"id":"dual","name":"本金獲利雙池法","code":6,"kind":"中性","description":"中獎按倍率勝進；本輪獲利達標後分配鎖利與滾利。","win":"進下一個勝進關；若本輪獲利達標，預設鎖利 70%、滾利 30%。","loss":"回勝進第一關，保留本輪實際盈虧。","stop":"達獲利目標後換輪；總局數、停損或資金不足則暫停。"},{"id":"cooldown","name":"連掛冷卻檢核法","code":7,"kind":"中性","description":"連掛達門檻先冷卻；觀察連中後再恢復配注。","win":"正式下注中獎後，連掛次數歸零。","loss":"連掛預設 3 局後暫停下注，改用手動觀察中／掛。","stop":"觀察連中預設 2 局才回第一關；若達停損或限額，不能恢復。"},{"id":"giveback","name":"獲利回吐底線法","code":8,"kind":"中性","description":"先按底線降低起注；中獎勝進，掛後再降起注。","win":"依設定倍率進下一關，預設每關乘 1.8 倍。","loss":"回第一關，起注基準每掛一次再降預設 20%。","stop":"最高關中後回第一關；達總局數、停損或資金限制時暫停。"},{"id":"rounds","name":"剩餘局數預算法","code":9,"kind":"中性","description":"把預算分到每輪固定局數，每局依本輪盈虧重算。","win":"依本輪獲利重新計算下一注。","loss":"依本輪虧損降低下一注。","stop":"每輪局數結束自動換輪；全程盈虧保留，停損或資金不足時暫停。"},{"id":"consensus","name":"多因子防守共識法","code":10,"kind":"中性","description":"A 獲利、B 回撤、C 波動各算一注，取最低金額。","win":"更新三種候選注額；獲利高點達門檻後才啟用保護與鎖利。","loss":"重新比較三種注額，採最低者；不因初期連掛直接啟動高點保護。","stop":"預設獲利高點達操作金 10% 才啟動保護，回撤達操作金 20% 時停機。"},{"id":"fixed","name":"動態固定注","code":11,"kind":"中性","description":"依目前操作預算與盈虧，重新計算每碼固定注。","win":"依最新盈虧重算；可選擇將可分配獲利鎖利或滾利。","loss":"依最新盈虧重新配注，不自動追倍。","stop":"達總局數、停損、停利或限額時暫停。"},{"id":"fraction","name":"固定比例法","code":12,"kind":"中性","description":"以自訂固定投入比例計算每碼金額。","win":"下一注仍依設定投入比例計算，不自動勝進。","loss":"下一注仍依設定投入比例計算，不自動翻倍。","stop":"可用預算不足或達總局數、停損、限額時暫停。"},{"id":"budget","name":"預算分配法","code":13,"kind":"中性","description":"先切出一份預算，再分成小份下注。","win":"照原本分份規則配注，不自動進關。","loss":"照原本分份規則配注，不自動加倍追損。","stop":"達總局數、停損、資金或限額條件時暫停。"},{"id":"winner","name":"有限連贏法","code":14,"kind":"勝進","description":"用本輪累積獲利勝進；衝刺時按獲利比例下注。","win":"前段以起注加本輪累積淨利配注，衝刺階段改用獲利比例。","loss":"回第一關，重新計算本輪起注。","stop":"達總局數、停損、限額或資金不足時暫停。"},{"id":"martingale","name":"標準馬丁法","code":16,"kind":"負追","description":"依 1、2、4、8 倍逐關下注；掛進、中回首。","win":"回第一關，恢復基本下注。","loss":"進下一個加倍關卡。","stop":"最後一關再掛就暫停，不會無限加倍。"},{"id":"tianmen","name":"天門打法","code":17,"kind":"負追","description":"使用 1、3、7、15、31 倍關卡；掛進、中回首。","win":"回第一關重新下注。","loss":"進下一個倍率關，最多五關。","stop":"第五關再掛就暫停，不能自動加到第六關。"},{"id":"dalembert","name":"達朗貝爾法","code":18,"kind":"負追","description":"掛後加一個下注單位，中獎減一個單位。","win":"退一關，最低回第一關。","loss":"進一關，每碼增加一個單位。","stop":"超過設定最大關卡就暫停。"},{"id":"fibonacci","name":"費波納契法","code":19,"kind":"負追","description":"按費波納契倍率配注；掛進一關、中退兩關。","win":"往前退兩關，最低回第一關。","loss":"往後進一關，依數列調整金額。","stop":"超過設定最大關卡就暫停。"},{"id":"attack","name":"攻擊／退守切換法","code":20,"kind":"雙向","description":"先測試一注，再依中掛切換攻擊或退守。","win":"測試中轉攻擊；攻擊中進關；退守中依條件退關。","loss":"測試掛轉退守；攻擊掛回測試；退守掛進關。","stop":"攻擊或退守關卡走完即暫停，另受總局數與停損限制。"},{"id":"recovery","name":"目標回補法","code":22,"kind":"負追","description":"依待回補虧損與目標金額，計算下一注。","win":"依本局收益扣減待回補虧損，再重新計算。","loss":"待回補虧損增加，重新計算下一注。","stop":"下一注超出資金、停損或關卡限制時暫停；不保證回補。"},{"id":"kelly","name":"凱利公式","code":23,"kind":"中性","description":"每期輸入預估中獎率，依凱利比例計算下注。","win":"結算後清除上期預估，下一期需重新輸入。","loss":"結算後同樣清除上期預估，下一期重新評估。","stop":"未填預估率、計算不利或超出資金限制時不下注。"},{"id":"labouchere","name":"清單消去法","code":24,"kind":"負追","description":"用清單首尾數字配注；中刪除，掛追加。","win":"刪掉清單首尾數字；只剩一項就刪該項。","loss":"將本局使用的首尾合計追加至清單尾端。","stop":"清單清空即完成本輪；另受總局數、停損與限額限制。"},{"id":"equal_reset","name":"等分倍盈歸本法","code":26,"kind":"等分","description":"每局依目前可用金重新等分，達歸本目標後鎖利。","win":"依結算結果重新配注；若使用等份區間，下輪重新抽取份數。","loss":"保留本輪等份數，依剩餘資金重算下一注。","stop":"週期獲利達原操作金 100% 會鎖利並重啟週期；不足最低注額或達總局數則暫停。"}]</script>
+<script type="application/json" id="ruby-strategies-json">[{"id":"custom","name":"自訂關卡配注法","code":0,"kind":"負追","description":"依自訂倍率逐關下注；掛後進一關，中獎回第一關。","win":"回第一關，照自訂起注重新開始。","loss":"進入倍率表的下一關；走完後回第一關開新輪。","stop":"達總局數、停損或下注限額時暫停。"},{"id":"custom_win","name":"自訂關卡配注法（勝近）","code":99,"kind":"勝近","description":"自訂勝進倍率；中獎進下一關，掛後回第一關。","win":"依下一關倍率加注，最高關中獎後重新從第一關開始。","loss":"回第一關，使用原設定起注。","stop":"達總局數、停損或下注限額時暫停。"},{"id":"win_loss_dual","name":"勝進負追雙軌法","code":27,"kind":"雙向","description":"勝進中進、途中掛回原點；第一關掛啟動1/2/4負追。","win":"勝進時進下一關；負追期間中獎立即回勝進第1關。","loss":"勝進第1關掛，進負追2倍；勝進途中掛回起點；負追掛則進下一負追關。","stop":"負追最後一關全掛暫停、可手動恢復；超額若第一關安全則回起點，其餘仍遵守停損、停利與限紅。"},{"id":"twoleg","name":"逐關分層法","code":66,"kind":"雙向","description":"每層自行填入每碼金額；中獎進關，掛後換層。","win":"往同層下一個有金額的關卡；末關中獎後回上一層。","loss":"換下一個啟用層，從該層第一關開始。","stop":"沒有下一層可用時暫停；也受總局數及資金限制。"},{"id":"peak","name":"高點獲利鎖定法","code":1,"kind":"中性","description":"依可用操作金分切下注；獲利按設定比例自動鎖利。","win":"鎖住指定比例的本局淨利，其餘繼續配注；累計連續鎖利次數。","loss":"連續鎖利次數歸零，下一注依剩餘金額重算。","stop":"連續鎖利達標會開新週期；總局數、停損或資金不足則暫停。"},{"id":"progress","name":"停利進度收斂法","code":2,"kind":"中性","description":"獲利越接近停利目標，下注金額越保守。","win":"依更新後的獲利進度重新計算，可能降低下一注。","loss":"依剩餘停損額與進度重新計算。","stop":"達停利、停損、總局數或限額條件時暫停。"},{"id":"drawdown","name":"高點回撤階梯法","code":3,"kind":"中性","description":"依最高獲利與目前回撤幅度調整下注。","win":"更新獲利高點，重新計算下一注。","loss":"高點回撤增加時降低下一注。","stop":"高點回撤達設定界線會暫停；也受停損與總局數限制。"},{"id":"volatility","name":"損益波動調節法","code":4,"kind":"中性","description":"依最近 10 局的盈虧波動調整下注。","win":"更新近期盈虧紀錄，重新評估下一注。","loss":"更新波動程度；波動增大時降低配注。","stop":"達總局數、停損、停利或限額時暫停。"},{"id":"shock","name":"最大虧損壓力法","code":5,"kind":"中性","description":"依最近 20 局最大虧損調整下一注。","win":"重新計算剩餘停損額與近期最大虧損。","loss":"若創下更大單局虧損，下一注會更保守。","stop":"達總局數、停損或限額時暫停。"},{"id":"dual","name":"本金獲利雙池法","code":6,"kind":"中性","description":"中獎按倍率勝進；本輪獲利達標後分配鎖利與滾利。","win":"進下一個勝進關；若本輪獲利達標，預設鎖利 70%、滾利 30%。","loss":"回勝進第一關，保留本輪實際盈虧。","stop":"達獲利目標後換輪；總局數、停損或資金不足則暫停。"},{"id":"cooldown","name":"連掛冷卻檢核法","code":7,"kind":"中性","description":"連掛達門檻先冷卻；觀察連中後再恢復配注。","win":"正式下注中獎後，連掛次數歸零。","loss":"連掛預設 3 局後暫停下注，改用手動觀察中／掛。","stop":"觀察連中預設 2 局才回第一關；若達停損或限額，不能恢復。"},{"id":"giveback","name":"獲利回吐底線法","code":8,"kind":"中性","description":"先按底線降低起注；中獎勝進，掛後再降起注。","win":"依設定倍率進下一關，預設每關乘 1.8 倍。","loss":"回第一關，起注基準每掛一次再降預設 20%。","stop":"最高關中後回第一關；達總局數、停損或資金限制時暫停。"},{"id":"rounds","name":"剩餘局數預算法","code":9,"kind":"中性","description":"把預算分到每輪固定局數，每局依本輪盈虧重算。","win":"依本輪獲利重新計算下一注。","loss":"依本輪虧損降低下一注。","stop":"每輪局數結束自動換輪；全程盈虧保留，停損或資金不足時暫停。"},{"id":"consensus","name":"多因子防守共識法","code":10,"kind":"中性","description":"A 獲利、B 回撤、C 波動各算一注，取最低金額。","win":"更新三種候選注額；獲利高點達門檻後才啟用保護與鎖利。","loss":"重新比較三種注額，採最低者；不因初期連掛直接啟動高點保護。","stop":"預設獲利高點達操作金 10% 才啟動保護，回撤達操作金 20% 時停機。"},{"id":"fixed","name":"動態固定注","code":11,"kind":"中性","description":"依目前操作預算與盈虧，重新計算每碼固定注。","win":"依最新盈虧重算；可選擇將可分配獲利鎖利或滾利。","loss":"依最新盈虧重新配注，不自動追倍。","stop":"達總局數、停損、停利或限額時暫停。"},{"id":"fraction","name":"固定比例法","code":12,"kind":"中性","description":"以自訂固定投入比例計算每碼金額。","win":"下一注仍依設定投入比例計算，不自動勝進。","loss":"下一注仍依設定投入比例計算，不自動翻倍。","stop":"可用預算不足或達總局數、停損、限額時暫停。"},{"id":"budget","name":"預算分配法","code":13,"kind":"中性","description":"先切出一份預算，再分成小份下注。","win":"照原本分份規則配注，不自動進關。","loss":"照原本分份規則配注，不自動加倍追損。","stop":"達總局數、停損、資金或限額條件時暫停。"},{"id":"winner","name":"有限連贏法","code":14,"kind":"勝進","description":"用本輪累積獲利勝進；衝刺時按獲利比例下注。","win":"前段以起注加本輪累積淨利配注，衝刺階段改用獲利比例。","loss":"回第一關，重新計算本輪起注。","stop":"達總局數、停損、限額或資金不足時暫停。"},{"id":"martingale","name":"標準馬丁法","code":16,"kind":"負追","description":"依 1、2、4、8 倍逐關下注；掛進、中回首。","win":"回第一關，恢復基本下注。","loss":"進下一個加倍關卡。","stop":"最後一關再掛就暫停，不會無限加倍。"},{"id":"tianmen","name":"天門打法","code":17,"kind":"負追","description":"使用 1、3、7、15、31 倍關卡；掛進、中回首。","win":"回第一關重新下注。","loss":"進下一個倍率關，最多五關。","stop":"第五關再掛就暫停，不能自動加到第六關。"},{"id":"dalembert","name":"達朗貝爾法","code":18,"kind":"負追","description":"掛後加一個下注單位，中獎減一個單位。","win":"退一關，最低回第一關。","loss":"進一關，每碼增加一個單位。","stop":"超過設定最大關卡就暫停。"},{"id":"fibonacci","name":"費波納契法","code":19,"kind":"負追","description":"按費波納契倍率配注；掛進一關、中退兩關。","win":"往前退兩關，最低回第一關。","loss":"往後進一關，依數列調整金額。","stop":"超過設定最大關卡就暫停。"},{"id":"attack","name":"攻擊／退守切換法","code":20,"kind":"雙向","description":"先測試一注，再依中掛切換攻擊或退守。","win":"測試中轉攻擊；攻擊中進關；退守中依條件退關。","loss":"測試掛轉退守；攻擊掛回測試；退守掛進關。","stop":"攻擊或退守關卡走完即暫停，另受總局數與停損限制。"},{"id":"recovery","name":"目標回補法","code":22,"kind":"負追","description":"依待回補虧損與目標金額，計算下一注。","win":"依本局收益扣減待回補虧損，再重新計算。","loss":"待回補虧損增加，重新計算下一注。","stop":"下一注超出資金、停損或關卡限制時暫停；不保證回補。"},{"id":"kelly","name":"凱利公式","code":23,"kind":"中性","description":"每期輸入預估中獎率，依凱利比例計算下注。","win":"結算後清除上期預估，下一期需重新輸入。","loss":"結算後同樣清除上期預估，下一期重新評估。","stop":"未填預估率、計算不利或超出資金限制時不下注。"},{"id":"labouchere","name":"清單消去法","code":24,"kind":"負追","description":"用清單首尾數字配注；中刪除，掛追加。","win":"刪掉清單首尾數字；只剩一項就刪該項。","loss":"將本局使用的首尾合計追加至清單尾端。","stop":"清單清空即完成本輪；另受總局數、停損與限額限制。"},{"id":"equal_reset","name":"等分倍盈歸本法","code":26,"kind":"等分","description":"每局依目前可用金重新等分，達歸本目標後鎖利。","win":"依結算結果重新配注；若使用等份區間，下輪重新抽取份數。","loss":"保留本輪等份數，依剩餘資金重算下一注。","stop":"週期獲利達原操作金 100% 會鎖利並重啟週期；不足最低注額或達總局數則暫停。"}]</script>
 <script type="text/plain" id="py-src-strategy_engine.py">
 """Deterministic budget controls, not predictions or validated profit systems."""
 from decimal import Decimal, ROUND_FLOOR
@@ -738,8 +738,8 @@ for d in CATALOG:
     d.update(group='original',kind='中性')
 CATALOG += progression.CATALOG
 for i,d in enumerate(CATALOG,1):
-    d['code']=0 if d['id']=='custom' else 99 if d['id']=='custom_win' else 66 if d['id']=='twoleg' else 26 if d['id']=='equal_reset' else i
-MENU_CODES=[0,99,66]+list(range(1,15))+list(range(16,21))+[22,23,24,26]
+    d['code']=0 if d['id']=='custom' else 99 if d['id']=='custom_win' else 27 if d['id']=='win_loss_dual' else 66 if d['id']=='twoleg' else 26 if d['id']=='equal_reset' else i
+MENU_CODES=[0,99,27,66]+list(range(1,15))+list(range(16,21))+[22,23,24,26]
 BY_CODE={d['code']:d for d in CATALOG}
 MENU_CATALOG=[BY_CODE[code] for code in MENU_CODES]
 BY_ID={x['id']:x for x in CATALOG}
@@ -883,7 +883,9 @@ CONFIG_DEFAULTS=dict(base_stake=10.0,stake_cap=1000.0,total_cap=2000.0,max_steps
     stake_fraction=20.0,win_sequence=[1,1],loss_sequence=[1,2],kelly_probability=None,
     kelly_fraction=25.0,recovery_target=10.0,cancel_list=[1,1],
     attack_sequence=[1,1.6,2,2.6,3.2,4,5,6],retreat_sequence=[2,3,5,8,13,20,30],
-    layer_sequence=[1,1],custom_win_sequence=[3,1,2,3,2,3,4,1,2],use_count_sequence=False,compound_enabled=True,extra_caps_enabled=False)
+    layer_sequence=[1,1],custom_win_sequence=[3,1,2,3,2,3,4,1,2],
+    dual_win_sequence=[1,1,2,4,2,4,8,4,8,16,8,16,32],dual_loss_sequence=[1,2,4],
+    use_count_sequence=False,compound_enabled=True,extra_caps_enabled=False)
 STATE_FIELDS=('plan_state','kelly_probability')
 
 def defaults():return dict(copy.deepcopy(CONFIG_DEFAULTS),plan_state={})
@@ -892,6 +894,8 @@ def is_new(s):return s.get('strategy') in BY_NAME
 def init(s):
     for k,v in CONFIG_DEFAULTS.items():s.setdefault(k,copy.deepcopy(v))
     s['plan_state']=dict(step=0,mode='trigger',leg=0,recent=[],debt=0.0,exhausted=False,done=False)
+    if BY_NAME.get(s.get('strategy'),{}).get('id') == 'win_loss_dual':
+        s['plan_state']['mode']='win'
     if BY_NAME.get(s.get('strategy'),{}).get('id') == 'labouchere':
         s['plan_state']['list']=copy.deepcopy(s['cancel_list'])
     # Original 1.6.6 guard would change the definition of these strategies.
@@ -1012,6 +1016,10 @@ def position(s):
     if sid=='recovery':return f"待回補 {p['debt']:g}"
     if sid=='labouchere':return '清單 '+ '/'.join(f'{x:g}' for x in p.get('list',s['cancel_list']))[:65]
     if sid=='equal_reset':return f'第{p["step"]+1}關 · 本輪{s["risk_parts"]}等份'
+    if sid=='win_loss_dual':
+        key='dual_loss_sequence' if p.get('mode')=='chase' else 'dual_win_sequence'
+        label='負追' if p.get('mode')=='chase' else '勝進'
+        return f'{label}第{p["step"]+1}/{len(_seq(s,key))}關'
     if sid=='dual' and s.get('dual_v2'):
         return f"勝進第{p['step']+1}/{len(s.get('dual_sequence',[1,2]))}關"
     return f"第{p['step']+1}關" if sid in ('custom','custom_win','winner','martingale','tianmen','dalembert','fibonacci') else ''
@@ -1027,6 +1035,12 @@ def is_kelly(s):return s.get('strategy')=='凱利公式'
 legacy_after_result=after_result
 _custom_win=dict(CATALOG[4],id='custom_win',name='自訂關卡配注法（勝近）',kind='勝近',principle='固定首關基額，依1起頭的自訂倍率中進、掛回第一階；不再用序列倍數和縮小起注。')
 CATALOG.append(_custom_win)
+CATALOG.append(dict(id='win_loss_dual',name='勝進負追雙軌法',kind='雙向',
+    principle='勝進中進；第一局掛進負追1/2/4；勝進中途掛回第一關。',
+    formula='每碼起注=floor(操作金÷切分份數÷碼數)，再乘以當前倍率。',
+    trigger='首關掛啟動負追；負追中回首，三關全掛暫停。',
+    limit='不得突破停損、停利、限紅與可用金限制；保留全部累計紀錄。',
+    group='new'))
 BY_NAME={x['name']:x for x in CATALOG}
 def settings_text(s):
     import sizing_v180
@@ -1119,7 +1133,7 @@ def base_raw(s):
     if s['strategy']=='連掛冷卻檢核法' and s.get('cooldown_v2'):
         # Recalculate every new round from the live, unlocked available funds.
         return max(dec(0),min(dec(available(s)),dec(operation_budget(s))))/f/n/dec(10)
-    if k in ('winner','custom_win') and s.get('win_mode_version')==2:
+    if k in ('winner','custom_win','win_loss_dual') and s.get('win_mode_version')==2:
         # The first stake depends only on original capital, split count and codes;
         # a long winning sequence must NOT dilute the first entry.
         return dec(s['operation_base'])/f/n
@@ -1373,7 +1387,7 @@ def quote(s):
         if layer_v4 and (i>=s['layer_active_count'] or
                          leg>=s['layer_active_counts'][i] or grid[i][leg]<=0):
             return None,'#66 此格尚未啟用（0／空白）；不能產生0元下注'
-    keys={'custom':'loss_sequence','custom_win':'custom_win_sequence','winner':'win_sequence','tianmen':None,'twoleg':'layer_sequence'}
+    keys={'custom':'loss_sequence','custom_win':'custom_win_sequence','win_loss_dual':'dual_win_sequence','winner':'win_sequence','tianmen':None,'twoleg':'layer_sequence'}
     if k in keys:
         if layer_v3 or layer_v4:
             # Do not use obsolete two-stage multiplier sequence.
@@ -1388,7 +1402,9 @@ def quote(s):
             if i>=int(s['max_steps']):return None,'已達勝進關卡上限'
             mult=1
         else:
-            seq=[1,3,7,15,31][:s['max_steps']] if k=='tianmen' else sequence(s,keys[k])
+            seq=([1,3,7,15,31][:s['max_steps']] if k=='tianmen'
+                 else sequence(s,'dual_loss_sequence' if p.get('mode')=='chase' else 'dual_win_sequence')
+                 if k=='win_loss_dual' else sequence(s,keys[k]))
             if i>=len(seq):return None,'關卡超出有效序列'
             mult=seq[i]*(2 if k=='twoleg' and p['leg'] else 1)
     elif k=='martingale':mult=2**i
@@ -1413,7 +1429,7 @@ def quote(s):
     else:
         stored=s.get('round_base_precise')
         precise=dec(stored) if stored is not None else dec(b)
-    if k=='custom_win' and s.get('win_mode_version')==2:
+    if k in ('custom_win','win_loss_dual') and s.get('win_mode_version')==2:
         # Scale the actual integer first stake, not the pre-rounding fraction.
         precise=dec(floor(base_raw(s)))
     if k=='winner' and s.get('win_mode_version')==2:
@@ -1488,7 +1504,7 @@ def quote(s):
     if total > max(dec(0), dec(s['loss_limit']) + dec(s['pnl'])):
         return None,'下局總注超過剩餘停損額度，不得執行'
     if total>a+1e-8:return None,'本局總投入超過可用資金，不得執行'
-    if k!='equal_reset' and not peak_v2 and not layer_v3 and not layer_v4 and not (k=='giveback' and s.get('giveback_roll_v2')) and not (k in ('winner','custom_win') and s.get('win_mode_version')==2) and 'active_operation_budget' in s and total>operation_budget(s)+1e-8:
+    if k!='equal_reset' and not peak_v2 and not layer_v3 and not layer_v4 and not (k=='giveback' and s.get('giveback_roll_v2')) and not (k in ('winner','custom_win','win_loss_dual') and s.get('win_mode_version')==2) and 'active_operation_budget' in s and total>operation_budget(s)+1e-8:
         return None,'本局總投入超過當前操作預算，不得執行'
     # Legacy fixed caps are explicit opt-in, never determine the base of 20/24.
     if s.get('extra_caps_enabled') and k not in ('attack','labouchere') and (per>s['stake_cap'] or total>s['total_cap']):
@@ -1502,6 +1518,48 @@ def quote(s):
         quote['sprint_percent']=chosen_pct
     return quote,''
 
+def recover_overlimit_win_stage(s):
+    """Auto-return #99/#27 to a legal first stake without relaxing safety caps."""
+    k=sid(s)
+    if k not in ('custom_win','win_loss_dual') or s.get('win_mode_version')!=2:
+        return False
+    status=s.get('session_status','active')
+    if status not in ('active','paused_funds'):
+        return False
+    if status=='paused_funds' and not any(x in s.get('strategy_pause_reason','') for x in ('下局總注超過','本局總投入超過','限紅','額外注額上限')):
+        return False
+    p=progression._p(s)
+    if int(p.get('step',0))<1 or p.get('exhausted') or p.get('done'):
+        return False
+    if dec(s['pnl'])<=-dec(s['loss_limit']) or dec(s['pnl'])>=dec(s['profit_target']):
+        return False
+    q,why=quote(s)
+    market=s.get('market','單球')
+    quote_amount=(dec(q['per']) if market=='單球' else dec(q['total'])) if q else dec(0)
+    over_limit=(
+        why in ('下局總注超過剩餘停損額度，不得執行','本局總投入超過可用資金，不得執行')
+        or why.startswith('使用者額外注額上限暫停')
+        or (q is not None and quote_amount>dec(s.get('table_max_bet',10**10)))
+    )
+    if not over_limit:
+        return False
+    candidate=copy.deepcopy(s)
+    next_round(candidate,refresh=True)
+    candidate['session_status']='active'
+    candidate['strategy_pause_reason']=''
+    first,reason=quote(candidate)
+    if not first:
+        return False
+    amount=dec(first['per'] if market=='單球' else first['total'])
+    if amount<dec(s.get('table_min_bet',1)) or amount>dec(s.get('table_max_bet',10**10)):
+        return False
+    next_round(s,refresh=True)
+    s['session_status']='active'
+    s['strategy_pause_reason']=''
+    s['round_notice']=('#27 下關超額，安全回勝進第1關；累計紀錄保留'
+                       if k=='win_loss_dual' else '#99 下關超額，安全回勝進第1關；累計紀錄保留')
+    return True
+
 def evaluate(s):
     if s.get('sizing_version')!=180:return 0,'舊版帳目待結算；請開始新版計畫'
     q,reason=quote(s)
@@ -1510,6 +1568,48 @@ def evaluate(s):
 def after_result(s,win,delta):
     p=copy.deepcopy(progression._p(s));before=copy.deepcopy(p);k=sid(s);i=p['step'];boundary=False
     s['round_win_streak']=s.get('round_win_streak',0)+1 if win else 0
+    if k=='win_loss_dual':
+        winseq=sequence(s,'dual_win_sequence')
+        chase=sequence(s,'dual_loss_sequence')
+        mode=p.get('mode','win')
+        if mode=='chase':
+            if win:
+                boundary=True
+                notice='#27 負追中獎，回勝進第1關'
+            elif i+1>=len(chase):
+                p['exhausted']=True
+                notice=f'#27 負追{len(chase)}關全掛，已暫停本輪；可手動恢復新輪'
+            else:
+                p['step']=i+1
+                notice=f'#27 負追第{p["step"]+1}/{len(chase)}關'
+        elif win:
+            if i+1>=len(winseq):
+                boundary=True
+                notice='#27 勝進末關中獎，回勝進第1關'
+            else:
+                p['step']=i+1
+                notice=f'#27 勝進第{p["step"]+1}/{len(winseq)}關'
+        elif i==0:
+            # Starting 1x stake counts as first chase entry; next is 2x.
+            if len(chase)>1:
+                p.update(mode='chase',step=1)
+                notice=f'#27 首關掛，進負追第2/{len(chase)}關'
+            else:
+                p['exhausted']=True
+                notice='#27 首掛負追末關全掛，暫停本輪'
+        else:
+            boundary=True
+            notice='#27 勝進中途掛，直接回勝進第1關，不啟動負追'
+        s['peak_pnl']=max(s.get('peak_pnl',0),s['pnl'],0)
+        if boundary:
+            next_round(s,refresh=True)
+            s['round_notice']=notice
+        else:
+            s['plan_state']=p
+            if not p.get('exhausted') and recover_overlimit_win_stage(s):
+                return
+            s['round_notice']=notice
+        return
     if s['strategy']=='剩餘局數預算法' and s.get('rounds_cycle_v2'):
         # Only the current-round PnL baseline and remaining count change.
         s['peak_pnl']=max(s.get('peak_pnl',0),s['pnl'],0)
@@ -1787,6 +1887,8 @@ def after_result(s,win,delta):
             set_operation_budget(s,dec(operation_budget(s))-dec(protection_added))
             refresh_base(s)
 
+    if not boundary and k=='custom_win' and recover_overlimit_win_stage(s):
+        return
     if not boundary:return
     s['round_complete_count']+=1
     profit=cents(s['pnl']-s['round_start_pnl'])
@@ -2167,6 +2269,11 @@ def details(s):
         result['line'] = f'設定最大{maximum}關｜天門固定有效{effective}關（1／3／7／15／31）'
         if maximum > 5:
             result['warning'] = '天門內建倍率只有5關，最大關卡超過5不會自動產生新的倍率；第5關掛後暫停。'
+    elif sid == 'win_loss_dual':
+        w=s.get('dual_win_sequence',[])
+        l=s.get('dual_loss_sequence',[])
+        result['effective']=len(w)
+        result['line']=f'#27 勝進{len(w)}關／首掛負追{len(l)}關；勝進中途掛回首，負追末關全掛暫停'
     elif sid == 'winner' and s.get('win_mode_version')==2:
         # #14 sprint uses the selected stage cap, NOT the obsolete 1/1 sequence.
         result['effective']=maximum
@@ -2207,7 +2314,7 @@ def progress_line(s):
 """Single source for release text, catalog and precise instruction cards."""
 FORMULAS={
 0:'未取整每碼基額＝(一份÷碼數÷有效配注序列和)。掛進、中回首；末階後回首開新輪。',
-99:'第一關每碼=floor(操作金÷切分份數÷碼數)，自訂倍率第一項固定為1；之後依首關基額×指定倍率（不除倍率總和），中進、掛回首，序列走完下一輪。',
+99:'第一關每碼=floor(操作金÷切分份數÷碼數)，自訂倍率第一項固定為1；之後依首關基額×指定倍率（不除倍率總和），中進、掛回首；下關超額且首關可下注時自動回第一關，累計紀錄不歸零。',
 66:'#66 逐關分層：固定4層、每層預設4格、最多10格。每格填寫每碼下注金額，實際本局總注＝每碼×下注碼數。每層尾端可填0或留空，整個尾端層可停用。中獎進同層下一個啟用關，最後關中退上一層第1關；掛則跳下一個啟用層，若沒有下一層就暫停。每局皆檢查可用資金、停損和限紅。',
 1:'#01 高點獲利鎖定：第一局每碼＝floor(操作金÷切分份數÷碼數)。每局依可用操作金（原操作金＋累積淨盈虧－已鎖利）重新分切；每次獲利按自訂比例自動鎖利，未鎖獲利持續投入。連續達指定鎖利次數完成一週期，掛則連續次數歸零；不設最大關卡。',
 2:'起始基額＝floor(一份÷碼數÷10)。調節倍數＝剩餘停損÷初始停損×份數÷(份數＋floor(停利進度×12))。',
@@ -2231,7 +2338,9 @@ FORMULAS={
 22:'每碼＝ceil((未回補虧損＋回補目標)÷(含本金賠率－碼數))。分母≤0不計算。',
 23:'每期先提供本期預估中獎率p。b＝含本金賠率÷碼數－1；f＝(b×p－(1－p))÷b。每碼＝floor(一份×f×凱利折數÷碼數)；未提供p、b≤0或f≤0不進場。',
 24:'新輪未取整每碼基額＝(一份÷初始清單和÷碼數)，同輪固定。倍數取首尾和，單項僅一次；掛追加、中刪首尾。清空才完成；不受連掛或關卡上限重置。新輪基額依當前操作預算重新算；鎖利扣預算，滾利加當次可滾獲利。',
-26:'每碼=floor((原操作金＋當前淨盈虧－已鎖利)÷本輪等份÷下注碼數)；每局都依剩餘可用金重算注碼。固定輸入相同等份，區間在每輪開始時均勻隨機抽一個整數；掛沿用本輪等份、中則下輪重新抽。等份數不是關卡上限，無法再分切出符合限紅的整數注碼才停止（仍遵守停損等安全設定）。累計已結算週期淨獲利達起始操作金100%時，已鎖金額不重複計入，超額獲利全鎖，操作預算歸回起始值，開始下一週期。'}
+26:'每碼=floor((原操作金＋當前淨盈虧－已鎖利)÷本輪等份÷下注碼數)；每局都依剩餘可用金重算注碼。固定輸入相同等份，區間在每輪開始時均勻隨機抽一個整數；掛沿用本輪等份、中則下輪重新抽。等份數不是關卡上限，無法再分切出符合限紅的整數注碼才停止（仍遵守停損等安全設定）。累計已結算週期淨獲利達起始操作金100%時，已鎖金額不重複計入，超額獲利全鎖，操作預算歸回起始值，開始下一週期。',
+27:'勝進預設13關：1/1/2/4/2/4/8/4/8/16/8/16/32；起點掛後，負追1/2/4的第一注1倍已用，下一注2倍；負追中回勝進第1關，勝進中途掛一律回首關，負追末關全掛暫停，可手動開新輪。每碼=floor(操作金÷切分份數÷碼數)×當關倍率；超額且首關合法才回首關，保留累計紀錄。'
+}
 
 def describe(code):
     if code==8:
@@ -2240,6 +2349,8 @@ def describe(code):
         return FORMULAS[9]+'\n每碼向下取整；原始一份金額是單輪計算基準，不代表每輪另行補款。'
     if code==10:
         return FORMULAS[10]+'\n每碼下注為整數；整體停利停損與限紅、可用資金檢查依然有效；不保證獲利。'
+    if code in (99,27):
+        return FORMULAS[code]+'\n停利停損、限紅與可用金限制仍有效；第一關也超額時必須停止，不保證獲利。'
     text=FORMULAS[code]
     text+='\n一般策略每關：每碼=floor(未取整基額×當關倍率)；不下注小數，不足1元／碼則暫停。#22回補策略保留ceil例外，仍為整數。下局總注若高於可用金、操作預算或剩餘停損額度，先暫停，不縮注。'
     if 1<=code<=13 or code in (22,23):
@@ -2460,12 +2571,18 @@ def new_state(config):
         s.update(peak_lock_version=2,peak_lock_percent=float(pct_raw),
                  peak_lock_target=int(target_raw),
                  peak_lock_streak=0,peak_lock_cycles=0,peak_lock_total=0)
-    for key in ('loss_sequence','win_sequence','custom_win_sequence','layer_sequence','attack_sequence','retreat_sequence','cancel_list'):
+    for key in ('loss_sequence','win_sequence','custom_win_sequence','dual_win_sequence','dual_loss_sequence','layer_sequence','attack_sequence','retreat_sequence','cancel_list'):
         if key in config:
             seq=config[key]
             if not isinstance(seq,list) or not seq or len(seq)>100 or any(not 0<x<=100000 for x in seq):
                 raise ValueError('倍率序列格式錯誤')
             s[key] = seq
+    if strategy_code==27:
+        w=s['dual_win_sequence']
+        l=s['dual_loss_sequence']
+        if not 1<=len(w)<=50 or not 2<=len(l)<=10 or w[0]!=1 or l[0]!=1:
+            raise ValueError('#27 勝進1～50關、負追2～10關，且兩組倍率第一項必須為1')
+        s.update(win_mode_version=2,max_steps=len(w))
     if strategy_code in (14,99):
         # Keep legacy loaded sessions on the historical formula, but every
         # newly created winning plan explicitly opts into independent first bet.
@@ -2656,6 +2773,11 @@ def settle(outcome, action_id=None):
             s['round_limit']=new_cap
             if not s.get('round_offer') and s.get('session_status')=='active' and not s.get('strategy_pause_reason'):
                 s['round_notice']=f'進度 #{count//batch+1} 已開始；累計紀錄與資金保留'
+            # At the exact batch boundary, the stage quote was evaluated
+            # before the new cap was installed. Re-evaluate #99/#27 ONLY
+            # after advancing the count, without loosening risk limits.
+            if s['strategy'] in ('自訂關卡配注法（勝近）','勝進負追雙軌法'):
+                sizing.recover_overlimit_win_stage(s)
     added=cash(max(0,s['locked_profit']-old_lock))
     if added>0:record['automatic_lock']=added
     if sizing.plan_limit_reached(s):
@@ -2685,6 +2807,11 @@ def settle(outcome, action_id=None):
             due_to_high_point=(s['strategy']=='多因子防守共識法' and (reason or '').startswith('#10') and '回撤' in (reason or ''))
             s['session_status']='paused_drawdown' if due_to_high_point else 'paused_funds'
             s['strategy_pause_reason']=reason or '剩餘操作金無法繼續下注，計畫停止'
+    if (s.get('strategy')=='勝進負追雙軌法'
+        and s.get('plan_state',{}).get('exhausted')
+        and s.get('session_status')=='active'):
+        s['session_status']='paused_strategy'
+        s['strategy_pause_reason']='#27 負追末關全掛，已暫停本輪；可手動恢復第一關'
     if (s.get('strategy')=='逐關分層法' and s.get('twoleg_version') in (3,4)
         and s.get('plan_state',{}).get('exhausted')
         and s.get('session_status')=='active'):
@@ -2850,6 +2977,8 @@ def web_call(action, payload_json='{}'):
                     if isinstance(STATE.get('plan_state'),dict):
                         STATE['plan_state']['exhausted']=False
                 STATE['round_offer']=False
+                # Recover old #99 stalled stages without resetting PnL/ledger.
+                sizing.recover_overlimit_win_stage(STATE)
             UNDO=p.get('undo') if isinstance(p.get('undo'),dict) else None
             if UNDO is not None and UNDO.get('strategy')=='兩關分層法':
                 UNDO=copy.deepcopy(UNDO)
@@ -3036,7 +3165,7 @@ function fieldsFromLegacyState(state){
     fraction:state.stake_fraction,kellyFraction:state.kelly_fraction,
     probability:state.kelly_probability
   };
-  const seqByCode={0:'loss_sequence',99:'custom_win_sequence',20:'attack_sequence',24:'cancel_list'};
+  const seqByCode={0:'loss_sequence',99:'custom_win_sequence',27:'dual_win_sequence',20:'attack_sequence',24:'cancel_list'};
   const seq=state[seqByCode[selected?.code]];
   if(Array.isArray(seq)&&seq.length)fields.sequenceInput=seq.join(',');
   if(selected?.code===66&&state.twoleg_version===4&&Array.isArray(state.layer_stakes)){
@@ -3052,6 +3181,7 @@ function fieldsFromLegacyState(state){
     fields.peakLockCount=state.peak_lock_target;
   }
   if(selected?.code===20&&Array.isArray(state.retreat_sequence))fields.sequenceSecondary=state.retreat_sequence.join(',');
+  if(selected?.code===27&&Array.isArray(state.dual_loss_sequence))fields.sequenceSecondary=state.dual_loss_sequence.join(',');
   return Object.fromEntries(Object.entries(fields).filter(([,v])=>v!==undefined&&v!==null));
 }
 function applySavedFields(fields){
@@ -3642,7 +3772,7 @@ function changeStrategyFields(){
   $('#planned-field span').textContent=code===9?'每輪計畫局數':'計畫總局數';
   for(const input of $$('#giveback-preview input[name]'))input.disabled=code!==8;
   for(const input of $$('#high-preview input[name]'))input.disabled=code!==3;
-  const fieldMap={0:['loss_sequence','自訂關卡倍率','1,2'],99:['custom_win_sequence','勝進倍率','1,1'],20:['attack_sequence','攻擊倍率','1,1.6,2,2.6,3.2,4,5,6'],24:['cancel_list','清單數值','1,1']};
+  const fieldMap={0:['loss_sequence','自訂關卡倍率','1,2'],99:['custom_win_sequence','勝進倍率','1,1'],27:['dual_win_sequence','勝進倍率','1,1,2,4,2,4,8,4,8,16,8,16,32'],20:['attack_sequence','攻擊倍率','1,1.6,2,2.6,3.2,4,5,6'],24:['cancel_list','清單數值','1,1']};
   for(const id of ['fraction-field','kelly-field','probability-field','sequence-field','sequence-secondary-field','twoleg-layers-field','peak-lock-fields'])$('#'+id).classList.add('hidden');
   if(code===66)$('#twoleg-layers-field').classList.remove('hidden');
   if(code===1)$('#peak-lock-fields').classList.remove('hidden');
@@ -3654,7 +3784,15 @@ function changeStrategyFields(){
     const input=$('[name=sequenceInput]');input.placeholder=fieldMap[code][2];
     if(!input.value||input.dataset.strategy!==String(code))input.value=fieldMap[code][2];
     input.dataset.strategy=String(code);
-    if(code===20){$('#sequence-secondary-field').classList.remove('hidden');$('[name=sequenceSecondary]').value='2,3,5,8,13,20,30';}
+    if(code===20||code===27){
+      $('#sequence-secondary-field').classList.remove('hidden');
+      $('#sequence-secondary-label').textContent=code===27?'首掛負追倍率':'退守倍率';
+      const secondary=$('[name=sequenceSecondary]');
+      const preset=code===27?'1,2,4':'2,3,5,8,13,20,30';
+      secondary.placeholder=preset;
+      if(secondary.dataset.strategy!==String(code))secondary.value=preset;
+      secondary.dataset.strategy=String(code);
+    }
   }
   for(const field of $$('.special-param')){
     const hidden=field.classList.contains('hidden');
@@ -3703,10 +3841,10 @@ function readConfig(){
     profitPct:Number(f.get('profitPct')),lossPct:Number(f.get('lossPct')),
     fraction:Number(f.get('fraction')||20),kellyFraction:Number(f.get('kellyFraction')||25)};
   if(config.strategy===26){config.parts=config.partsMin;config.maxSteps=config.partsMax;}
-  const codes={0:'loss_sequence',99:'custom_win_sequence',20:'attack_sequence',24:'cancel_list'};
+  const codes={0:'loss_sequence',99:'custom_win_sequence',27:'dual_win_sequence',20:'attack_sequence',24:'cancel_list'};
   if(codes[config.strategy])config[codes[config.strategy]]=parseSeq(f.get('sequenceInput')||'');
-  if([0,99].includes(config.strategy))
-    config.maxSteps=config[{0:'loss_sequence',99:'custom_win_sequence'}[config.strategy]].length;
+  if([0,99,27].includes(config.strategy))
+    config.maxSteps=config[{0:'loss_sequence',99:'custom_win_sequence',27:'dual_win_sequence'}[config.strategy]].length;
   if(config.strategy===66){
     config.layerStakes=readLayerGrid().map(row=>row.map(v=>v===''?0:Number(v)));
     config.maxSteps=config.layerStakes.length;
@@ -3726,6 +3864,7 @@ function readConfig(){
     config.sprintMaxPct=Number($('[name=sprintMaxPct]').value);
   }
   if(config.strategy===20)config.retreat_sequence=parseSeq(f.get('sequenceSecondary')||'');
+  if(config.strategy===27)config.dual_loss_sequence=parseSeq(f.get('sequenceSecondary')||'');
   if(config.strategy===23)config.probability=Number(f.get('probability'));
   return config;
 }
@@ -3758,6 +3897,11 @@ function firstQuoteConfigForStrategy(code){
   if(code===23)base.probability=Number($('[name=probability]').value);
   if(code===0)base.loss_sequence=[1,2];
   if(code===99)base.custom_win_sequence=[1,1];
+  if(code===27){
+    base.dual_win_sequence=[1,1,2,4,2,4,8,4,8,16,8,16,32];
+    base.dual_loss_sequence=[1,2,4];
+    base.maxSteps=base.dual_win_sequence.length;
+  }
   if(code===20){
     base.attack_sequence=[1,1.6,2,2.6,3.2,4,5,6];
     base.retreat_sequence=[2,3,5,8,13,20,30];
@@ -3932,8 +4076,19 @@ function render(){
   $('#win-button').disabled=!valid;$('#loss-button').disabled=!valid;
   $('#undo-button').disabled=busy||!data?.undoAvailable;
   $('#finish-button').disabled=busy||!on||s?.session_status==='settled';
-  $('#resume-button').classList.toggle('hidden',!data?.canResume);
-  $('#resume-button').disabled=busy||!data?.canResume;
+  // #27 manual recovery must be visible in the main view, not inside
+  // the closed plan-management drawer; retain a single wired button.
+  const resumeButton=$('#resume-button');
+  const showDualResume=!!data?.canResume&&s?.strategy==='勝進負追雙軌法'&&s?.session_status==='paused_strategy';
+  if(showDualResume){
+    const mainActions=$('.action-grid');
+    if(resumeButton.previousElementSibling!==mainActions)mainActions.after(resumeButton);
+  }else if(resumeButton.parentElement!==$('#more-actions')){
+    $('#more-actions').prepend(resumeButton);
+  }
+  resumeButton.classList.toggle('full',showDualResume);
+  resumeButton.classList.toggle('hidden',!data?.canResume);
+  resumeButton.disabled=busy||!data?.canResume;
   const availableGain=Number(data?.allocatable||0),pendingRoll=Number(data?.pendingRoll||0);
   const canDistribute=on&&!busy&&s.session_status!=='settled';
   const canLock=canDistribute&&data?.canLock&&availableGain>0;
@@ -4162,7 +4317,7 @@ async function initialize(){
   document.documentElement.style.setProperty('--ruby-bg-art',getComputedStyle($('.hero')).backgroundImage);
   try{
     strategies=JSON.parse(document.getElementById('ruby-strategies-json').textContent);
-    if(strategies.length!==26)throw Error('策略數量不正確，請重新部署');
+    if(strategies.length!==27)throw Error('策略數量不正確，請重新部署');
     const select=$('#strategy-select');
     for(const item of strategies){const option=document.createElement('option');option.value=item.code;option.textContent=`#${String(item.code).padStart(2,'0')} ${displayStrategyName(item.name)}`;select.append(option);}
     select.value='26';changeStrategyFields();displayStrategyLibrary();
