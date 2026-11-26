@@ -4078,6 +4078,8 @@ function render(){
   $('#finish-button').disabled=busy||!on||s?.session_status==='settled';
   $('#resume-button').classList.toggle('hidden',!data?.canResume);
   $('#resume-button').disabled=busy||!data?.canResume;
+  // Make the recovery action discoverable when a finite chase ends.
+  if(data?.canResume)$('#more-actions').classList.remove('hidden');
   const availableGain=Number(data?.allocatable||0),pendingRoll=Number(data?.pendingRoll||0);
   const canDistribute=on&&!busy&&s.session_status!=='settled';
   const canLock=canDistribute&&data?.canLock&&availableGain>0;
