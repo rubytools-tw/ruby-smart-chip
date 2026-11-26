@@ -792,7 +792,8 @@ def evaluate(s):
     """Return total stake budget and an optional hard pause reason."""
     # Legacy evaluator must obey the same strict plan ceiling as the current
     # sizing engine; do not bypass it through alternative strategy paths.
-    if s.get('wins',0)+s.get('losses',0) >= max(1,int(s.get('planned_rounds') or s.get('round_limit') or 12)):
+    batch_cap=(s.get('web_batch_total_cap') if s.get('web_batch_mode') else None) or s.get('planned_rounds') or s.get('round_limit') or 12
+    if s.get('wins',0)+s.get('losses',0) >= max(1,int(batch_cap)):
         return 0,'已達計畫局數，請結算後重新設定'
     if s['strategy'] not in BY_NAME:
         return 0,'舊版策略需重新設定'
@@ -1295,10 +1296,10 @@ def plan_round_cap(s):
     substitute for the settled result count. planned_rounds is the canonical
     user-configured ceiling; round_limit is a legacy mirror only.
     """
-    # Only #09 is a repeating planned-round cycle. All other strategies
-    # interpret the configured total as a HARD cumulative settlement ceiling,
-    # including sessions imported from older web_batch_mode backups.
-    if s.get('strategy')=='剩餘局數預算法' and s.get('web_batch_mode'):
+    # All 26 strategies use the configured count as a repeating DISPLAY batch.
+    # Unlike a strategy's stage, this never resets the cumulative ledger.
+    # Stop-loss, stop-profit, finite stages and bankroll limits remain separate.
+    if s.get('web_batch_mode'):
         return max(1,int(s.get('web_batch_total_cap') or s.get('planned_rounds') or 12))
     return max(1,int(s.get('planned_rounds') or s.get('round_limit') or 12))
 
@@ -2324,7 +2325,7 @@ def new_state(config):
         stop_profit_mode='percent',stop_profit_value=profit_pct,stop_loss_mode='percent',stop_loss_value=loss_pct,
         profit_target=cash(operation*profit_pct/100),loss_limit=cash(operation*loss_pct/100),
         planned_rounds=planned,round_limit=planned,
-        web_batch_mode=(strategy_code==9),web_batch_size=planned,web_batch_total_cap=planned,payout_multiplier=payout,
+        web_batch_mode=True,web_batch_size=planned,web_batch_total_cap=planned,payout_multiplier=payout,
         payout_cycle_enabled=(market=='單球'),payout_cycle_wins=0,
         stake=0,started=True,session_status='active',
         streak=0,loss_streak=0,last_result='start',last_total_bet=None,
@@ -2646,14 +2647,15 @@ def settle(outcome, action_id=None):
     s['ledger'].append(record)
     old_lock=s['locked_profit']
     sizing.after_result(s,win,delta)
-    if s.get('web_batch_mode') and s.get('strategy')=='剩餘局數預算法':
+    if s.get('web_batch_mode'):
         count=sizing.plan_completed(s)
         batch=max(1,int(s.get('web_batch_size') or s.get('planned_rounds') or 35))
         if count >= int(s.get('web_batch_total_cap') or batch):
             new_cap=(count//batch+1)*batch
             s['web_batch_total_cap']=new_cap
             s['round_limit']=new_cap
-            s['round_notice']=f'進度 #{count//batch+1} 已開始；累計紀錄與資金保留'
+            if not s.get('round_offer') and s.get('session_status')=='active' and not s.get('strategy_pause_reason'):
+                s['round_notice']=f'進度 #{count//batch+1} 已開始；累計紀錄與資金保留'
     added=cash(max(0,s['locked_profit']-old_lock))
     if added>0:record['automatic_lock']=added
     if sizing.plan_limit_reached(s):
@@ -2819,26 +2821,23 @@ def web_call(action, payload_json='{}'):
                     STATE['table_max_bet']=default_max
                 n=max(1,int(STATE.get('planned_rounds') or STATE.get('web_batch_size') or 35))
                 complete=int(STATE.get('wins',0))+int(STATE.get('losses',0))
-                is_round_cycle=STATE.get('strategy')=='剩餘局數預算法' and STATE.get('rounds_cycle_v2')
-                if is_round_cycle:
-                    # Keep the intentionally repeating #09 plan and its
-                    # cumulative ledger unchanged.
-                    next_cap=(complete//n+1)*n
-                    STATE.update(web_batch_mode=True,web_batch_size=n,
-                                 web_batch_total_cap=next_cap,round_limit=next_cap)
-                else:
-                    # Loading an old backup cannot silently grant more rounds
-                    # or reopen a plan that has already hit its real cap.
-                    STATE.update(web_batch_mode=False,web_batch_size=n,
-                                 web_batch_total_cap=n,round_limit=n)
+                # Apply auto-advance to an already saved 50/50 (or 35/35)
+                # session, retaining all wins, losses, stakes, stages and PnL.
+                next_cap=(complete//n+1)*n
+                STATE.update(web_batch_mode=True,web_batch_size=n,
+                             web_batch_total_cap=next_cap,round_limit=next_cap)
                 if STATE.get('strategy')=='逐關分層法' and STATE.get('twoleg_version')==4:
                     STATE['round_id']=max(int(STATE.get('round_id',1)),int(STATE.get('round_complete_count',0))+1)
-                if is_round_cycle and STATE.get('session_status')=='paused_round_limit' and STATE.get('pnl',0)>-STATE.get('loss_limit',0):
-                    STATE['session_status']='active';STATE['strategy_pause_reason']=''
-                if not is_round_cycle and complete>=n and STATE.get('session_status')!='settled':
-                    STATE['session_status']='paused_round_limit'
-                    STATE['strategy_pause_reason']=sizing.plan_limit_message(STATE)
-                    STATE['open_quote']=None
+                if STATE.get('session_status')=='paused_round_limit':
+                    if STATE.get('pnl',0)<=-STATE.get('loss_limit',0):
+                        STATE['session_status']='paused_loss'
+                        STATE['strategy_pause_reason']='已達設定停損'
+                    elif not strategy26.active(STATE) and STATE.get('pnl',0)>=STATE.get('profit_target',float('inf')):
+                        STATE['session_status']='paused_profit'
+                        STATE['strategy_pause_reason']='已達設定停利'
+                    else:
+                        STATE['session_status']='active'
+                        STATE['strategy_pause_reason']=''
                 # V0.1.4 incorrectly paused #26 when loss stages exceeded the
                 # selected split divisor. Re-enable only that exact legacy
                 # pause reason; normal stop-loss and insufficient-funds stops
@@ -3218,8 +3217,6 @@ function closeInfo(){ $('#info-backdrop').classList.add('hidden'); }
 function batchInfo(s){
   const size=Math.max(1,Number(s?.planned_rounds||s?.web_batch_size||35));
   const completed=Number(s?.wins||0)+Number(s?.losses||0);
-  const continuous=s?.strategy==='剩餘局數預算法'&&!!s?.rounds_cycle_v2;
-  if(!continuous)return {size,index:1,count:Math.min(size,completed),completed};
   return {size,index:Math.floor(completed/size)+1,count:completed%size,completed};
 }
 function setReady(isReady,message){
@@ -3899,19 +3896,19 @@ function render(){
       '高點保護尚未啟動｜最高淨獲利 '+money(risk.peak)+'／啟動門檻 '+money(activation)+'。')+
       ' A／B／C 條長按同一每碼元額尺度比較；最低金額決定配注，停損、限紅仍優先。累積鎖利 '+money(s.locked_profit||0)+' 元。';
   }
-  $('#round-count').textContent=is66?`${batch.completed} 局`:`${batch.count} / ${batch.size} · #${batch.index}`;
+  $('#round-count').textContent=`${batch.count} / ${batch.size} · #${batch.index}`;
   const is09=on&&s.strategy==='剩餘局數預算法'&&s.rounds_cycle_v2;
   $('#strategy-round-metric').style.display=is66||is09?'':'none';
   $('#strategy-round-count').textContent=is66?`第 ${Math.max(Number(s.round_id||1),Number(s.round_complete_count||0)+1)} 輪`:is09?`第 ${Number(s.round_id||1)} 輪`:'第 1 輪';
   const activeCode=on?(strategies.find(x=>x.name===s.strategy)?.code??'—'):getCode();
   $('#strategy-active-name').textContent='#'+String(activeCode).padStart(2,'0')+' '+displayStrategyName(on?s.strategy:(strategies.find(x=>x.code===getCode())?.name||'尚未選擇'));
-  $('#strategy-active-meta').textContent=on?(s.rounds_cycle_v2?`${data.position} · 本輪 ${batch.count}/${batch.size} · 累計 ${complete} 局`:`${data.position||'計畫執行中'} · ${complete}/${planned} 局`):'尚未開始 · 點擊選擇策略';
+  $('#strategy-active-meta').textContent=on?`${data.position||'計畫執行中'} · 進度 #${batch.index} ${batch.count}/${batch.size} · 累計 ${complete} 局`:'尚未開始 · 點擊選擇策略';
   updateRing(data);
   $('#create-plan').classList.toggle('hidden',on&&s.session_status==='active');
   $('#bet-volume').textContent=on?String(Math.round(Number(s?.total_bet||0))):'—';
   if(on){updateNumber('#pnl',s?.pnl||0,true,1);}else{$('#pnl').textContent='—';$('#pnl').classList.remove('positive','negative');}
   const is26=s&&s.strategy==='等分倍盈歸本法';
-  $('#progress-title').textContent=is26?`本週期歸本 · 進度 #${batch.index}`:is66?'計畫完成度':`進度 #${batch.index} · 計畫完成度`;
+  $('#progress-title').textContent=is26?`本週期歸本 · 進度 #${batch.index}`:`進度 #${batch.index} · 計畫完成度`;
   const pct=is26?Math.min(100,Math.max(0,Number(data.cycleProgress||0))):Math.min(100,batch.count/batch.size*100);
   $('#progress-text').textContent=`${fmt(pct,1)}%`;
   $('#progress-bar').style.width=pct+'%';
