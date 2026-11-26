@@ -38,7 +38,7 @@ try:
             assert "dualProtection" in view["quote"]
             assert view["quote"]["total"]<=view["quote"]["dualProtection"]["maxTotal"]
             page.locator("#win-button").click()
-            page.wait_for_function("(expected)=>snapshot?.state?.wins===expected",expected=expected.index(amount)+1)
+            page.wait_for_function("(expected)=>snapshot?.state?.wins===expected",arg=expected.index(amount)+1)
         final=page.evaluate("() => ({pnl:snapshot.state.pnl,bet:snapshot.state.total_bet,quote:snapshot.quote,status:document.querySelector('#notice').textContent})")
         assert final["pnl"]==3772,final
         assert final["bet"]==4100,final
