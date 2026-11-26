@@ -738,8 +738,8 @@ for d in CATALOG:
     d.update(group='original',kind='中性')
 CATALOG += progression.CATALOG
 for i,d in enumerate(CATALOG,1):
-    d['code']=0 if d['id']=='custom' else 99 if d['id']=='custom_win' else 66 if d['id']=='twoleg' else 26 if d['id']=='equal_reset' else i
-MENU_CODES=[0,99,66]+list(range(1,15))+list(range(16,21))+[22,23,24,26]
+    d['code']=0 if d['id']=='custom' else 99 if d['id']=='custom_win' else 27 if d['id']=='win_loss_dual' else 66 if d['id']=='twoleg' else 26 if d['id']=='equal_reset' else i
+MENU_CODES=[0,99,27,66]+list(range(1,15))+list(range(16,21))+[22,23,24,26]
 BY_CODE={d['code']:d for d in CATALOG}
 MENU_CATALOG=[BY_CODE[code] for code in MENU_CODES]
 BY_ID={x['id']:x for x in CATALOG}
@@ -883,7 +883,9 @@ CONFIG_DEFAULTS=dict(base_stake=10.0,stake_cap=1000.0,total_cap=2000.0,max_steps
     stake_fraction=20.0,win_sequence=[1,1],loss_sequence=[1,2],kelly_probability=None,
     kelly_fraction=25.0,recovery_target=10.0,cancel_list=[1,1],
     attack_sequence=[1,1.6,2,2.6,3.2,4,5,6],retreat_sequence=[2,3,5,8,13,20,30],
-    layer_sequence=[1,1],custom_win_sequence=[3,1,2,3,2,3,4,1,2],use_count_sequence=False,compound_enabled=True,extra_caps_enabled=False)
+    layer_sequence=[1,1],custom_win_sequence=[3,1,2,3,2,3,4,1,2],
+    dual_win_sequence=[1,1,2,4,2,4,8,4,8,16,8,16,32],dual_loss_sequence=[1,2,4],
+    use_count_sequence=False,compound_enabled=True,extra_caps_enabled=False)
 STATE_FIELDS=('plan_state','kelly_probability')
 
 def defaults():return dict(copy.deepcopy(CONFIG_DEFAULTS),plan_state={})
@@ -892,6 +894,8 @@ def is_new(s):return s.get('strategy') in BY_NAME
 def init(s):
     for k,v in CONFIG_DEFAULTS.items():s.setdefault(k,copy.deepcopy(v))
     s['plan_state']=dict(step=0,mode='trigger',leg=0,recent=[],debt=0.0,exhausted=False,done=False)
+    if BY_NAME.get(s.get('strategy'),{}).get('id') == 'win_loss_dual':
+        s['plan_state']['mode']='win'
     if BY_NAME.get(s.get('strategy'),{}).get('id') == 'labouchere':
         s['plan_state']['list']=copy.deepcopy(s['cancel_list'])
     # Original 1.6.6 guard would change the definition of these strategies.
@@ -1012,6 +1016,10 @@ def position(s):
     if sid=='recovery':return f"待回補 {p['debt']:g}"
     if sid=='labouchere':return '清單 '+ '/'.join(f'{x:g}' for x in p.get('list',s['cancel_list']))[:65]
     if sid=='equal_reset':return f'第{p["step"]+1}關 · 本輪{s["risk_parts"]}等份'
+    if sid=='win_loss_dual':
+        key='dual_loss_sequence' if p.get('mode')=='chase' else 'dual_win_sequence'
+        label='負追' if p.get('mode')=='chase' else '勝進'
+        return f'{label}第{p["step"]+1}/{len(_seq(s,key))}關'
     if sid=='dual' and s.get('dual_v2'):
         return f"勝進第{p['step']+1}/{len(s.get('dual_sequence',[1,2]))}關"
     return f"第{p['step']+1}關" if sid in ('custom','custom_win','winner','martingale','tianmen','dalembert','fibonacci') else ''
@@ -1027,6 +1035,12 @@ def is_kelly(s):return s.get('strategy')=='凱利公式'
 legacy_after_result=after_result
 _custom_win=dict(CATALOG[4],id='custom_win',name='自訂關卡配注法（勝近）',kind='勝近',principle='固定首關基額，依1起頭的自訂倍率中進、掛回第一階；不再用序列倍數和縮小起注。')
 CATALOG.append(_custom_win)
+CATALOG.append(dict(id='win_loss_dual',name='勝進負追雙軌法',kind='雙向',
+    principle='勝進中進；第一局掛進負追1/2/4；勝進中途掛回第一關。',
+    formula='每碼起注=floor(操作金÷切分份數÷碼數)，再乘以當前倍率。',
+    trigger='首關掛啟動負追；負追中回首，三關全掛暫停。',
+    limit='不得突破停損、停利、限紅與可用金限制；保留全部累計紀錄。',
+    group='new'))
 BY_NAME={x['name']:x for x in CATALOG}
 def settings_text(s):
     import sizing_v180
@@ -1119,7 +1133,7 @@ def base_raw(s):
     if s['strategy']=='連掛冷卻檢核法' and s.get('cooldown_v2'):
         # Recalculate every new round from the live, unlocked available funds.
         return max(dec(0),min(dec(available(s)),dec(operation_budget(s))))/f/n/dec(10)
-    if k in ('winner','custom_win') and s.get('win_mode_version')==2:
+    if k in ('winner','custom_win','win_loss_dual') and s.get('win_mode_version')==2:
         # The first stake depends only on original capital, split count and codes;
         # a long winning sequence must NOT dilute the first entry.
         return dec(s['operation_base'])/f/n
@@ -1373,7 +1387,7 @@ def quote(s):
         if layer_v4 and (i>=s['layer_active_count'] or
                          leg>=s['layer_active_counts'][i] or grid[i][leg]<=0):
             return None,'#66 此格尚未啟用（0／空白）；不能產生0元下注'
-    keys={'custom':'loss_sequence','custom_win':'custom_win_sequence','winner':'win_sequence','tianmen':None,'twoleg':'layer_sequence'}
+    keys={'custom':'loss_sequence','custom_win':'custom_win_sequence','win_loss_dual':'dual_win_sequence','winner':'win_sequence','tianmen':None,'twoleg':'layer_sequence'}
     if k in keys:
         if layer_v3 or layer_v4:
             # Do not use obsolete two-stage multiplier sequence.
@@ -1388,7 +1402,9 @@ def quote(s):
             if i>=int(s['max_steps']):return None,'已達勝進關卡上限'
             mult=1
         else:
-            seq=[1,3,7,15,31][:s['max_steps']] if k=='tianmen' else sequence(s,keys[k])
+            seq=([1,3,7,15,31][:s['max_steps']] if k=='tianmen'
+                 else sequence(s,'dual_loss_sequence' if p.get('mode')=='chase' else 'dual_win_sequence')
+                 if k=='win_loss_dual' else sequence(s,keys[k]))
             if i>=len(seq):return None,'關卡超出有效序列'
             mult=seq[i]*(2 if k=='twoleg' and p['leg'] else 1)
     elif k=='martingale':mult=2**i
@@ -1413,7 +1429,7 @@ def quote(s):
     else:
         stored=s.get('round_base_precise')
         precise=dec(stored) if stored is not None else dec(b)
-    if k=='custom_win' and s.get('win_mode_version')==2:
+    if k in ('custom_win','win_loss_dual') and s.get('win_mode_version')==2:
         # Scale the actual integer first stake, not the pre-rounding fraction.
         precise=dec(floor(base_raw(s)))
     if k=='winner' and s.get('win_mode_version')==2:
@@ -1488,7 +1504,7 @@ def quote(s):
     if total > max(dec(0), dec(s['loss_limit']) + dec(s['pnl'])):
         return None,'下局總注超過剩餘停損額度，不得執行'
     if total>a+1e-8:return None,'本局總投入超過可用資金，不得執行'
-    if k!='equal_reset' and not peak_v2 and not layer_v3 and not layer_v4 and not (k=='giveback' and s.get('giveback_roll_v2')) and not (k in ('winner','custom_win') and s.get('win_mode_version')==2) and 'active_operation_budget' in s and total>operation_budget(s)+1e-8:
+    if k!='equal_reset' and not peak_v2 and not layer_v3 and not layer_v4 and not (k=='giveback' and s.get('giveback_roll_v2')) and not (k in ('winner','custom_win','win_loss_dual') and s.get('win_mode_version')==2) and 'active_operation_budget' in s and total>operation_budget(s)+1e-8:
         return None,'本局總投入超過當前操作預算，不得執行'
     # Legacy fixed caps are explicit opt-in, never determine the base of 20/24.
     if s.get('extra_caps_enabled') and k not in ('attack','labouchere') and (per>s['stake_cap'] or total>s['total_cap']):
@@ -1552,6 +1568,48 @@ def evaluate(s):
 def after_result(s,win,delta):
     p=copy.deepcopy(progression._p(s));before=copy.deepcopy(p);k=sid(s);i=p['step'];boundary=False
     s['round_win_streak']=s.get('round_win_streak',0)+1 if win else 0
+    if k=='win_loss_dual':
+        winseq=sequence(s,'dual_win_sequence')
+        chase=sequence(s,'dual_loss_sequence')
+        mode=p.get('mode','win')
+        if mode=='chase':
+            if win:
+                boundary=True
+                notice='#27 負追中獎，回勝進第1關'
+            elif i+1>=len(chase):
+                p['exhausted']=True
+                notice=f'#27 負追{len(chase)}關全掛，已暫停本輪；可手動恢復新輪'
+            else:
+                p['step']=i+1
+                notice=f'#27 負追第{p["step"]+1}/{len(chase)}關'
+        elif win:
+            if i+1>=len(winseq):
+                boundary=True
+                notice='#27 勝進末關中獎，回勝進第1關'
+            else:
+                p['step']=i+1
+                notice=f'#27 勝進第{p["step"]+1}/{len(winseq)}關'
+        elif i==0:
+            # Starting 1x stake counts as first chase entry; next is 2x.
+            if len(chase)>1:
+                p.update(mode='chase',step=1)
+                notice=f'#27 首關掛，進負追第2/{len(chase)}關'
+            else:
+                p['exhausted']=True
+                notice='#27 首掛負追末關全掛，暫停本輪'
+        else:
+            boundary=True
+            notice='#27 勝進中途掛，直接回勝進第1關，不啟動負追'
+        s['peak_pnl']=max(s.get('peak_pnl',0),s['pnl'],0)
+        if boundary:
+            next_round(s,refresh=True)
+            s['round_notice']=notice
+        else:
+            s['plan_state']=p
+            if not p.get('exhausted') and recover_overlimit_win_stage(s):
+                return
+            s['round_notice']=notice
+        return
     if s['strategy']=='剩餘局數預算法' and s.get('rounds_cycle_v2'):
         # Only the current-round PnL baseline and remaining count change.
         s['peak_pnl']=max(s.get('peak_pnl',0),s['pnl'],0)
@@ -2211,6 +2269,11 @@ def details(s):
         result['line'] = f'設定最大{maximum}關｜天門固定有效{effective}關（1／3／7／15／31）'
         if maximum > 5:
             result['warning'] = '天門內建倍率只有5關，最大關卡超過5不會自動產生新的倍率；第5關掛後暫停。'
+    elif sid == 'win_loss_dual':
+        w=s.get('dual_win_sequence',[])
+        l=s.get('dual_loss_sequence',[])
+        result['effective']=len(w)
+        result['line']=f'#27 勝進{len(w)}關／首掛負追{len(l)}關；勝進中途掛回首，負追末關全掛暫停'
     elif sid == 'winner' and s.get('win_mode_version')==2:
         # #14 sprint uses the selected stage cap, NOT the obsolete 1/1 sequence.
         result['effective']=maximum
