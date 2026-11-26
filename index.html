@@ -1502,6 +1502,48 @@ def quote(s):
         quote['sprint_percent']=chosen_pct
     return quote,''
 
+def recover_overlimit_win_stage(s):
+    """Auto-return #99/#27 to a legal first stake without relaxing safety caps."""
+    k=sid(s)
+    if k not in ('custom_win','win_loss_dual') or s.get('win_mode_version')!=2:
+        return False
+    status=s.get('session_status','active')
+    if status not in ('active','paused_funds'):
+        return False
+    if status=='paused_funds' and not any(x in s.get('strategy_pause_reason','') for x in ('下局總注超過','本局總投入超過','限紅','額外注額上限')):
+        return False
+    p=progression._p(s)
+    if int(p.get('step',0))<1 or p.get('exhausted') or p.get('done'):
+        return False
+    if dec(s['pnl'])<=-dec(s['loss_limit']) or dec(s['pnl'])>=dec(s['profit_target']):
+        return False
+    q,why=quote(s)
+    market=s.get('market','單球')
+    quote_amount=(dec(q['per']) if market=='單球' else dec(q['total'])) if q else dec(0)
+    over_limit=(
+        why in ('下局總注超過剩餘停損額度，不得執行','本局總投入超過可用資金，不得執行')
+        or why.startswith('使用者額外注額上限暫停')
+        or (q is not None and quote_amount>dec(s.get('table_max_bet',10**10)))
+    )
+    if not over_limit:
+        return False
+    candidate=copy.deepcopy(s)
+    next_round(candidate,refresh=True)
+    candidate['session_status']='active'
+    candidate['strategy_pause_reason']=''
+    first,reason=quote(candidate)
+    if not first:
+        return False
+    amount=dec(first['per'] if market=='單球' else first['total'])
+    if amount<dec(s.get('table_min_bet',1)) or amount>dec(s.get('table_max_bet',10**10)):
+        return False
+    next_round(s,refresh=True)
+    s['session_status']='active'
+    s['strategy_pause_reason']=''
+    s['round_notice']=('#27 下關超額，安全回勝進第1關；累計紀錄保留'
+                       if k=='win_loss_dual' else '#99 下關超額，安全回勝進第1關；累計紀錄保留')
+    return True
+
 def evaluate(s):
     if s.get('sizing_version')!=180:return 0,'舊版帳目待結算；請開始新版計畫'
     q,reason=quote(s)
@@ -1787,6 +1829,8 @@ def after_result(s,win,delta):
             set_operation_budget(s,dec(operation_budget(s))-dec(protection_added))
             refresh_base(s)
 
+    if not boundary and k=='custom_win' and recover_overlimit_win_stage(s):
+        return
     if not boundary:return
     s['round_complete_count']+=1
     profit=cents(s['pnl']-s['round_start_pnl'])
@@ -2850,6 +2894,8 @@ def web_call(action, payload_json='{}'):
                     if isinstance(STATE.get('plan_state'),dict):
                         STATE['plan_state']['exhausted']=False
                 STATE['round_offer']=False
+                # Recover old #99 stalled stages without resetting PnL/ledger.
+                sizing.recover_overlimit_win_stage(STATE)
             UNDO=p.get('undo') if isinstance(p.get('undo'),dict) else None
             if UNDO is not None and UNDO.get('strategy')=='兩關分層法':
                 UNDO=copy.deepcopy(UNDO)
