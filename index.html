@@ -4076,10 +4076,19 @@ function render(){
   $('#win-button').disabled=!valid;$('#loss-button').disabled=!valid;
   $('#undo-button').disabled=busy||!data?.undoAvailable;
   $('#finish-button').disabled=busy||!on||s?.session_status==='settled';
-  $('#resume-button').classList.toggle('hidden',!data?.canResume);
-  $('#resume-button').disabled=busy||!data?.canResume;
-  // Make the recovery action discoverable when a finite chase ends.
-  if(data?.canResume)$('#more-actions').classList.remove('hidden');
+  // #27 manual recovery must be visible in the main view, not inside
+  // the closed plan-management drawer; retain a single wired button.
+  const resumeButton=$('#resume-button');
+  const showDualResume=!!data?.canResume&&s?.strategy==='勝進負追雙軌法'&&s?.session_status==='paused_strategy';
+  if(showDualResume){
+    const mainActions=$('.action-grid');
+    if(resumeButton.previousElementSibling!==mainActions)mainActions.after(resumeButton);
+  }else if(resumeButton.parentElement!==$('#more-actions')){
+    $('#more-actions').prepend(resumeButton);
+  }
+  resumeButton.classList.toggle('full',showDualResume);
+  resumeButton.classList.toggle('hidden',!data?.canResume);
+  resumeButton.disabled=busy||!data?.canResume;
   const availableGain=Number(data?.allocatable||0),pendingRoll=Number(data?.pendingRoll||0);
   const canDistribute=on&&!busy&&s.session_status!=='settled';
   const canLock=canDistribute&&data?.canLock&&availableGain>0;
