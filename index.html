@@ -2314,7 +2314,7 @@ def progress_line(s):
 """Single source for release text, catalog and precise instruction cards."""
 FORMULAS={
 0:'未取整每碼基額＝(一份÷碼數÷有效配注序列和)。掛進、中回首；末階後回首開新輪。',
-99:'第一關每碼=floor(操作金÷切分份數÷碼數)，自訂倍率第一項固定為1；之後依首關基額×指定倍率（不除倍率總和），中進、掛回首，序列走完下一輪。',
+99:'第一關每碼=floor(操作金÷切分份數÷碼數)，自訂倍率第一項固定為1；之後依首關基額×指定倍率（不除倍率總和），中進、掛回首；下關超額且首關可下注時自動回第一關，累計紀錄不歸零。',
 66:'#66 逐關分層：固定4層、每層預設4格、最多10格。每格填寫每碼下注金額，實際本局總注＝每碼×下注碼數。每層尾端可填0或留空，整個尾端層可停用。中獎進同層下一個啟用關，最後關中退上一層第1關；掛則跳下一個啟用層，若沒有下一層就暫停。每局皆檢查可用資金、停損和限紅。',
 1:'#01 高點獲利鎖定：第一局每碼＝floor(操作金÷切分份數÷碼數)。每局依可用操作金（原操作金＋累積淨盈虧－已鎖利）重新分切；每次獲利按自訂比例自動鎖利，未鎖獲利持續投入。連續達指定鎖利次數完成一週期，掛則連續次數歸零；不設最大關卡。',
 2:'起始基額＝floor(一份÷碼數÷10)。調節倍數＝剩餘停損÷初始停損×份數÷(份數＋floor(停利進度×12))。',
@@ -2338,7 +2338,9 @@ FORMULAS={
 22:'每碼＝ceil((未回補虧損＋回補目標)÷(含本金賠率－碼數))。分母≤0不計算。',
 23:'每期先提供本期預估中獎率p。b＝含本金賠率÷碼數－1；f＝(b×p－(1－p))÷b。每碼＝floor(一份×f×凱利折數÷碼數)；未提供p、b≤0或f≤0不進場。',
 24:'新輪未取整每碼基額＝(一份÷初始清單和÷碼數)，同輪固定。倍數取首尾和，單項僅一次；掛追加、中刪首尾。清空才完成；不受連掛或關卡上限重置。新輪基額依當前操作預算重新算；鎖利扣預算，滾利加當次可滾獲利。',
-26:'每碼=floor((原操作金＋當前淨盈虧－已鎖利)÷本輪等份÷下注碼數)；每局都依剩餘可用金重算注碼。固定輸入相同等份，區間在每輪開始時均勻隨機抽一個整數；掛沿用本輪等份、中則下輪重新抽。等份數不是關卡上限，無法再分切出符合限紅的整數注碼才停止（仍遵守停損等安全設定）。累計已結算週期淨獲利達起始操作金100%時，已鎖金額不重複計入，超額獲利全鎖，操作預算歸回起始值，開始下一週期。'}
+26:'每碼=floor((原操作金＋當前淨盈虧－已鎖利)÷本輪等份÷下注碼數)；每局都依剩餘可用金重算注碼。固定輸入相同等份，區間在每輪開始時均勻隨機抽一個整數；掛沿用本輪等份、中則下輪重新抽。等份數不是關卡上限，無法再分切出符合限紅的整數注碼才停止（仍遵守停損等安全設定）。累計已結算週期淨獲利達起始操作金100%時，已鎖金額不重複計入，超額獲利全鎖，操作預算歸回起始值，開始下一週期。',
+27:'勝進預設13關：1/1/2/4/2/4/8/4/8/16/8/16/32；起點掛後，負追1/2/4的第一注1倍已用，下一注2倍；負追中回勝進第1關，勝進中途掛一律回首關，負追末關全掛暫停，可手動開新輪。每碼=floor(操作金÷切分份數÷碼數)×當關倍率；超額且首關合法才回首關，保留累計紀錄。'
+}
 
 def describe(code):
     if code==8:
@@ -2347,6 +2349,8 @@ def describe(code):
         return FORMULAS[9]+'\n每碼向下取整；原始一份金額是單輪計算基準，不代表每輪另行補款。'
     if code==10:
         return FORMULAS[10]+'\n每碼下注為整數；整體停利停損與限紅、可用資金檢查依然有效；不保證獲利。'
+    if code in (99,27):
+        return FORMULAS[code]+'\n停利停損、限紅與可用金限制仍有效；第一關也超額時必須停止，不保證獲利。'
     text=FORMULAS[code]
     text+='\n一般策略每關：每碼=floor(未取整基額×當關倍率)；不下注小數，不足1元／碼則暫停。#22回補策略保留ceil例外，仍為整數。下局總注若高於可用金、操作預算或剩餘停損額度，先暫停，不縮注。'
     if 1<=code<=13 or code in (22,23):
@@ -2567,12 +2571,18 @@ def new_state(config):
         s.update(peak_lock_version=2,peak_lock_percent=float(pct_raw),
                  peak_lock_target=int(target_raw),
                  peak_lock_streak=0,peak_lock_cycles=0,peak_lock_total=0)
-    for key in ('loss_sequence','win_sequence','custom_win_sequence','layer_sequence','attack_sequence','retreat_sequence','cancel_list'):
+    for key in ('loss_sequence','win_sequence','custom_win_sequence','dual_win_sequence','dual_loss_sequence','layer_sequence','attack_sequence','retreat_sequence','cancel_list'):
         if key in config:
             seq=config[key]
             if not isinstance(seq,list) or not seq or len(seq)>100 or any(not 0<x<=100000 for x in seq):
                 raise ValueError('倍率序列格式錯誤')
             s[key] = seq
+    if strategy_code==27:
+        w=s['dual_win_sequence']
+        l=s['dual_loss_sequence']
+        if not 1<=len(w)<=50 or not 2<=len(l)<=10 or w[0]!=1 or l[0]!=1:
+            raise ValueError('#27 勝進1～50關、負追2～10關，且兩組倍率第一項必須為1')
+        s.update(win_mode_version=2,max_steps=len(w))
     if strategy_code in (14,99):
         # Keep legacy loaded sessions on the historical formula, but every
         # newly created winning plan explicitly opts into independent first bet.
@@ -2792,8 +2802,13 @@ def settle(outcome, action_id=None):
             due_to_high_point=(s['strategy']=='多因子防守共識法' and (reason or '').startswith('#10') and '回撤' in (reason or ''))
             s['session_status']='paused_drawdown' if due_to_high_point else 'paused_funds'
             s['strategy_pause_reason']=reason or '剩餘操作金無法繼續下注，計畫停止'
-    if (s.get('strategy')=='逐關分層法' and s.get('twoleg_version') in (3,4)
+    if (s.get('strategy')=='勝進負追雙軌法'
         and s.get('plan_state',{}).get('exhausted')
+        and s.get('session_status')=='active'):
+        s['session_status']='paused_strategy'
+        s['strategy_pause_reason']='#27 負追末關全掛，已暫停本輪；可手動恢復第一關'
+    if (s.get('strategy')=='逐關分層法' and s.get('twoleg_version') in (3,4)
+        and s.get('plan_state',{}).get('exhausted'
         and s.get('session_status')=='active'):
         s['session_status']='paused_strategy'
         active_last=(s.get('layer_active_count',4) if s.get('twoleg_version')==4 else 4)
