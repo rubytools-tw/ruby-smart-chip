@@ -199,7 +199,7 @@ jobs:
               page.locator('[name=count]').fill('5')
               page.locator('[name=planned]').fill('35')
               page.locator('details.advanced').evaluate('(el)=>{el.open=true;}')
-    page.locator('[name=profitPct]').fill('10000')
+              page.locator('[name=profitPct]').fill('10000')
               page.locator('[name=sequenceInput]').fill('1,1000')
               page.locator('#start-button').click()
               page.wait_for_function("!document.querySelector('#win-button').disabled")
@@ -226,7 +226,7 @@ jobs:
               page.locator('[name=parts]').fill('20')
               page.locator('[name=count]').fill('5')
               page.locator('details.advanced').evaluate('(el)=>{el.open=true;}')
-    page.locator('[name=profitPct]').fill('10000')
+              page.locator('[name=profitPct]').fill('10000')
               page.locator('#start-button').click()
               page.wait_for_function("!document.querySelector('#loss-button').disabled")
               assert page.locator('#per-code').inner_text()=='100'
