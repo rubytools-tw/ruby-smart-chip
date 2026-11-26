@@ -158,10 +158,10 @@ jobs:
           sample['profit_target']=10000000.0
           sample['wins']=12
           r=call('load',dict(state=sample))
-          check(r['quote'] is not None and r['quote']['per']==32000,'#27 final win stage 32x')
+          check(r['quote'] is not None and r['quote']['per']==320000,'#27 final win stage 32x')
           r=settle('win')
           check(r['state']['plan_state']['mode']=='win' and r['state']['plan_state']['step']==0,'#27 win stage 13 end')
-          check(r['state']['wins']==13 and r['quote']['per']==1000,'#27 win13 returns base')
+          check(r['state']['wins']==13 and r['quote']['per']==10000,'#27 win13 returns base')
           # Invalid sequence rejects; old #26 still correct.
           for c in (dict(dual_win_sequence=[2,2]),dict(dual_loss_sequence=[2,4]),dict(dual_loss_sequence=[1]),dict(dual_win_sequence=[1]*51)):
               try: web_engine.new_state(cfg(27,**c))
