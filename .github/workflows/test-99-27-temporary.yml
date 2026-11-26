@@ -99,7 +99,7 @@ jobs:
               check(r['quote'] is not None,f'#99 no quote before #{i+1}')
               r=settle('win')
           check(r['state']['web_batch_total_cap']==70 and r['state']['wins']==35,'#99 auto batch #2')
-          check(r['quote'] is not None and r['state']['session_status']=='active','#99 36th quote not ready')
+          check(r['quote'] is not None and r['state']['session_status']=='active',f"#99 36th quote not ready: session={r['state']['session_status']}, status={r['status']}, wins={r['state']['wins']}, pnl={r['state']['pnl']}, limit={r['state']['profit_target']}, cap={r['state']['web_batch_total_cap']}, stage={r['state']['plan_state']}, q={r['quote']}")
           r=settle('win')
           check(r['state']['wins']==36,'#99 36th result')
           print('#99 OVERLIMIT + UNDO + LEGACY BACKUP + #2: PASS')
