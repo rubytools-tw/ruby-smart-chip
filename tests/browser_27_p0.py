@@ -21,7 +21,7 @@ try:
         page.wait_for_function("typeof callPython==='function' && !!document.querySelector('#strategy-select option[value=\"27\"]')",timeout=120000)
         assert page.locator("#strategy-select option").count()==27
         assert page.locator("#strategy-select option").last.get_attribute("value")=="27"
-        assert page.locator("#view-strategies .drawer-head").inner_text().find("27 套策略中心")>=0
+        assert page.locator("#view-strategies .drawer-head").text_content().find("27 套策略中心")>=0
         cfg={"strategy":27,"operation":1000,"parts":10,"count":5,"maxSteps":8,"planned":35,
              "market":"單球","profitPct":10000,"lossPct":100,"minBet":1,"maxBet":20000,
              "dual_win_sequence":[1,2,4,8,16,2,4,8],"dual_loss_sequence":[1,2,4]}
