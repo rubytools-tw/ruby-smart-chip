@@ -1,0 +1,37 @@
+name: Verify Smart Chip #27 P0
+on:
+  push:
+    branches:
+      - fix/smart-chip-27-p0-profit-protection-20261126
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  core-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify embedded JavaScript syntax
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          html=Path("index.html").read_text(encoding="utf-8")
+          scripts=re.findall(r'<script>([\s\S]*?)</script>',html)
+          assert scripts, "Missing app JS"
+          Path("/tmp/ruby_app.js").write_text(scripts[-1],encoding="utf-8")
+          PY
+          node --check /tmp/ruby_app.js
+      - name: Run full-engine #27 regression tests
+        run: python -m unittest discover -s tests -p "test_27_p0.py" -v
+      - name: Confirm no production deployment
+        run: |
+          echo "Test branch only; production main is not updated."
