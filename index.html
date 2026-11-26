@@ -2773,6 +2773,11 @@ def settle(outcome, action_id=None):
             s['round_limit']=new_cap
             if not s.get('round_offer') and s.get('session_status')=='active' and not s.get('strategy_pause_reason'):
                 s['round_notice']=f'進度 #{count//batch+1} 已開始；累計紀錄與資金保留'
+            # At the exact batch boundary, the stage quote was evaluated
+            # before the new cap was installed. Re-evaluate #99/#27 ONLY
+            # after advancing the count, without loosening risk limits.
+            if s['strategy'] in ('自訂關卡配注法（勝近）','勝進負追雙軌法'):
+                sizing.recover_overlimit_win_stage(s)
     added=cash(max(0,s['locked_profit']-old_lock))
     if added>0:record['automatic_lock']=added
     if sizing.plan_limit_reached(s):
