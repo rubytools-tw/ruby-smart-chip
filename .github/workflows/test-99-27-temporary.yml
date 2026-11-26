@@ -94,7 +94,7 @@ jobs:
           snapshot=call('load',dict(state=unsafe))
           check(snapshot['state']['plan_state']['step']==1 and snapshot['quote'] is None,'#99 should still block all stages when first stake unaffordable')
           # Real 35 then #2 with fallback and original count.
-          r=call('start',cfg(99,operation=1000,parts=5,count=5,custom_win_sequence=[1,100]))
+          r=call('start',cfg(99,operation=1000,parts=5,count=5,custom_win_sequence=[1,1000]))
           for i in range(35):
               check(r['quote'] is not None,f'#99 no quote before #{i+1}')
               r=settle('win')
