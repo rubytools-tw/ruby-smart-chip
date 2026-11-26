@@ -199,7 +199,7 @@ jobs:
               page.locator('[name=count]').fill('5')
               page.locator('[name=planned]').fill('35')
               page.locator('[name=profitPct]').fill('10000')
-              page.locator('[name=sequenceInput]').fill('1,100')
+              page.locator('[name=sequenceInput]').fill('1,1000')
               page.locator('#start-button').click()
               page.wait_for_function("!document.querySelector('#win-button').disabled")
               page.locator('#win-button').click()
