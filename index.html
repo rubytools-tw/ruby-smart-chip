@@ -896,6 +896,8 @@ def init(s):
     s['plan_state']=dict(step=0,mode='trigger',leg=0,recent=[],debt=0.0,exhausted=False,done=False)
     if BY_NAME.get(s.get('strategy'),{}).get('id') == 'win_loss_dual':
         s['plan_state']['mode']='win'
+        s['plan_state']['dual_cycle_start_pnl']=s.get('pnl',0.0)
+        s['plan_state']['dual_cycle_start_locked']=s.get('locked_profit',0.0)
     if BY_NAME.get(s.get('strategy'),{}).get('id') == 'labouchere':
         s['plan_state']['list']=copy.deepcopy(s['cancel_list'])
     # Original 1.6.6 guard would change the definition of these strategies.
@@ -1345,7 +1347,7 @@ def quote(s):
             limit=dec(s['operation_base'])*dec(s.get('consensus_drawdown_pct',20))/dec(100)
             if decline+dec('0.00000001')>=limit:
                 return None,f'#10 高點保護已啟動，回撤 {cents(decline):g} 元達設定門檻 {cents(limit):g} 元，已暫停；盈虧與鎖利保留'
-    if s.get('open_quote'):
+    if s.get('open_quote') and sid(s)!='win_loss_dual':
         existing=s['open_quote']
         if dec(existing['total']) > max(dec(0),dec(s['loss_limit'])+dec(s['pnl'])):
             return None,'下局總注超過剩餘停損額度，不得執行'
@@ -1492,7 +1494,31 @@ def quote(s):
         chosen_pct=None
     if s['strategy']=='損益波動調節法' and s.get('volatility_split_v2') and per>0:
         per=min(per,int(s.get('table_max_bet',per)))
+    dual_protection=None
+    if k=='win_loss_dual' and s.get('win_mode_version')==2 and p.get('mode','win')=='win':
+        # A single winning cycle may lose no more than its own first wager.
+        # Previous winning cycles and chase PnL do not inflate the limit.
+        first_total=dec(floor(base_raw(s))*n)
+        start_pnl=dec(p.get('dual_cycle_start_pnl',s.get('round_start_pnl',s['pnl'])))
+        start_locked=dec(p.get('dual_cycle_start_locked',s.get('locked_profit',0)))
+        newly_locked=max(dec(0),dec(s.get('locked_profit',0))-start_locked)
+        usable_gain=dec(s['pnl'])-start_pnl-newly_locked
+        winning_cap=max(dec(0),first_total+usable_gain)
+        requested_total=dec(per*n)
+        caps=[dec(per),winning_cap/dec(n),
+              max(dec(0),dec(available(s)))/dec(n),
+              max(dec(0),dec(s['loss_limit'])+dec(s['pnl']))/dec(n)]
+        table_cap=dec(s.get('table_max_bet',10**10))
+        caps.append(table_cap if s.get('market','單球')=='單球' else table_cap/dec(n))
+        if s.get('extra_caps_enabled'):
+            caps.extend([dec(s['stake_cap']),dec(s['total_cap'])/dec(n)])
+        per=floor(max(dec(0),min(caps)))
+        dual_protection=dict(firstTotal=int(first_total),usableGain=cents(usable_gain),
+                             maxTotal=cents(winning_cap),requestedTotal=int(requested_total),
+                             actualTotal=per*n,trimmed=per*n<requested_total)
     total=per*n
+    if per<1 and dual_protection is not None:
+        return None,'#27 勝進保本額度、可用金、停損或限紅不足每碼1元，已暫停'
     if per<1:
         if layer_v3:
             return None,'#66 本格總下注金額不足分配成整數每碼注額，請提高此格金額'
@@ -1516,12 +1542,14 @@ def quote(s):
                round_id=s['round_id'],config_revision=s.get('config_revision',0))
     if k=='winner' and s.get('win_mode_version')==2 and chosen_pct is not None:
         quote['sprint_percent']=chosen_pct
+    if dual_protection is not None:
+        quote['dualProtection']=dual_protection
     return quote,''
 
 def recover_overlimit_win_stage(s):
-    """Auto-return #99/#27 to a legal first stake without relaxing safety caps."""
+    """Auto-return #99 to a legal first stake; #27 reduces win stakes in place."""
     k=sid(s)
-    if k not in ('custom_win','win_loss_dual') or s.get('win_mode_version')!=2:
+    if k!='custom_win' or s.get('win_mode_version')!=2:
         return False
     status=s.get('session_status','active')
     if status not in ('active','paused_funds'):
@@ -1556,8 +1584,7 @@ def recover_overlimit_win_stage(s):
     next_round(s,refresh=True)
     s['session_status']='active'
     s['strategy_pause_reason']=''
-    s['round_notice']=('#27 下關超額，安全回勝進第1關；累計紀錄保留'
-                       if k=='win_loss_dual' else '#99 下關超額，安全回勝進第1關；累計紀錄保留')
+    s['round_notice']='#99 下關超額，安全回勝進第1關；累計紀錄保留'
     return True
 
 def evaluate(s):
@@ -2776,7 +2803,7 @@ def settle(outcome, action_id=None):
             # At the exact batch boundary, the stage quote was evaluated
             # before the new cap was installed. Re-evaluate #99/#27 ONLY
             # after advancing the count, without loosening risk limits.
-            if s['strategy'] in ('自訂關卡配注法（勝近）','勝進負追雙軌法'):
+            if s['strategy']=='自訂關卡配注法（勝近）':
                 sizing.recover_overlimit_win_stage(s)
     added=cash(max(0,s['locked_profit']-old_lock))
     if added>0:record['automatic_lock']=added
@@ -2797,8 +2824,8 @@ def settle(outcome, action_id=None):
         (s['strategy']=='獲利回吐底線法' and s.get('giveback_roll_v2')) or
         (s['strategy']=='剩餘局數預算法' and s.get('rounds_cycle_v2')) or
         s['strategy']=='多因子防守共識法' or
-        layer4
-        ) and s.get('session_status')=='active' and not (layer4 and exhausted):
+        layer4 or s['strategy']=='勝進負追雙軌法'
+        ) and s.get('session_status')=='active' and not ((layer4 or s['strategy']=='勝進負追雙軌法') and exhausted):
         # After settlement, stop if no next whole-number stake meets funds,
         # configured stop loss and table limits. Never silently auto-top-up.
         next_quote,reason=sizing.quote(s)
